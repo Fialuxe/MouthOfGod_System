@@ -1,0 +1,19 @@
+{
+    "name": "MouthOfGod.Tracking",
+    "rootNamespace": "MouthOfGod.Tracking",
+    "references": [
+        "meta.xr.mrutilitykit",
+        "Oculus.VR",
+        "Unity.InputSystem",
+        "AprilTag.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
