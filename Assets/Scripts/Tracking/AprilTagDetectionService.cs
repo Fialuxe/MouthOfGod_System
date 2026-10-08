@@ -10,33 +10,41 @@ namespace MouthOfGod.Tracking
 {
     /// <summary>
     /// パススルーカメラの RGB フレームから AprilTag を検出し、ワールド座標の姿勢を <see cref="IAprilTagSource"/> として公開する。
-    /// シーンに 1 つだけ置く。カメラの読み出しと検出は重いため、タグごとではなくここで 1 回だけ行い、
-    /// 各 <see cref="AprilTagPlace"/> が結果を共有する。
+    /// シーンに 1 つだけ存在する（<see cref="AprilTagPlace"/> が必要なときに自動で作るので、手で置かなくてよい）。
+    /// カメラの読み出しと検出は重いため、タグごとではなくここで 1 回だけ行い、各 <see cref="AprilTagPlace"/> が結果を共有する。
+    /// 設定は <see cref="AprilTagSettings"/>（<c>Resources/AprilTagSettings.asset</c>）から読む。
     /// </summary>
     [RequireComponent(typeof(PassthroughCameraAccess))]
     [DefaultExecutionOrder(-50)]
     public sealed class AprilTagDetectionService : MonoBehaviour, IAprilTagSource
     {
-        [Header("Detection")]
-        [Tooltip("タグの黒い外枠を含む一辺の長さ（メートル）。実物の寸法と一致させる。")]
-        [SerializeField] float _tagSizeMeters = 0.1f;
+        /// <summary>シーンにあればそれを、なければ作って返す。<see cref="AprilTagPlace"/> が使うので、手で置く必要はない。</summary>
+        public static AprilTagDetectionService GetOrCreate()
+        {
+            if (_instance != null) return _instance;
 
-        [Tooltip("検出時に画像を縮小する倍率。大きいほど速いが、遠くのタグを検出しにくくなる。")]
-        [SerializeField, Min(1)] int _decimation = 2;
+            var existing = FindAnyObjectByType<AprilTagDetectionService>();
+            if (existing != null) return existing;
 
-        [Tooltip("検出の最小間隔（秒）。0 でカメラの新しいフレームごとに検出する。")]
-        [SerializeField, Min(0f)] float _minDetectIntervalSeconds = 0.05f;
+            var go = new GameObject("AprilTag Detection");
+            return go.AddComponent<AprilTagDetectionService>();
+        }
 
-        [Header("Diagnostics")]
-        [Tooltip("検出回数・処理時間・検出した ID を、一定間隔でログに出す（Issue #25 の検証用）。")]
-        [SerializeField] bool _logStats = true;
-        [SerializeField, Min(0.5f)] float _statsIntervalSeconds = 2f;
+        static AprilTagDetectionService _instance;
+
+        // Domain Reload を切っていても、Play のたびに初期化する。
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics()
+        {
+            _instance = null;
+        }
 
         public event Action<IReadOnlyList<AprilTagObservation>> ObservationsUpdated;
 
         readonly List<AprilTagObservation> _observations = new List<AprilTagObservation>();
         readonly Dictionary<int, AprilTagObservation> _latest = new Dictionary<int, AprilTagObservation>();
 
+        AprilTagSettings _settings;
         PassthroughCameraAccess _camera;
         TagDetector _detector;
         Vector2Int _detectorResolution;
@@ -60,11 +68,23 @@ namespace MouthOfGod.Tracking
 
         void Awake()
         {
+            if (_instance != null && _instance != this)
+            {
+                Debug.LogWarning("[AprilTag] AprilTagDetectionService が複数ある。1 つだけ使う。", this);
+            }
+            else
+            {
+                _instance = this;
+            }
+
+            _settings = AprilTagSettings.Load();
             _camera = GetComponent<PassthroughCameraAccess>();
+            if (GetComponent<AprilTagRecalibrateInput>() == null) gameObject.AddComponent<AprilTagRecalibrateInput>();
         }
 
         void OnDestroy()
         {
+            if (_instance == this) _instance = null;
             DisposeDetector();
         }
 
@@ -85,7 +105,7 @@ namespace MouthOfGod.Tracking
             if (now < _nextDetectAt) return;
             if (_camera.Timestamp == _lastTimestamp) return; // 新しいフレームが来ていない
             _lastTimestamp = _camera.Timestamp;
-            _nextDetectAt = now + _minDetectIntervalSeconds;
+            _nextDetectAt = now + _settings.MinDetectIntervalSeconds;
 
             Detect(now);
             LogStatsIfDue(now);
@@ -108,7 +128,7 @@ namespace MouthOfGod.Tracking
             var fov = AprilTagGeometry.VerticalFovRadians(imageIntrinsics.FocalLength.y, resolution.y);
 
             _stopwatch.Restart();
-            _detector.ProcessImage(colors.AsReadOnlySpan(), fov, _tagSizeMeters);
+            _detector.ProcessImage(colors.AsReadOnlySpan(), fov, _settings.TagSizeMeters);
             _stopwatch.Stop();
 
             _observations.Clear();
@@ -136,7 +156,7 @@ namespace MouthOfGod.Tracking
         {
             if (_detector != null && _detectorResolution == resolution) return;
             DisposeDetector();
-            _detector = new TagDetector(resolution.x, resolution.y, _decimation);
+            _detector = new TagDetector(resolution.x, resolution.y, _settings.Decimation);
             _detectorResolution = resolution;
         }
 
@@ -148,10 +168,10 @@ namespace MouthOfGod.Tracking
 
         void LogStatsIfDue(double now)
         {
-            if (!_logStats) return;
+            if (!_settings.LogStats) return;
             if (_statsStartedAt == 0d) _statsStartedAt = now;
             var span = now - _statsStartedAt;
-            if (span < _statsIntervalSeconds) return;
+            if (span < _settings.StatsIntervalSeconds) return;
 
             if (_statsFrames > 0)
             {

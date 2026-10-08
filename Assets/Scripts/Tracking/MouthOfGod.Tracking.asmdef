@@ -3,6 +3,8 @@
     "rootNamespace": "MouthOfGod.Tracking",
     "references": [
         "meta.xr.mrutilitykit",
+        "Oculus.VR",
+        "Unity.InputSystem",
         "AprilTag.Runtime"
     ],
     "includePlatforms": [],

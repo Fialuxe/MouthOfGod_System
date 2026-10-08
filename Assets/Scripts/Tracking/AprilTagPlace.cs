@@ -19,7 +19,6 @@ namespace MouthOfGod.Tracking
     {
         [Header("Tag")]
         [SerializeField] int _tagId;
-        [SerializeField] AprilTagDetectionService _source;
 
         [Header("Target")]
         [Tooltip("動かす対象。空なら、このコンポーネントが付いた GameObject 自身。")]
@@ -51,6 +50,9 @@ namespace MouthOfGod.Tracking
         [Tooltip("この時間、タグが見えなければ見失ったとみなす（秒）。固定モードでは使わない。")]
         [SerializeField, Min(0f)] float _lostTimeoutSeconds = 0.5f;
 
+        static readonly List<AprilTagPlace> ActivePlaces = new List<AprilTagPlace>();
+
+        IAprilTagSource _source;
         PoseTracker _tracker;
         PoseCalibrator _calibrator;
         Pose _lockedPose;
@@ -73,14 +75,25 @@ namespace MouthOfGod.Tracking
 
         Transform Target => _target != null ? _target : transform;
 
+        // Domain Reload を切っていても、Play のたびに初期化する。
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics()
+        {
+            ActivePlaces.Clear();
+        }
+
+        /// <summary>シーン内の、固定モードのすべての <see cref="AprilTagPlace"/> を取り直す。</summary>
+        public static void RecalibrateAll()
+        {
+            // Recalibrate() が Lost を通知し、受け手が Place を無効にしても壊れないよう、複製に対して回す。
+            foreach (var place in ActivePlaces.ToArray()) place.Recalibrate();
+        }
+
         void OnEnable()
         {
-            if (_source == null)
-            {
-                Debug.LogError($"[AprilTagPlace] AprilTagDetectionService が設定されていない（tag {_tagId}）。", this);
-                enabled = false;
-                return;
-            }
+            // 検出サービスは、なければ自動で作られる。手で置いたり、つないだりしなくてよい。
+            _source = AprilTagDetectionService.GetOrCreate();
+            ActivePlaces.Add(this);
 
             _tracker = new PoseTracker(_smoothingSeconds, _lostTimeoutSeconds);
             _tracker.Found += RaiseFound;
@@ -92,6 +105,7 @@ namespace MouthOfGod.Tracking
 
         void OnDisable()
         {
+            ActivePlaces.Remove(this);
             if (_source != null) _source.ObservationsUpdated -= OnObservations;
             if (_tracker != null)
             {
