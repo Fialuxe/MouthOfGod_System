@@ -9,8 +9,8 @@ MouthOfGod_System の開発手順です。Git ブランチ運用 + Unity の Sce
 
 ### 必要なもの
 - Unity **6000.0.73f1**（`ProjectSettings/ProjectVersion.txt` と必ず同じバージョン）
-- Git
-- Scene Fusion（Unity Asset Store / Package Manager から導入。チーム全員が同一アカウントのチームに参加すること）
+- Git（**Unity を起動する前に**インストールしておく。後から入れた場合は Unity と Unity Hub を再起動。ないとパッケージの取得に失敗する）
+- Scene Fusion 2 **クラウド版**（リポジトリに組み込み済み。下記「Scene Fusion のセットアップ」参照）
 
 ### Clone
 ```bash
@@ -18,6 +18,20 @@ git clone https://github.com/Fialuxe/MouthOfGod_System.git
 cd MouthOfGod_System
 ```
 Unity Hub から `Add project from disk` で開く。初回は `Library/` が生成されるため時間がかかります。
+
+### Scene Fusion のセットアップ
+Scene Fusion 2 クラウド版（v2.0.5）は Package Manager 経由でリポジトリに組み込み済みなので、clone して Unity を開けば入る（初回はパッケージ解決に時間がかかる）。**Asset Store 版（Lite / Indie）は LAN 専用なので使わない。**
+
+1. [console.kinematicsoup.com](https://console.kinematicsoup.com/) でアカウントを作る。
+   - Subscription で **Scene Fusion** を選び、**Free** で登録する（これをしないと使えない）。
+2. 作成したアカウントのメールアドレスを、**チームの連絡手段で管理者に報告する**。管理者がプロジェクトに招待する。
+   - 現在は無料枠（**2 席**）のため、招待できる人数に制限がある。席の数え方（登録人数か同時接続数か）は未確認で、Issue #5 で検証中。
+3. 招待メールを承認する。
+4. Unity で `Window > Scene Fusion` を開き、2 のアカウントでログインする。
+
+- アカウントのメールアドレスは Unity のものと同じでも別でもよい（連携していない）。
+- Scene Fusion のプロジェクト ID は `Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset` に入っており、Git で共有している（認証情報ではない）。
+- 使用時のルールは第 3 章を参照。
 
 ### Unity のエディタ設定（確認）
 - `Edit > Project Settings > Editor`
