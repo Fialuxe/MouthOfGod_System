@@ -10,7 +10,8 @@ VR・位置取得。いまは、パススルーカメラの映像から AprilTag
 |---|---|
 | `AprilTagDetectionService` | シーンに **1 つだけ**置く。カメラの RGB フレームを読み、AprilTag を検出して、ワールド座標の姿勢を公開する（`IAprilTagSource`）。カメラの読み出しと検出は重いので、タグごとではなくここで 1 回だけ行う |
 | `AprilTagPlace` | **タグ 1 枚につき 1 つ**、シーンに置く。指定した ID のタグの位置に、対象の Transform（既定は自分自身）を合わせる |
-| `PoseTracker` | 平滑化と「見つけた／見失った」の判定（Unity のオブジェクトに依存しない） |
+| `PoseTracker` | 追従モードの、平滑化と「見つけた／見失った」の判定（Unity のオブジェクトに依存しない） |
+| `PoseCalibrator` | 固定モードの、観測の収集と、外れ値を除いた平均（同上） |
 | `AprilTagGeometry` | 内部パラメータの換算と座標変換（同上） |
 | `AprilTagObservation` / `IAprilTagSource` | 検出結果と、その供給元のインターフェース |
 
@@ -19,7 +20,7 @@ VR・位置取得。いまは、パススルーカメラの映像から AprilTag
 他の機能が使うのは、次の 3 つだけ。
 
 - `AprilTagPlace` の **Transform**: 子オブジェクトにするか、位置を読む。タグを見失っても、最後の位置に残る。
-- `AprilTagPlace.IsTracked`: いまタグが見えているか。
+- `AprilTagPlace.IsTracked`: 追従モードでは、いまタグが見えているか。固定モードでは、位置が固定済みか。
 - `AprilTagPlace.Found` / `Lost`: 見つけた／一定時間見えなくなったときのイベント。表示の切り替えなどは、受け取った側で行う。
 
 `AprilTagDetectionService` と `IAprilTagSource` は、この機能の内部。他の機能からは直接使わない。
@@ -31,6 +32,20 @@ VR・位置取得。いまは、パススルーカメラの映像から AprilTag
 3. Quest Link で Play する（Game ビューを前面にする。`docs/vr-setup.md` を参照）。
 
 使うタグは `tagStandard41h12` のみ（使っているライブラリの制約）。画像は [AprilRobotics/apriltag-imgs](https://github.com/AprilRobotics/apriltag-imgs) の `tagStandard41h12/` にある。
+
+## ぶれを抑える
+
+`AprilTagPlace` の Inspector で切り替える（既定はどちらもオフ）。
+
+| 設定 | 効果 | 使いどころ |
+|---|---|---|
+| `Lock After Calibration` | 観測を `Calibration Samples` 個集め、外れ値を除いて平均した位置に置き、**以後は動かさない**。取り直すときは `Recalibrate()`（Play 中は、コンポーネントの `⋮` メニューからも実行できる） | タグが動かない（机に置いたまま使う）とき。最も安定する |
+| `Keep Normal Vertical` | タグ面の法線を鉛直に揃え、傾き（ピッチ・ロール）を捨てる。法線まわりの回転（向き）は残す。`Tag Normal Axis` は、タグ面に垂直な軸（既定は Z） | 机・床など、水平な面に置いたタグ。壁のタグではオフ |
+| `Smoothing Seconds` | 追従モードの平滑化。大きいほどなめらかだが遅れる | 追従モードのとき |
+
+- 固定モードの進み具合は `CalibrationProgress`（0〜1）と `IsCalibrating` で読める。固定が終わると `Found` が呼ばれる。`Recalibrate()` を呼ぶと、`Lost` が呼ばれ、集め直したあとに `Found` が呼ばれる。集め直している間、対象は直前の位置に残る。
+- 固定中は、タグが隠れても、動かしても、位置は変わらない。タグを動かしたら `Recalibrate()` で取り直す。
+- 集めている間は、頭をできるだけ動かさない。
 
 ## 前提と注意
 
