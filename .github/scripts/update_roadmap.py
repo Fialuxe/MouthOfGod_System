@@ -97,7 +97,7 @@ def build(issues, milestones, roadmap_number):
     issues = [
         i for i in issues
         if i["number"] != roadmap_number and i["stateReason"] not in SKIPPED_REASONS
-        and LABEL not in {l["name"] for l in i["labels"]["nodes"]}
+        and not {LABEL, "activity"} & {l["name"] for l in i["labels"]["nodes"]}
     ]
     by_number = {i["number"]: i for i in issues}
     for i in issues:

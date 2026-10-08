@@ -1,8 +1,9 @@
-# ロードマップを、マイルストーンと Issue の依存関係（Blocked by）から作り直す。
-# - ロードマップ Issue（ラベル roadmap）の本文を書き換える
+# ロードマップと活動記録を作り直す。
+# - ロードマップ Issue（ラベル roadmap）: マイルストーンと Issue の依存関係（Blocked by）から
+# - 活動記録 Issue（ラベル activity）: コミット・マージした PR・クローズした Issue から
 # - README に載せる図（SVG）を描き、roadmap-assets ブランチに置く（main は PR 必須なので別ブランチ）
 # 依存関係の変更は Actions のトリガーにならないため、1 時間ごとにも実行する。
-name: Roadmap
+name: Roadmap & Activity
 
 on:
   issues:
@@ -11,7 +12,6 @@ on:
     types: [created, edited, opened, closed, deleted]
   push:
     branches: [main]
-    paths: [".github/scripts/update_roadmap.py", ".github/workflows/roadmap.yml"]
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
@@ -35,6 +35,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 活動記録 Issue を更新し、活動の図を描く
+        run: python3 .github/scripts/update_activity.py --svg-dir svg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -43,7 +48,7 @@ jobs:
         run: |
           sudo apt-get install -y -qq fonts-noto-cjk > /dev/null
           echo '{"args":["--no-sandbox"]}' > puppeteer.json
-          mkdir svg
+          mkdir -p svg
           for f in mmd/*.mmd; do
             npx -y @mermaid-js/mermaid-cli@11.4.2 -p puppeteer.json -b white -i "$f" -o "svg/$(basename "$f" .mmd).svg"
           done

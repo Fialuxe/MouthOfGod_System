@@ -102,6 +102,12 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 
 > 図とバッジは Issue の変更に合わせて自動で更新されます（依存関係だけの変更は 1 時間以内）。マイルストーンを増やしたら、ここにも 1 つ足す（[一覧](https://github.com/Fialuxe/MouthOfGod_System/milestones)）。
 
+### 活動記録
+
+比べるためではなく、**自分がやったことを振り返るための記録**です。話し合い・調べもの・ものづくりなど、数字に出ない作業もたくさんあります。週ごとの数と、最近やったことの一覧は、ピン留めした **[活動記録 Issue](https://github.com/Fialuxe/MouthOfGod_System/issues/104)（#104）** にあります。
+
+![日ごとの活動](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/activity.svg)
+
 ---
 
 ## 1. コンセプト：あなたは神様
