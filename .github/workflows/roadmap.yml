@@ -1,0 +1,29 @@
+# ロードマップ Issue（ラベル roadmap）を、マイルストーンと Issue の依存関係から作り直す。
+# 依存関係（Blocked by）の変更は Actions のトリガーにならないため、1 時間ごとにも実行する。
+name: Roadmap
+
+on:
+  issues:
+    types: [opened, edited, closed, reopened, deleted, transferred, milestoned, demilestoned]
+  milestone:
+    types: [created, edited, opened, closed, deleted]
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: roadmap
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .github/scripts/update_roadmap.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
