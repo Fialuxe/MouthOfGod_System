@@ -63,3 +63,8 @@ crashlytics-build.properties
 .vscode/
 .idea/
 .DS_Store
+
+# Meta XR: local-only (LAN address / access token) and generated binaries
+/Assets/Resources/DevAgentSettings.asset
+/Assets/Resources/DevAgentSettings.asset.meta
+/Assets/XR/APILayers~/
