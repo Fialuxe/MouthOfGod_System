@@ -2,6 +2,7 @@
 
 GitHub Actions（.github/workflows/roadmap.yml）から実行する。手元で試す場合:
     GITHUB_TOKEN=$(gh auth token) GITHUB_REPOSITORY=Fialuxe/MouthOfGod_System python .github/scripts/update_roadmap.py --dry-run
+--mermaid-dir <dir> を付けると、README に載せる図の Mermaid ファイル（milestones.mmd, m<番号>.mmd）も書き出す。
 """
 
 import json
@@ -96,7 +97,7 @@ def build(issues, milestones, roadmap_number):
     issues = [
         i for i in issues
         if i["number"] != roadmap_number and i["stateReason"] not in SKIPPED_REASONS
-        and LABEL not in {l["name"] for l in i["labels"]["nodes"]}
+        and not {LABEL, "activity"} & {l["name"] for l in i["labels"]["nodes"]}
     ]
     by_number = {i["number"]: i for i in issues}
     for i in issues:
@@ -152,16 +153,21 @@ def build(issues, milestones, roadmap_number):
             src, dst = by_number[b]["ms"], i["ms"]
             if src != dst and src is not None and dst is not None:
                 edges.add((src, dst))
-    out += ["", "## マイルストーン同士のつながり", "", "矢印の元のマイルストーンに、先に終わらせる必要がある Issue があります。", "", "```mermaid", "flowchart LR"]
+    graphs = {}  # ファイル名 → Mermaid のコード（README に載せる画像の元）
+    lines = ["flowchart LR"]
     for m, members in groups:
         if m["number"] is None:
             continue
         done = sum(i["state"] == "CLOSED" for i in members)
+        ready = " ".join(f"#35;{i['number']}" for i in members if is_ready(i))
         style = ":::done" if members and done == len(members) else ""
-        out.append(f'  m{m["number"]}["{label_text(m["title"], 30)}<br/>{done}/{len(members)}"]{style}')
+        extra = f"<br/>すぐ着手: {ready}" if ready else ""
+        lines.append(f'  m{m["number"]}["<b>{label_text(m["title"], 30)}</b><br/>{done}/{len(members)} 完了{extra}"]{style}')
     for src, dst in sorted(edges):
-        out.append(f"  m{src} --> m{dst}")
-    out += ["  classDef done fill:#d4edda,stroke:#28a745,color:#155724", "```", ""]
+        lines.append(f"  m{src} --> m{dst}")
+    lines.append("  classDef done fill:#d4edda,stroke:#28a745,color:#155724")
+    graphs["milestones"] = "\n".join(lines)
+    out += ["", "## マイルストーン同士のつながり", "", "矢印の元のマイルストーンに、先に終わらせる必要がある Issue があります。", "", "```mermaid", graphs["milestones"], "```", ""]
 
     out += [
         "## マイルストーンごとの Issue",
@@ -175,7 +181,7 @@ def build(issues, milestones, roadmap_number):
         open_count = sum(i["state"] == "OPEN" for i in members)
         is_done = open_count == 0
         out += [f"<details{'' if is_done else ' open'}>", f"<summary><b>{m['title']}</b>（残り {open_count} / {len(members)}）</summary>", ""]
-        lines, external = ["```mermaid", "flowchart TD"], set()
+        lines, external = ["flowchart TD"], set()
         member_numbers = {i["number"] for i in members}
         for i in members:
             cls = "done" if i["state"] == "CLOSED" else "ready" if is_ready(i) else "waiting"
@@ -194,10 +200,11 @@ def build(issues, milestones, roadmap_number):
             "  classDef waiting fill:#f6f8fa,stroke:#8c959f,color:#24292f",
             "  classDef ext fill:#ffffff,stroke:#8c959f,stroke-dasharray:4 3,color:#57606a",
             "  classDef extdone fill:#ffffff,stroke:#28a745,stroke-dasharray:4 3,color:#57606a",
-            "```",
         ]
-        out += lines + ["", "</details>", ""]
-    return "\n".join(out)
+        if m["number"] is not None:
+            graphs[f"m{m['number']}"] = "\n".join(lines)
+        out += ["```mermaid", *lines, "```", "", "</details>", ""]
+    return "\n".join(out), graphs
 
 
 def main():
@@ -205,7 +212,13 @@ def main():
     found = request("GET", f"{api}/issues?labels={LABEL}&state=open&per_page=10")
     roadmap = found[0] if found else None
     issues, milestones = fetch()
-    body = build(issues, milestones, roadmap["number"] if roadmap else None)
+    body, graphs = build(issues, milestones, roadmap["number"] if roadmap else None)
+    if "--mermaid-dir" in sys.argv:
+        out_dir = sys.argv[sys.argv.index("--mermaid-dir") + 1]
+        os.makedirs(out_dir, exist_ok=True)
+        for name, code in graphs.items():
+            with open(os.path.join(out_dir, f"{name}.mmd"), "w", encoding="utf-8") as f:
+                f.write(code + "\n")
     if "--dry-run" in sys.argv:
         print(body)
         return
