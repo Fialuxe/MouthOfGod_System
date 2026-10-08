@@ -195,6 +195,14 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 - 機能ごとに Assembly Definition（`*.asmdef`）を置くと、依存を**コンパイルで強制**できる。必須ではないが、`Device/` と `Core/` には置くことを推奨する。
 - 定数や設定値（ポート名、しきい値など）をコードに埋め込まず、`ScriptableObject` か Inspector で渡す。
 
+### 最終的に Inspector／Editor の操作が要らないシステムにする（LLM エージェント向け）
+
+GDC では、Link で Unity を Play して動かす。**Play したあとに、人が Inspector や Editor を操作しなくても動く**システムにする。実装するときは、次を満たす。
+
+- Play するだけで動く。Play の前後に、手でつなぐ参照や、手で入れる設定値を残さない。
+- 調整ややり直し（例: AprilTag の位置の取り直し）は、自動処理か、コントローラーのボタンなどのアプリ内の操作でできるようにする。`[ContextMenu]` や Inspector のボタンは開発中の補助にとどめ、唯一の手段にしない。
+- 開発中に Inspector 操作が残るときは、手順を README か PR に書き、コードに置き換える Issue を立てる。
+
 ### デバイス連携（`Device/`）の設計
 旧プロジェクト [MealBeBack](https://github.com/Fialuxe/MealBeBack) のシリアル通信まわりを読んで、次の点を直す。
 
