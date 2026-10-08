@@ -1,3 +1,6 @@
+Temporal teaser
+<img width="1671" height="941" alt="食感で、世界をつくるコンセプトボード" src="https://github.com/user-attachments/assets/dd8857cd-f279-44bb-80bf-cc0e1a6fb04f" />
+
 # MouthOfGod_System
 
 
@@ -16,6 +19,7 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 ---
 
 ## 1. コンセプト：あなたは神様
+<img width="888" height="507" alt="image" src="https://github.com/user-attachments/assets/2de52110-8915-4ed4-b515-ca72c7abd2cd" />
 
 プレイヤーは、村で信仰されている神様です。
 
@@ -98,6 +102,15 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 - ブランチの使い分け: 機能は `feature/`、バグは `fix/`、シーン制作は `scene/`。
 - 動作確認用シーンは `Assets/Scenes/Sandbox/` に自分専用のものを作る。
 - アセットはローポリで統一すると調達しやすい。
+
+
+## 資料
+
+体験スペースと配置イメージ
+<img width="2720" height="1840" alt="field_with_margin_and_ellipse" src="https://github.com/user-attachments/assets/c3650849-d3fd-4aa1-ad91-45972f7e8185" />
+
+雲を食べ物に変える瞬間のイメージ
+<img width="821" height="645" alt="image" src="https://github.com/user-attachments/assets/4b5259a5-8a90-42b4-8b86-b09dd2ed0fa7" />
 
 ## 6. 応募（GDC）
 
