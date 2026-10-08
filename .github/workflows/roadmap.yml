@@ -59,7 +59,7 @@ jobs:
           else
             git checkout --orphan roadmap-assets
           fi
-          git rm -rq --ignore-unmatch .
+          git rm -rfq --ignore-unmatch .
           cp ../svg/*.svg .
           git add -A
           git diff --cached --quiet && exit 0
