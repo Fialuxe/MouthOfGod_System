@@ -18,7 +18,7 @@ PC に Quest を接続し、Unity の Play 中に PC 側で描画する構成。
 ## 手順
 1. **PC 側**: Meta Quest Link アプリを入れ、Quest を接続する。
 2. **Unity を開く**: `git pull` 後、初回はパッケージ解決に時間がかかる。
-3. `Edit > Project Settings > XR Plug-in Management` で、PC タブの **Oculus**（または Meta XR の表示）を有効にする。`Project Validation`（`Meta XR > Project Setup Tool` など）に出る項目を直す。
+3. `Edit > Project Settings > XR Plug-in Management` で、PC タブの **OpenXR** を有効にし、`OpenXR` の項目で **Meta XR Feature**（ある場合）を有効にする。（Core SDK 207 は OpenXR 経由で動く。Play 時のログに `Meta.XR.OpenXRFeatures` / `XRGeneralSettings` が出ていれば、この経路で動いている。）`Project Validation`（`Meta XR > Project Setup Tool` など）に出る項目を直す。
 4. **シーンにリグを置く**: `GameObject > Meta XR > Building Blocks` から **Camera Rig** と **Passthrough** を追加する。MRUK を使うには、**MRUK** の Building Block も追加する。
    - 動作確認用のシーンは `Assets/Scenes/Sandbox/<名前>_vr-test.unity`（CONTRIBUTING.md「サンドボックスシーン」）。`Main.unity` には置かない。
 5. Quest を接続したまま Play し、頭とコントローラーが追従することを確認する。
@@ -33,6 +33,19 @@ PC に Quest を接続し、Unity の Play 中に PC 側で描画する構成。
 4. Link アプリとヘッドセットの両方で、**開発者アカウントでサインイン**している。
 5. カラーのパススルーには、**2 Gbps 以上の USB-C ケーブル**が必要。Link アプリの USB 速度テストで確認できる。
 6. 上記を満たしても出るときは、`OVRManager` の `Passthrough Support`（Supported / Required）と `Insight Passthrough` の設定を確認する。
+
+## 既知の警告（Quest Link 上で出るが、無視してよいと考えているもの）
+Play 時に次の警告が大量に出る。いずれも `LogWarning` で、エラーではない。**頭・コントローラーの追従に問題がなければ、機能への影響はないと考えている**（実機では未確認）。
+
+| 警告 | 原因（コードを読んで確認したもの） |
+|---|---|
+| `XR_ERROR_ACTIONSET_NOT_ATTACHED ... xrGetDeviceSampleRateFB` が**毎フレーム**出る | `OVRManager.LateUpdate()` が、**非推奨の `OVRHaptics.Process()`** を毎フレーム呼び、その中で `Config.Load()` が毎回ハプティクス情報を取りに行く。Link のランタイム側でハプティクスのアクションセットが紐づいていないため失敗する。SDK 側の挙動で、このプロジェクトのコードが原因ではない |
+| `failed to get function pointer for 'xrRequestSceneCaptureFB'` | Link のランタイムが、その拡張関数を実装していない。**Link 上ではシーンキャプチャ（部屋のスキャン）を使えない**ことを示唆する（MRUK の部屋データの取得方法は別途要確認） |
+| `failed to get function pointer for 'xrAgenticRegisterExternalToolMETAX1'` | 実験的な機能で、ランタイムが未対応 |
+| `Local Dimming feature is not supported` | 機種またはランタイムが未対応の機能 |
+
+- `Library/PackageCache/` の中のコードは、直接書き換えない（Git に入らず、再インポートで消える）。
+- Console の警告表示を外す（フィルタ）か、SDK のアップデートを待つ。
 
 ## 要確認（実機で確かめること）
 - **Quest Link 経由でパッケージの機能がどこまで使えるか**: パススルーを Link で使うには、Meta Quest Link アプリ側の設定が必要な場合がある。
