@@ -26,7 +26,13 @@ Unity Hub から `Add project from disk` で開く。初回は `Library/` が生
 ```bash
 git config core.autocrlf false     # 改行コードの差分ノイズを避ける
 git config pull.rebase true        # pull 時にマージコミットを作らない
+git config fetch.prune true        # fetch 時に、リモートで削除済みのブランチの追跡参照を自動で消す
+git config alias.cleanup '!git switch main && git pull && git fetch --prune && git branch -vv | grep ": gone]" | awk "{print \$1}" | xargs -r git branch -D'
 ```
+
+- リモートのブランチは、PR をマージすると GitHub が自動で削除する（リポジトリ設定済み）。
+- ローカルのブランチは、マージ後に `git cleanup` を実行すると、リモートで削除済みのものがまとめて消える（Squash マージ後のブランチは `git branch --merged` で検出できないため、この方法を使う）。
+
 
 ## 2. ブランチ運用
 
