@@ -33,6 +33,18 @@ Scene Fusion 2 クラウド版（v2.0.5）は Package Manager 経由でリポジ
 - Scene Fusion のプロジェクト ID は `Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset` に入っており、Git で共有している（認証情報ではない）。
 - 使用時のルールは第 3 章を参照。
 
+#### 席が足りない・接続できない場合（想定している対処）
+Scene Fusion が使えなくても、開発は止めない。次の順で対処する。
+
+| 状況 | 対処 |
+|---|---|
+| 3 人目以降を招待できない／参加できない（Free は 2 席） | **Scene Fusion を使う人を、シーン制作の担当 2 人に絞る**。それ以外のメンバーは `feature/` `fix/` とサンドボックスシーンで作業する（第 2 章）。シーン制作が増える時期だけ、有料（$25 / 席 / 月、最大 10 席）を必要な席数だけ契約する |
+| 無料枠の制約（20,000 オブジェクト、テレイン編集不可）に当たる | 有料プランにするか、テレインを使わない・シーンを分割してオブジェクト数を抑える |
+| 接続できない・同期が不安定・シーンファイルが破損する | **Scene Fusion をやめ、シーンを分割して担当者を 1 人に決める運用**にする。`scene/` ブランチは 1 人だけが編集し、シーン単位で Git に反映する（同じシーンを同時に触らない） |
+| 有料にしたが期間が終わった | 月額なので解約できる。`Packages/manifest.json` から Scene Fusion を外す PR で、使わない状態に戻せる |
+
+どの対処にするかは、Issue #5 の検証結果で決める。
+
 ### Unity のエディタ設定（確認）
 - `Edit > Project Settings > Editor`
   - **Version Control > Mode**: `Visible Meta Files`
