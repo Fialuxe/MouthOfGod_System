@@ -70,6 +70,42 @@ namespace MouthOfGod.Tracking.Tests
         }
 
         [Test]
+        public void AlignNormalToVertical_TiltedTag_MakesNormalVerticalByMinimalRotation()
+        {
+            // 法線（+z）が真上から 20 度傾いたタグ。
+            var tilted = Quaternion.Euler(-70f, 30f, 0f);
+
+            var result = AprilTagGeometry.AlignNormalToVertical(tilted, Vector3.forward);
+
+            var normal = result * Vector3.forward;
+            Assert.AreEqual(0f, normal.x, Tolerance);
+            Assert.AreEqual(1f, normal.y, Tolerance);
+            Assert.AreEqual(0f, normal.z, Tolerance);
+            Assert.AreEqual(20f, Quaternion.Angle(tilted, result), 0.01f);
+        }
+
+        [Test]
+        public void AlignNormalToVertical_AlreadyVertical_KeepsRotation()
+        {
+            var upright = Quaternion.Euler(-90f, 30f, 0f);
+
+            var result = AprilTagGeometry.AlignNormalToVertical(upright, Vector3.forward);
+
+            Assert.AreEqual(0f, Quaternion.Angle(upright, result), 0.01f);
+        }
+
+        [Test]
+        public void AlignNormalToVertical_NormalPointingDown_StaysPointingDown()
+        {
+            var tiltedDown = Quaternion.Euler(70f, 0f, 0f);
+
+            var result = AprilTagGeometry.AlignNormalToVertical(tiltedDown, Vector3.forward);
+
+            var normal = result * Vector3.forward;
+            Assert.AreEqual(-1f, normal.y, Tolerance);
+        }
+
+        [Test]
         public void IsValidRotation_DefaultQuaternion_IsFalse()
         {
             Assert.IsFalse(AprilTagGeometry.IsValidRotation(default));

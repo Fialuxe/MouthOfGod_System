@@ -55,6 +55,18 @@ namespace MouthOfGod.Tracking
                 cameraWorldPose.rotation * localRotation);
         }
 
+        /// <summary>
+        /// タグの法線（タグ座標の <paramref name="localNormalAxis"/> 軸）が鉛直になるように、傾きだけを取り除く。
+        /// 法線まわりの回転（水平なタグなら向き）は変えない。法線が上向きなら上、下向きなら下に揃える。
+        /// 水平な面に置いたタグ向け。壁など、法線が水平なタグには使わない。
+        /// </summary>
+        public static Quaternion AlignNormalToVertical(Quaternion rotation, Vector3 localNormalAxis)
+        {
+            var normal = rotation * localNormalAxis.normalized;
+            var target = normal.y >= 0f ? Vector3.up : Vector3.down;
+            return Quaternion.FromToRotation(normal, target) * rotation;
+        }
+
         /// <summary>回転が (0,0,0,0)（未取得）でないか。</summary>
         public static bool IsValidRotation(Quaternion rotation)
         {
