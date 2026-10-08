@@ -116,6 +116,8 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 
 ### 作業の進め方
 
+どの作業でも、始める前に Issue を選び、**自分を Assignee にする**（[README「プロジェクト管理」](README.md#プロジェクト管理)）。週に 1 回、ロードマップで今週やるものを決める。
+
 #### A. `feature/` / `fix/`（通常の個人作業）
 1. 必要なら最新化: `git switch main && git pull`
 2. ブランチ作成: `git switch -c feature/xxx`
