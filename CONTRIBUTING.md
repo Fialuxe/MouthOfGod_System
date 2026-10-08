@@ -41,6 +41,7 @@ git config pull.rebase true        # pull 時にマージコミットを作ら�
 - 作業は必ず `main` から切ったブランチで行い、**Pull Request 経由**で `main` にマージする。
 - ブランチは短命に保つ（1 PR = 1 目的、数日以内にマージ）。
 - マージ後はブランチを削除する。
+- `main` はブランチ保護済み: PR 経由のみ、force push・削除は禁止、履歴は直線（Squash / Rebase マージのみ）。承認数の要件は 0 で、レビューの扱いは第 5 章に従う。
 
 ```bash
 git switch main && git pull
