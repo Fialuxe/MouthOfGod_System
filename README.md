@@ -17,6 +17,29 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 - 共同編集: Scene Fusion
 # どうやって開発するか
 - 開発の進め方: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- やることと進み具合: 下の「プロジェクト管理」と、ピン留めした [ロードマップ（#101）](https://github.com/Fialuxe/MouthOfGod_System/issues/101)
+
+## プロジェクト管理
+
+やることはすべて **Issue** にし、**マイルストーン**でまとめています。Issue 同士の順番は、各 Issue の右側にある **Relationships → Blocked by**（先に終わっている必要がある Issue）で表します。
+
+- **[ロードマップ（#101）](https://github.com/Fialuxe/MouthOfGod_System/issues/101)**: マイルストーンの進み具合、「すぐ着手できる Issue」、依存関係の図。GitHub Actions（[`roadmap.yml`](.github/workflows/roadmap.yml)）が自動で更新するので、手で編集しない。
+- 何をやるか迷ったら、ロードマップの「すぐ着手できる」から選ぶ。
+- 新しい Issue を作ったら、マイルストーンと Blocked by を設定する。設定すれば図に反映される。
+
+| マイルストーン | 進み具合 |
+|---|---|
+| [M0 土台と全体の流れ](https://github.com/Fialuxe/MouthOfGod_System/milestone/1) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/1?label=) |
+| [M1 チュートリアル1: デバイスの使い方](https://github.com/Fialuxe/MouthOfGod_System/milestone/2) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/2?label=) |
+| [M2 チュートリアル2: 噛むと物が生まれる](https://github.com/Fialuxe/MouthOfGod_System/milestone/3) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/3?label=) |
+| [M3 チュートリアル3: 食感で生まれる物が変わる／村人の要求](https://github.com/Fialuxe/MouthOfGod_System/milestone/4) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/4?label=) |
+| [M4 チュートリアル4: 必要な場所に届ける](https://github.com/Fialuxe/MouthOfGod_System/milestone/5) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/5?label=) |
+| [M5 alt.ctrl.GDC 応募 (10/30 締切)](https://github.com/Fialuxe/MouthOfGod_System/milestone/6) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/6?label=) |
+| [M6 本編](https://github.com/Fialuxe/MouthOfGod_System/milestone/7) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/7?label=) |
+| [M7 展示の準備 (入選後)](https://github.com/Fialuxe/MouthOfGod_System/milestone/8) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/8?label=) |
+| [M8 ミニチュアと位置合わせ (AprilTag)](https://github.com/Fialuxe/MouthOfGod_System/milestone/9) | ![](https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/9?label=) |
+
+> 進み具合のバッジは開くたびに最新になる。マイルストーンを増やしたら、この表にも 1 行足す（[一覧](https://github.com/Fialuxe/MouthOfGod_System/milestones)）。
 
 ---
 
@@ -135,32 +158,3 @@ TLDR 案: *触感デバイスを使って口内に伝わってくる触感をも
 - 現在の案でも、時間内にできなければ失敗となるため、ゲームとして成立しうる。
 - GDC のために用意すべき最重要項目は**ゲーム性**、とくに**チュートリアル設計**。
 - 応募欄をきちんと埋めれば大丈夫。
-
-## 7. TODO（たたき台）
-
-> 元メモの AI 生成リストをもとにした参考です。優先度・内容は要見直し。
-
-**仕様決め**
-- [ ] 食感の要素を決める
-- [ ] 生成対象と置き場所の組み合わせを決める
-- [ ] 成功・失敗の条件を決める
-- [ ] スコアの仕組みを決める
-- [ ] 設計図ベース案の内容を確認し、チュートリアルに使えるか検討する
-
-**世界観・シナリオ**
-- [ ] プロローグ文言を作る
-- [ ] 「お供え物 → 雲や霞を食べて生み出す」のつなぎを決める
-
-**実装**
-- [ ] チュートリアルの各ステップ
-- [ ] ユーザーの移動と位置取得
-- [ ] 複数フィールドのミニチュアと演出
-
-**検証**
-- [ ] 試遊して、食感だけで見分けられるか確認する
-- [ ] クリア率を見て難易度を調整する（いい感じのクリア率を目指す）
-
-**応募**
-- [ ] TLDR・Concept の英文
-- [ ] プレイ映像の撮影と動画編集
-- [ ] 応募欄の記入
