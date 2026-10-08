@@ -36,6 +36,7 @@ git config pull.rebase true        # pull 時にマージコミットを作ら�
 | `feature/<内容>` | 機能追加（例: `feature/player-move`） |
 | `fix/<内容>` | バグ修正 |
 | `scene/<シーン名>-<内容>` | シーン編集が主体の作業 |
+| `docs/<内容>` | README・CONTRIBUTING などドキュメントのみの変更 |
 
 - 作業は必ず `main` から切ったブランチで行い、**Pull Request 経由**で `main` にマージする。
 - ブランチは短命に保つ（1 PR = 1 目的、数日以内にマージ）。
@@ -61,6 +62,7 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 | `feature/` | 新しい機能・仕組みを作る／既存機能を拡張する | スクリプト、Prefab、ScriptableObject、Input 設定、パッケージ追加 | `feature/player-move`, `feature/dialogue-ui` |
 | `fix/` | 既存の挙動の不具合を直す | 該当スクリプト／Prefab の最小限の修正 | `fix/camera-jitter`, `fix/null-ref-on-start` |
 | `scene/` | シーン（`.unity`）上の配置・ライティング・レベル制作が中心の作業。**Scene Fusion で複数人編集する時はこれ** | `Assets/Scenes/*.unity` | `scene/Main-stage1-layout` |
+| `docs/` | ドキュメントだけを変更する（コード・アセットは触らない） | `README.md`, `CONTRIBUTING.md` など | `docs/update-readme` |
 
 判断のポイント:
 - 動作確認にシーンが必要な機能は、**自分専用のサンドボックスシーン**で確認する（下記）。共有シーン（`Main` など）は `feature/` / `fix/` では編集しない。
@@ -128,8 +130,4 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 
 ## 6. 補足
 - 大きなバイナリ（音声・動画・巨大テクスチャ）が増えてきたら Git LFS の導入を検討する（導入時は全員に周知）。
-- 現在のデフォルトブランチは `master` で作成されている。`main` に統一する場合:
-  ```bash
-  git branch -M main && git push -u origin main
-  ```
-  その後 GitHub の `Settings > Branches` でデフォルトを `main` に変更し、`master` を削除する。
+- デフォルトブランチは `main`。
