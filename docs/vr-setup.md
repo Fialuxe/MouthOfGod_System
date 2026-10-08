@@ -34,6 +34,17 @@ PC に Quest を接続し、Unity の Play 中に PC 側で描画する構成。
 5. カラーのパススルーには、**2 Gbps 以上の USB-C ケーブル**が必要。Link アプリの USB 速度テストで確認できる。
 6. 上記を満たしても出るときは、`OVRManager` の `Passthrough Support`（Supported / Required）と `Insight Passthrough` の設定を確認する。
 
+## Link でつまずいたとき
+### 「システムのハードウェアが Link に対応していないため、Link の機能を利用できません」と出る
+- ノート PC（Intel 内蔵 GPU + NVIDIA の Optimus 構成。RTX 5060 Laptop で確認）で出た。Link アプリのログ（`%LOCALAPPDATA%\Oculus\Service_*.txt`）に `oculus_error code=-3006 ... Error reading vendor and device Id` と `overall_compat=FAIL` が残る。
+- NVIDIA ドライバは要件を満たし、Link が実際に使う GPU も RTX だった。**Link アプリを再起動したら消えた**。根本原因は特定できていない。
+- 出たら、まず Link アプリ（と必要なら PC）を再起動する。それでも出るときは、ログの `-3006` を確認する。
+
+### Unity で Play しても、ヘッドセットが Link のロード表示のまま進まない
+- **Game ビューのタブを前面に出す**（Scene ビューが前面だと、XR のカメラが描画されず、Link にフレームが届かない）。Play 後に Game ビュー内を一度クリックしてもよい。
+- 症状の見分け方: Unity のログ（`Editor.log`）で OpenXR セッションが `READY` のまま進まず、Link のログの `num_completed_app_frames=0` になる。Link には接続できているのに、アプリのフレームが 0 枚という状態。
+- 確認済みで原因ではなかったもの: OpenXR ランタイム（Meta になっている）、XR Plug-in Management（OpenXR 有効）、`Run In Background`。
+
 ## 既知の警告（Quest Link 上で出るが、無視してよいと考えているもの）
 Play 時に次の警告が大量に出る。いずれも `LogWarning` で、エラーではない。**頭・コントローラーの追従に問題がなければ、機能への影響はないと考えている**（実機では未確認）。
 
