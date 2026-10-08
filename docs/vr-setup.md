@@ -24,6 +24,16 @@ PC に Quest を接続し、Unity の Play 中に PC 側で描画する構成。
 5. Quest を接続したまま Play し、頭とコントローラーが追従することを確認する。
 6. 生成された `ProjectSettings/` や `Assets/Oculus/` などの差分を、**この PR のブランチにコミット**する。
 
+## Quest Link でパススルーを使うための前提
+エラー `Failed to initialize Insight Passthrough ... Error Failure_NotInitialized` が出たときは、次を確認する（[Meta 公式: Passthrough over Quest Link](https://developers.meta.com/horizon/documentation/unity/unity-passthrough-use-over-link/)）。
+
+1. **対応機種**: Quest 3 / 3S / 2 / Pro。
+2. **バージョン**: Quest 本体が v37.0 以上、**Meta Horizon Link** PC アプリが v37.0 以上。Meta XR Core SDK も v37 以上（今回は 207 なので満たす）。
+3. **Link アプリのベータ設定**: `Developer Runtime Features` を有効にしたあと、**`Passthrough over Meta Quest Link`** を有効にする（前者を有効にすると後者が出る）。**変更したら Unity を再起動する**。
+4. Link アプリとヘッドセットの両方で、**開発者アカウントでサインイン**している。
+5. カラーのパススルーには、**2 Gbps 以上の USB-C ケーブル**が必要。Link アプリの USB 速度テストで確認できる。
+6. 上記を満たしても出るときは、`OVRManager` の `Passthrough Support`（Supported / Required）と `Insight Passthrough` の設定を確認する。
+
 ## 要確認（実機で確かめること）
 - **Quest Link 経由でパッケージの機能がどこまで使えるか**: パススルーを Link で使うには、Meta Quest Link アプリ側の設定が必要な場合がある。
 - **部屋の情報（Scene）を、エディタの Play 中にどう得るか**: MRUK には、エディタ用に Prefab / JSON の仮の部屋を使う仕組みがある、と理解している。実際にどれが使えるか確認する。
