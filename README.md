@@ -17,6 +17,8 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 - 共同編集: Scene Fusion
 # どうやって開発するか
 - 開発の進め方: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- 設計方針と避けること: [docs/architecture.md](./docs/architecture.md)
+- 決めたことと、採用しなかった案: [docs/decisions.md](./docs/decisions.md)
 - やることと進み具合: 下の「[プロジェクト管理](#プロジェクト管理)」
 
 ## プロジェクト管理
