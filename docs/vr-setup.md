@@ -58,9 +58,16 @@ Play 時に次の警告が大量に出る。いずれも `LogWarning` で、エ�
 - `Library/PackageCache/` の中のコードは、直接書き換えない（Git に入らず、再インポートで消える）。
 - Console の警告表示を外す（フィルタ）か、SDK のアップデートを待つ。
 
+## Quest Link で確認できたこと（Quest 3、エディタの Play）
+- **パススルー映像の表示**: 映る（上の前提を満たした場合）。
+- **パススルーカメラの RGB フレームの取得**: 取れる。Meta XR の `Meta.XR.PassthroughCameraAccess`（MRUK パッケージ内）を使い、`GetColors()` / `GetTexture()` で画素データを読めた。
+  - 条件: Link の `Developer Runtime Features` が有効で、Meta Horizon Link が v85 以上（`PassthroughCameraAccess.IsSupported` が `True` になる）。
+  - 結果: 解像度 1280×960、開始直後から `IsPlaying` が `True`。サンプルした画素のほぼすべてが黒でなく、フレームごとにタイムスタンプも進んだ（実際の映像が更新されている）。
+  - 検証は、使い捨ての最小スクリプトで行い、コミットはしていない。Android 実機では `horizonos.permission.HEADSET_CAMERA` の許可が要る。
+
 ## 要確認（実機で確かめること）
-- **Quest Link 経由でパッケージの機能がどこまで使えるか**: パススルーを Link で使うには、Meta Quest Link アプリ側の設定が必要な場合がある。
-- **部屋の情報（Scene）を、エディタの Play 中にどう得るか**: MRUK には、エディタ用に Prefab / JSON の仮の部屋を使う仕組みがある、と理解している。実際にどれが使えるか確認する。
+- **部屋の情報（MRUK の Scene データ）を、エディタの Play 中にどう得るか**: MRUK は、ユーザーがスキャンした部屋の壁・床・家具などの形を、アンカーとして返す。Link ではシーンキャプチャ（部屋のスキャン）が使えないため、エディタ用の仮の部屋（Prefab / JSON）を使う仕組みで足りるかを確認する。
+- **コントローラーの追従**: 警告は出るが問題ないと考えている。実機で確認する。
 - **アプリのビルド**: 今は PC 描画（Link）を前提にしている。Quest 単体ビルド（Android）にする場合は、別途設定が要る。
 
 ## 位置取得について
