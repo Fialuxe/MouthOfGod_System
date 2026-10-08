@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bb5c93984770e6a4093a09cfc48b7bdf, type: 3}
   m_Name: SceneFusionConfig
   m_EditorClassIdentifier: 
-  m_projectId: -1
+  m_projectId: 10317
   Debug: 1
-  LastVersion: 0.0.0
+  LastVersion: 2.0.5
   ShowGettingStartedScreen: 1
   m_syncMaterials: 1
   m_syncPrefabs: 1
