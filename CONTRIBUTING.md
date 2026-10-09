@@ -190,6 +190,7 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 | `UI/` | 画面表示 |
 
 - 各フォルダに短い `README.md`（目的、外に見せる API、担当者）を置くと、他の人が探しやすい。
+- **Prefab はすべて `Assets/Resources/Prefabs/` 以下に置く。** スクリプトと同じく機能ごとにフォルダを切り、フォルダ名はスクリプトとそろえる（例: `Village/` のスクリプトで使う Prefab は `Assets/Resources/Prefabs/Village/`）。フォルダの中の分け方は担当者が自由に決めてよい。
 
 ### 書き方
 - **既定は `private`**。他の機能から呼ばせるものだけを `public` にする。Inspector に出したいだけなら `[SerializeField] private` を使う。
