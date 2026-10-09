@@ -75,3 +75,19 @@ desktop.ini
 /Assets/Resources/DevAgentSettings.asset
 /Assets/Resources/DevAgentSettings.asset.meta
 /Assets/XR/APILayers~/
+
+# 外部素材: 再配布できない物は Assets/Local/ に置く（Git に上げない）。CONTRIBUTING 第 7 章
+/Assets/Local/
+/Assets/Local.meta
+
+# 外部素材: Unity で使わない元データ（.blend）とプレビューの動画・GIF は入れない
+/Assets/ArtisticResources/ThirdParty/**/Blend/
+/Assets/ArtisticResources/ThirdParty/**/Blend.meta
+/Assets/ArtisticResources/ThirdParty/**/Blends/
+/Assets/ArtisticResources/ThirdParty/**/Blends.meta
+/Assets/ArtisticResources/ThirdParty/**/*.blend
+/Assets/ArtisticResources/ThirdParty/**/*.blend.meta
+/Assets/ArtisticResources/ThirdParty/**/Preview.mp4
+/Assets/ArtisticResources/ThirdParty/**/Preview.mp4.meta
+/Assets/ArtisticResources/ThirdParty/**/Preview.gif
+/Assets/ArtisticResources/ThirdParty/**/Preview.gif.meta
