@@ -14,6 +14,7 @@
 | Farm Buildings (Sept 2018) | CC0 1.0 | `Assets/ArtisticResources/ThirdParty/Quaternius/Farm Buildings - Sept 2018/` |
 | Medieval Village MegaKit (Standard) | CC0 1.0 | `Assets/ArtisticResources/ThirdParty/Quaternius/Medieval Village MegaKit[Standard]/` |
 | Ultimate Animated Animals (July 2021) | CC0 1.0 | `Assets/ArtisticResources/ThirdParty/Quaternius/Ultimate Animated Animals - July 2021/` |
+| Ultimate Animated Character Pack (Nov 2019) | CC0 1.0 | `Assets/ArtisticResources/ThirdParty/Quaternius/Ultimate Animated Character Pack - Nov 2019/` |
 | Ultimate Food Pack (Oct 2019) | CC0 1.0 | `Assets/ArtisticResources/ThirdParty/Quaternius/Ultimate Food Pack - Oct 2019/` |
 
 ライセンスの原文は、各パックのフォルダの `License.txt`（MegaKit は `License_Standard.txt`）。

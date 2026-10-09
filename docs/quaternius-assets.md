@@ -12,9 +12,10 @@
 | [Farm Buildings](#farm-buildings-sept-2018) | 納屋・サイロ・風車・井戸・柵 | 13 | 村の建物、フィールドの飾り |
 | [Farm Animals](#farm-animals) | 牛・馬・豚・羊など | 7 | 村の動物、「生まれる物」の候補 |
 | [Ultimate Animated Animals](#ultimate-animated-animals-july-2021) | 鹿・キツネ・犬など（アニメーション付き） | 12 | 森・村の動物 |
+| [Ultimate Animated Character Pack](#ultimate-animated-character-pack-nov-2019) | 人型のキャラクター（村人・兵士・騎士・料理人など。アニメーション付き） | 52 | 村人（#19） |
 | [Animated Fish Pack](#animated-fish-pack) | 魚・イルカ・サメなど（アニメーション付き） | 7 | 川（届け先）の「魚」（#15） |
 
-**ないもの**: 村人（人型のキャラクター）、木、川の地形は、これらのパックには入っていない。村人・木・川は、別の素材（Quaternius の別パックや Kenney など。#45）か、仮の形で用意する。
+**ないもの**: 木、川の地形は、これらのパックには入っていない。木・川は、別の素材（Quaternius の別パックや Kenney など。#45）か、仮の形で用意する。村人（人型のキャラクター）は [Ultimate Animated Character Pack](#ultimate-animated-character-pack-nov-2019) を使う。
 
 ## 共通の構成
 
@@ -101,6 +102,28 @@
 - 構成: `FBX/`（12）、`OBJ/`（12 ×（obj + mtl））、`glTF/`（12）、`License.txt`、`Preview.jpg`
 - 中身: `Alpaca`、`Bull`、`Cow`、`Deer`、`Donkey`、`Fox`、`Horse`、`Horse_White`、`Husky`、`ShibaInu`、`Stag`、`Wolf`
 - アニメーション付き（FBX と glTF。OBJ は形だけ）。
+
+## Ultimate Animated Character Pack (Nov 2019)
+
+`Ultimate Animated Character Pack - Nov 2019/`
+
+- 構成: `FBX/`（52）、`OBJ/`（53 ×（obj + mtl））、`glTF/`（52）、`License.txt`、`Preview.png`
+- glTF はデータを中に埋め込んだ `.gltf` だけ（`.bin` やテクスチャは別にない）。色はマテリアルの色で、テクスチャは使っていない。
+- `OBJ/OBJ.obj` は配布元に入っていた余分なファイル（中身は `Suit_Male` と同じ形）。
+- 中身（52）。`_Male` / `_Female` は男女の違い:
+
+| 種類 | モデル |
+|---|---|
+| 普段着（村人向き） | `Casual_Male`、`Casual_Female`、`Casual_Bald`、`Casual2_Male`、`Casual2_Female`、`Casual3_Male`、`Casual3_Female`、`Worker_Male`、`Worker_Female`、`OldClassy_Male`、`OldClassy_Female`、`Kimono_Male`、`Kimono_Female` |
+| 職業 | `Chef_Male`、`Chef_Female`、`Chef_Hat`、`Doctor_Male_Young`、`Doctor_Male_Old`、`Doctor_Female_Young`、`Doctor_Female_Old`、`Suit_Male`、`Suit_Female`、`Cowboy_Male`、`Cowboy_Female`、`Cowboy_Hair` |
+| 兵士・騎士 | `Soldier_Male`、`Soldier_Female`、`BlueSoldier_Male`、`BlueSoldier_Female`、`Knight_Male`、`Knight_Golden_Male`、`Knight_Golden_Female`、`Viking_Male`、`Viking_Female`、`VikingHelmet` |
+| ファンタジー | `Wizard`、`Witch`、`Elf`、`Goblin_Male`、`Goblin_Female`、`Zombie_Male`、`Zombie_Female`、`Ninja_Male`、`Ninja_Male_Hair`、`Ninja_Female`、`Ninja_Sand`、`Ninja_Sand_Female`、`Pirate_Male`、`Pirate_Female` |
+| その他 | `BaseCharacter`（服なしの素体）、`Cow`、`Pug`（着ぐるみ） |
+
+- アニメーション付き（FBX と glTF。OBJ は形だけ）。全キャラクターが同じ骨組みで、同じアニメーションを持つ（17 種）:
+  `Idle`、`Walk`、`Run`、`Walk_Carry`、`Run_Carry`（物を持って歩く・走る）、`PickUp`、`SitDown`、`StandUp`、`Jump`、`Roll`、`Punch`、`SwordSlash`、`Shoot_OneHanded`、`RecieveHit`（つづりは元のまま）、`Death`、`Defeat`、`Victory`
+  - 例外: `BaseCharacter` は `Victory` がない、`Casual_Bald` は `Run` がない、`Suit_Male` は `Punch` がない（それぞれ 16 種）。
+- 村人には、普段着・職業のモデルと、`Idle` / `Walk` / `Walk_Carry` / `PickUp` などが使える（#19）。
 
 ## Animated Fish Pack
 
