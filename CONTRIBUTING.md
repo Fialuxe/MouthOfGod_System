@@ -212,6 +212,18 @@ GDC では、Link で Unity を Play して動かす。**Play したあとに、
 ### デバイス連携（`Device/`）の設計
 旧プロジェクト MealBeBack のシリアル通信で良くなかった点と、その直し方は [docs/architecture.md「5. デバイス連携」](docs/architecture.md#5-デバイス連携device-旧プロジェクトの反省) にまとめた。`Device/` を触る前に読む。
 
-## 7. 補足
+## 7. 外部素材（サードパーティのアセット）
+
+この repo は公開されているので、**再配布できる素材だけ**を入れる。
+
+- **置き場所**: `Assets/ArtisticResources/ThirdParty/<提供元>/<パック名>/`（例: `Assets/ArtisticResources/ThirdParty/Quaternius/Ultimate Food Pack - Oct 2019/`）。パックのフォルダは、配布されたままの構成・名前で置く。
+- **入れてよいもの**: CC0 など、公開 repo で再配布してよいライセンスの素材。パックに付いているライセンスの文書（`License.txt` など）は、消さずに同じフォルダに残す。
+- **入れてはいけないもの**: 再配布できない素材（Asset Store の有償アセットなど）。手元で使うだけなら `Assets/Local/` に置く（`.gitignore` 済み。Git に上がらない）。
+- **CREDITS.md**: 素材を入れる PR で、[CREDITS.md](CREDITS.md) に「提供元・パック名・ライセンス・URL・置き場所」を 1 行足す。
+- **容量**: 使わないファイルは入れない。同じモデルが複数の形式（FBX / OBJ / glTF / Blend）で入っているパックでは、Unity で使う形式だけにする。`.blend`（元データ）とプレビューの動画・GIF は `.gitignore` で除外している（手元に置くのは自由）。
+- **Git LFS**: 当面は使わない。素材の合計が大きくなって clone が重くなったら、導入を検討する（導入時は全員に周知）。
+- **glTF（`.gltf`）を使うには** Package Manager の `com.unity.cloud.gltfast`（`Packages/manifest.json` に入れてある）が必要。
+
+## 8. 補足
 - 大きなバイナリ（音声・動画・巨大テクスチャ）が増えてきたら Git LFS の導入を検討する（導入時は全員に周知）。
 - デフォルトブランチは `main`。
