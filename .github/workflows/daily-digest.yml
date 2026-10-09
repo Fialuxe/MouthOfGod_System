@@ -4,9 +4,13 @@
 # - Variables（任意）: GEMINI_MODELS … 試すモデルをカンマ区切りで、上から順に。モデルが変わったらここだけ直す
 name: Daily Digest
 
+# GitHub の schedule は、混む毎時 0 分だと遅れたり飛ばされたりする（10/9 の 22:00 は実行されなかった）。
+# そこで 0 分を避けて 3 回仕掛け、その日すでに送れていれば、後の回は何もしない。
 on:
   schedule:
-    - cron: "0 13 * * *"  # 毎日 22:00 JST
+    - cron: "53 12 * * *"  # 21:53 JST（遅れて 22 時ごろに届く想定）
+    - cron: "23 13 * * *"  # 22:23 JST（上が飛ばされたときの予備）
+    - cron: "53 13 * * *"  # 22:53 JST（予備）
   workflow_dispatch:
     inputs:
       dry_run:
@@ -34,9 +38,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # 予備の回: 今日（JST）の schedule の実行がすでに成功していれば送らない（手動の実行は数えない）
+      - name: 今日もう送ったかを確かめる
+        id: sent
+        if: github.event_name == 'schedule'
+        run: |
+          today=$(TZ=Asia/Tokyo date +%F)
+          n=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/daily-digest.yml/runs?event=schedule&status=success&per_page=10" \
+            --jq "[.workflow_runs[] | select(.id != $GITHUB_RUN_ID) | select((.created_at | fromdateiso8601 + 9*3600 | strftime(\"%Y-%m-%d\")) == \"$today\")] | length")
+          echo "今日の送信済み: $n 回"
+          [ "$n" -gt 0 ] && echo "done=true" >> "$GITHUB_OUTPUT" || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/checkout@v5
+        if: steps.sent.outputs.done != 'true'
 
       - name: ふりかえりを作って送る
+        if: steps.sent.outputs.done != 'true'
         run: python3 .github/scripts/daily_digest.py --hours "$HOURS" $([ "$DRY_RUN" = "true" ] && echo --dry-run)
         env:
           HOURS: ${{ inputs.hours || 24 }}
