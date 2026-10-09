@@ -37,6 +37,12 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 
 ![今の区切り](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/focus.svg)
 
+### 今の区切りのゴールと Issue
+
+一番上（🎯）が今の区切りのゴールで、その下に「そのために先に要る Issue」が並びます。下から上へ進めます。🟨 すぐ着手できる、🟦 着手中、🟩 完了、↪ はほかの所に出てくる Issue、点線の箱は前の区切りの Issue です（画像を押すと拡大できます）。
+
+![今の区切りのゴールと Issue](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/current.svg)
+
 ### 区切りの流れ
 
 ![区切り同士のつながり](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/milestones.svg)
