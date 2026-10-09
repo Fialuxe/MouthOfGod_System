@@ -71,6 +71,9 @@ desktop.ini
 /Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset
 /Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset.meta
 
+# Package Manager の画面の状態（選んだレジストリ、開閉など）。各自のもの。共有するパッケージの設定は Packages/manifest.json にある
+/ProjectSettings/PackageManagerSettings.asset
+
 # Meta XR: local-only (LAN address / access token) and generated binaries
 /Assets/Resources/DevAgentSettings.asset
 /Assets/Resources/DevAgentSettings.asset.meta
