@@ -23,90 +23,29 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 
 ## プロジェクト管理
 
-やることはすべて **Issue** にし、**マイルストーン**でまとめています。Issue 同士の順番は、各 Issue の右側にある **Relationships → Blocked by**（先に終わっている必要がある Issue）で表します。
+やることはすべて **Issue** にし、**マイルストーン**に入れています。マイルストーンは、ゴール（応募動画 → 応募）に向かう**日付つきの区切り**です。期限の近い区切りから順に終わらせます。Issue 同士の順番は、各 Issue の右側にある **Relationships → Blocked by**（先に終わっている必要がある Issue）で表します。
 
-- 下の図は GitHub Actions（[`roadmap.yml`](.github/workflows/roadmap.yml)）が Issue から自動で描いている。同じ内容を表にしたものが、ピン留めした **[ロードマップ（#101）](https://github.com/Fialuxe/MouthOfGod_System/issues/101)**（自動更新なので手で編集しない）。
-- 何をやるか迷ったら、図の「すぐ着手」（黄色）から選ぶ。
-- 新しい Issue を作ったら、マイルストーンと Blocked by を設定する。設定すれば図に反映される。
+**普段の流れ**
+1. 下の「今の区切り」の「すぐ着手できる」から選ぶ。
+2. 着手したら、その Issue の **Assignee に自分を入れる**（「着手中」に出て、2 人が同じものを始めなくなる）。
+3. PR で Issue を閉じる。図と活動記録は自動で更新される。
+4. 週に 1 回（例: 月曜）、ロードマップを見て今週やるものを決める。⚠ が出ていたら、削るか後ろへ回すかを決める。
 
-### ロードマップ
+新しい Issue を作ったら、マイルストーン（どの区切りか）と Blocked by を設定する。
 
-マイルストーン同士のつながり（矢印の元に、先に終わらせる Issue がある）。各箱に完了数と「すぐ着手できる Issue」を表示しています。
+### 今の区切り
 
-![マイルストーン同士のつながり](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/milestones.svg)
+![今の区切り](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/focus.svg)
 
-### マイルストーンごとの Issue
+### 区切りの流れ
 
-🟩 完了　🟨 すぐ着手できる　⬜ 待ち（先に終わらせる Issue がある）　点線 = 別マイルストーンの Issue。見出しを押すと開きます。
+![区切り同士のつながり](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/milestones.svg)
 
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/1">M0 土台と全体の流れ</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/1?label=" align="center"></summary>
-
-![M0 土台と全体の流れ](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m1.svg)
-
-</details>
-
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/2">M1 チュートリアル1: デバイスの使い方</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/2?label=" align="center"></summary>
-
-![M1 チュートリアル1: デバイスの使い方](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m2.svg)
-
-</details>
-
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/3">M2 チュートリアル2: 噛むと物が生まれる</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/3?label=" align="center"></summary>
-
-![M2 チュートリアル2: 噛むと物が生まれる](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m3.svg)
-
-</details>
-
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/4">M3 チュートリアル3: 食感で生まれる物が変わる／村人の要求</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/4?label=" align="center"></summary>
-
-![M3 チュートリアル3: 食感で生まれる物が変わる／村人の要求](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m4.svg)
-
-</details>
-
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/5">M4 チュートリアル4: 必要な場所に届ける</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/5?label=" align="center"></summary>
-
-![M4 チュートリアル4: 必要な場所に届ける](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m5.svg)
-
-</details>
-
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/6">M5 alt.ctrl.GDC 応募 (10/30 締切)</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/6?label=" align="center"></summary>
-
-![M5 alt.ctrl.GDC 応募 (10/30 締切)](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m6.svg)
-
-</details>
-
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/7">M6 本編</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/7?label=" align="center"></summary>
-
-![M6 本編](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m7.svg)
-
-</details>
-
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/8">M7 展示の準備 (入選後)</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/8?label=" align="center"></summary>
-
-![M7 展示の準備 (入選後)](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m8.svg)
-
-</details>
-
-<details>
-<summary><a href="https://github.com/Fialuxe/MouthOfGod_System/milestone/9">M8 ミニチュアと位置合わせ (AprilTag)</a> <img src="https://img.shields.io/github/milestones/progress/Fialuxe/MouthOfGod_System/9?label=" align="center"></summary>
-
-![M8 ミニチュアと位置合わせ (AprilTag)](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/m9.svg)
-
-</details>
-
-> 図とバッジは Issue の変更に合わせて自動で更新されます（依存関係だけの変更は 1 時間以内）。マイルストーンを増やしたら、ここにも 1 つ足す（[一覧](https://github.com/Fialuxe/MouthOfGod_System/milestones)）。
+区切りごとの Issue の依存の図と、全区切りの表は、ピン留めした **[ロードマップ Issue](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap)** にあります（GitHub Actions の [`roadmap.yml`](.github/workflows/roadmap.yml) が自動で更新するので、手で編集しない）。
 
 ### 活動記録
 
-比べるためではなく、**自分がやったことを振り返るための記録**です。話し合い・調べもの・ものづくりなど、数字に出ない作業もたくさんあります。週ごとの数と、最近やったことの一覧は、ピン留めした **[活動記録 Issue](https://github.com/Fialuxe/MouthOfGod_System/issues/104)（#104）** にあります。
+比べるためではなく、**自分がやったことを振り返るための記録**です。話し合い・調べもの・ものづくりなど、数字に出ない作業もたくさんあります。週ごとの数と、最近やったことの一覧は、ピン留めした **[活動記録 Issue](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aissue+is%3Aopen+label%3Aactivity)** にあります。
 
 ![日ごとの活動](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/activity.svg)
 
