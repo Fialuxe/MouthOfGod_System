@@ -22,6 +22,7 @@ TITLE = "ロードマップ（自動更新）"
 JST = timezone(timedelta(hours=9))
 # 「対応しない」「重複」で閉じた Issue は、進み具合にも図にも含めない
 SKIPPED_REASONS = {"NOT_PLANNED", "DUPLICATE"}
+OPTIONAL = "任意"
 
 QUERY = """
 query($owner: String!, $name: String!, $after: String) {
@@ -164,6 +165,8 @@ def build(issues, milestones, roadmap_number):
         i["blockers"] = [b["number"] for b in i["blockedBy"]["nodes"] if b["number"] in by_number]
         i["ms"] = i["milestone"]["number"] if i["milestone"] else None
         i["who"] = [a["login"] for a in i["assignees"]["nodes"]]
+        # 「任意」ラベルの Issue は、やれたらやるもの。進み具合と ⚠ の計算に入れない
+        i["optional"] = OPTIONAL in {l["name"] for l in i["labels"]["nodes"]}
 
     def is_open(n):
         return by_number[n]["state"] == "OPEN"
@@ -185,7 +188,7 @@ def build(issues, milestones, roadmap_number):
 
     def item(i, with_who=True):
         who = " " + " ".join(f"@{w}" for w in i["who"]) if with_who and i["who"] else ""
-        return f"#{i['number']} {i['title']}{who}"
+        return f"#{i['number']} {i['title']}{'（任意）' if i['optional'] else ''}{who}"
 
     # 閉じたマイルストーンは出さない。期限の近い順（期限なしは最後）
     ms_list = sorted((m for m in milestones if m["state"] == "OPEN"),
@@ -204,8 +207,10 @@ def build(issues, milestones, roadmap_number):
 
     today = datetime.now(JST).date()
 
-    def summary(m, members):
+    def summary(m, all_members):
+        members = [i for i in all_members if not i["optional"]]
         open_items = [i for i in members if i["state"] == "OPEN"]
+        optional_open = [i for i in all_members if i["optional"] and i["state"] == "OPEN"]
         due = due_date(m)
         longest = max((chain(i["number"]) for i in open_items), default=0)
         risk = ""
@@ -224,8 +229,9 @@ def build(issues, milestones, roadmap_number):
         return {
             "title": m["title"], "due_text": due_text, "risk": risk, "chain": longest,
             "done": len(members) - len(open_items), "total": len(members), "open": len(open_items),
-            "doing": [item(i) for i in open_items if status(i) == "doing"],
-            "ready": [item(i, False) for i in open_items if status(i) == "ready"],
+            "doing": [item(i) for i in open_items + optional_open if status(i) == "doing"],
+            "ready": [item(i, False) for i in open_items + optional_open if status(i) == "ready"],
+            "optional": len(optional_open),
         }
 
     current = next(((m, mem) for m, mem in groups if m["number"] is not None and any(i["state"] == "OPEN" for i in mem)), None)
@@ -273,20 +279,35 @@ def build(issues, milestones, roadmap_number):
         ready = " ".join(f"#{i['number']}" for i in members if status(i) == "ready") or "—"
         out.append(f"| {name} | {s['due_text']}{' ⚠' if s['risk'] else ''} | `{progress_bar(s['done'], s['total'])}` | {s['chain']} 段 | {doing} | {ready} |")
 
-    # 区切り同士: A の Issue が B の Issue をブロックしていれば A → B
+    # 区切り同士: A の Issue が B の Issue をブロックしていれば A → B。
+    # 遠回りでつながっている矢印（A→B→C があるときの A→C）は描かない（交差を減らす）
     edges = set()
     for i in issues:
         for b in i["blockers"]:
             src, dst = by_number[b]["ms"], i["ms"]
             if src != dst and src in shown and dst in shown and src is not None and dst is not None:
                 edges.add((src, dst))
+
+    def reachable(a, c, skip):
+        stack, seen = [a], set()
+        while stack:
+            x = stack.pop()
+            for s, d in edges:
+                if s == x and (s, d) != skip and d not in seen:
+                    if d == c:
+                        return True
+                    seen.add(d)
+                    stack.append(d)
+        return False
+
+    edges = {e for e in edges if not reachable(e[0], e[1], e)}
     graphs = {}  # ファイル名 → Mermaid のコード（README に載せる画像の元）
     lines = ["flowchart LR"]
     for m, members in groups:
         if m["number"] is None:
             continue
         s = summary(m, members)
-        style = ":::done" if members and s["open"] == 0 else ":::risk" if s["risk"] else ""
+        style = ":::done" if s["total"] and s["open"] == 0 else ":::risk" if s["risk"] else ""
         lines.append(f'  m{m["number"]}["<b>{label_text(m["title"], 30)}</b><br/>{label_text(s["due_text"], 30)}<br/>{s["done"]}/{s["total"]} 完了"]{style}')
     for src, dst in sorted(edges):
         lines.append(f"  m{src} --> m{dst}")
@@ -295,42 +316,103 @@ def build(issues, milestones, roadmap_number):
         "  classDef risk fill:#fff3cd,stroke:#a15c00,color:#533f03",
     ]
     graphs["milestones"] = "\n".join(lines)
-    out += ["", "## 区切り同士のつながり", "", "矢印の元の区切りに、先に終わらせる必要がある Issue があります。黄色は ⚠ の区切りです。", "", "```mermaid", graphs["milestones"], "```", ""]
+    out += ["", "## 区切りの流れ", "", "左の区切りから順に進みます。矢印の元の区切りに、先に終わらせる必要がある Issue があります。黄色は ⚠ の区切りです。", "", "```mermaid", graphs["milestones"], "```", ""]
 
-    out += [
-        "## 区切りごとの Issue",
-        "",
-        "🟩 完了　🟦 着手中　🟨 すぐ着手できる　⬜ 待ち（先に終わらせる Issue がある）　点線 = 別の区切りの Issue",
-        "",
-    ]
-    for m, members in groups:
-        if not members:
-            continue
-        open_count = sum(i["state"] == "OPEN" for i in members)
-        is_current = current is not None and m is current[0]
-        out += [f"<details{' open' if is_current else ''}>", f"<summary><b>{m['title']}</b>（残り {open_count} / {len(members)}）</summary>", ""]
-        lines, external = ["flowchart TD"], set()
-        member_numbers = {i["number"] for i in members}
-        for i in members:
+    ancestors_memo = {}
+
+    def ancestors(n):
+        """n より先に終わっている必要がある Issue すべて（直接・間接）。"""
+        if n not in ancestors_memo:
+            ancestors_memo[n] = set()
+            for b in by_number[n]["blockers"]:
+                ancestors_memo[n] |= {b} | ancestors(b)
+        return ancestors_memo[n]
+
+    def direct_blockers(n):
+        """図に描く前提だけ。ほかの前提を経由して届くもの（遠回りの矢印）は省く。"""
+        bs = set(by_number[n]["blockers"])
+        return {b for b in bs if not any(b in ancestors(c) for c in bs if c != b)}
+
+    def goal_tree(m, members):
+        """区切りのゴールを一番上に置き、その下に「そのために先に要る Issue」を並べたツリー。
+
+        - 区切りの中で、ほかの Issue の前提になっていない Issue は、ゴールに直接つなぐ。どの Issue も孤立しない。
+        - 交差を避けるため、正確なツリーにする。各 Issue の実体は、ゴールにいちばん近い所に 1 回だけ置き、
+          2 か所目からは「↪ #番号」の小さな参照の箱にする。別の区切りの Issue も、参照の箱（点線）にする。
+        - 遠回りでつながっている前提（A→B→C があるときの A→C）は描かない。
+        """
+        s = summary(m, members)
+        mine = {i["number"] for i in members}
+        # 必須の Issue は、任意の Issue からしか必要とされていなければ、ゴールに直接つなぐ
+        needed_by = {n: [j["number"] for j in members if n in j["blockers"] and (by_number[n]["optional"] or not j["optional"])] for n in mine}
+        tops = sorted(n for n in mine if not needed_by[n])
+        lines = ["flowchart BT", f'  goal["🎯 <b>{label_text(m["title"], 30)}</b><br/>{label_text(s["due_text"], 30)}・{s["done"]}/{s["total"]} 完了"]:::goal']
+        edges = []
+
+        def arrow(child, parent):
+            return "-.->" if by_number[child]["optional"] or (parent in by_number and by_number[parent]["optional"]) else "-->"
+
+        def node(n):
+            i = by_number[n]
             who = f"<br/>@{' @'.join(i['who'])}" if i["who"] and i["state"] == "OPEN" else ""
-            lines.append(f'  i{i["number"]}["#35;{i["number"]} {label_text(i["title"])}{who}"]:::{status(i)}')
-            for b in i["blockers"]:
-                if b not in member_numbers:
-                    external.add(b)
-                lines.append(f"  i{b} --> i{i['number']}")
-        for b in sorted(external):
-            x = by_number[b]
-            cls = "extdone" if x["state"] == "CLOSED" else "ext"
-            lines.append(f'  i{b}["#35;{b} {label_text(x["title"], 16)}<br/>（{short(x["ms"])}）"]:::{cls}')
+            opt = "（任意）" if i["optional"] else ""
+            lines.append(f'  i{n}["#35;{n} {label_text(i["title"])}{opt}{who}"]:::{status(i)}')
+
+        # ゴールに近い順（幅優先）に置く。最初に出会った所が実体の場所になる
+        placed = list(tops)
+        queue = list(tops)
+        for n in tops:
+            node(n)
+            edges.append(f"  i{n} {arrow(n, None)} goal")
+        while queue:
+            n = queue.pop(0)
+            for b in sorted(direct_blockers(n)):
+                x = by_number[b]
+                if b not in mine:
+                    cls = "extdone" if x["state"] == "CLOSED" else "ext"
+                    lines.append(f'  x{n}_{b}["#35;{b} {label_text(x["title"], 16)}<br/>（{short(x["ms"])}）"]:::{cls}')
+                    edges.append(f"  x{n}_{b} --> i{n}")
+                elif b in placed:
+                    lines.append(f'  r{n}_{b}["↪ #35;{b}"]:::ref')
+                    edges.append(f"  r{n}_{b} {arrow(b, n)} i{n}")
+                else:
+                    placed.append(b)
+                    queue.append(b)
+                    node(b)
+                    edges.append(f"  i{b} {arrow(b, n)} i{n}")
+        lines += edges
         lines += [
+            "  classDef goal fill:#184f95,stroke:#0d366b,color:#ffffff",
             "  classDef done fill:#d4edda,stroke:#28a745,color:#155724",
             "  classDef doing fill:#cde2fb,stroke:#2a78d6,color:#0d366b",
             "  classDef ready fill:#fff3cd,stroke:#d39e00,color:#533f03",
             "  classDef waiting fill:#f6f8fa,stroke:#8c959f,color:#24292f",
+            "  classDef ref fill:#ffffff,stroke:#c3c2b7,color:#57606a",
             "  classDef ext fill:#ffffff,stroke:#8c959f,stroke-dasharray:4 3,color:#57606a",
             "  classDef extdone fill:#ffffff,stroke:#28a745,stroke-dasharray:4 3,color:#57606a",
         ]
-        out += ["```mermaid", *lines, "```", "", "</details>", ""]
+        return "\n".join(lines)
+
+    out += [
+        "## 区切りごとのゴールと Issue",
+        "",
+        "一番上（🎯）が区切りのゴールで、その下に「そのために先に要る Issue」が並びます。下から上へ進めます。",
+        "",
+        "🟩 完了　🟦 着手中　🟨 すぐ着手できる　⬜ 待ち（先に終わらせる Issue がある）　↪ = ほかの所に出てくる Issue　点線の箱 = 別の区切りの Issue　点線の矢印 = 任意",
+        "",
+    ]
+    for m, members in groups:
+        if not members or m["number"] is None:
+            continue
+        code = goal_tree(m, members)
+        is_current = current is not None and m is current[0]
+        if is_current:
+            graphs["current"] = code
+        open_count = sum(i["state"] == "OPEN" for i in members)
+        out += [f"<details{' open' if is_current else ''}>", f"<summary><b>{m['title']}</b>（残り {open_count} / {len(members)}）</summary>", "", "```mermaid", code, "```", "", "</details>", ""]
+    for m, members in groups:
+        if m["number"] is None and members:
+            out += ["**マイルストーンなし**: " + " ".join(f"#{i['number']}" for i in members) + "（区切りを決めて、マイルストーンを付ける）", ""]
     return "\n".join(out), graphs, focus
 
 
