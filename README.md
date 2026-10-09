@@ -35,17 +35,17 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 
 ### 今の区切り
 
-![今の区切り](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/focus.svg)
+[![今の区切り](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/focus.svg)](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap)
 
 ### 今の区切りのゴールと Issue
 
-一番上（🎯）が今の区切りのゴールで、その下に「そのために先に要る Issue」が並びます。下から上へ進めます。🟨 すぐ着手できる、🟦 着手中、🟩 完了、↪ はほかの所に出てくる Issue、点線の箱は前の区切りの Issue です（画像を押すと拡大できます）。
+一番上（🎯）が今の区切りのゴールで、その下に「そのために先に要る Issue」が並びます。下から上へ進めます。🟨 すぐ着手できる、🟦 着手中、🟩 完了、↪ はほかの所に出てくる Issue、点線の箱は前の区切りの Issue です（画像を押すとロードマップ Issue に移ります。そこの図は、箱を押すとその Issue に移動できます）。
 
-![今の区切りのゴールと Issue](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/current.svg)
+[![今の区切りのゴールと Issue](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/current.svg)](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap)
 
 ### 区切りの流れ
 
-![区切り同士のつながり](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/milestones.svg)
+[![区切り同士のつながり](https://raw.githubusercontent.com/Fialuxe/MouthOfGod_System/roadmap-assets/milestones.svg)](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap)
 
 区切りごとの Issue の依存の図と、全区切りの表は、ピン留めした **[ロードマップ Issue](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap)** にあります（GitHub Actions の [`roadmap.yml`](.github/workflows/roadmap.yml) が自動で更新するので、手で編集しない）。
 

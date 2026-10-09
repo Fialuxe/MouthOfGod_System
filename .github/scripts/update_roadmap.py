@@ -17,6 +17,7 @@ from datetime import date, datetime, timedelta, timezone
 REPO = os.environ.get("GITHUB_REPOSITORY", "Fialuxe/MouthOfGod_System")
 OWNER, NAME = REPO.split("/")
 TOKEN = os.environ["GITHUB_TOKEN"]
+WEB = f"https://github.com/{REPO}"
 LABEL = "roadmap"
 TITLE = "ロードマップ（自動更新）"
 JST = timezone(timedelta(hours=9))
@@ -117,6 +118,7 @@ def focus_svg(f):
     """README に載せる「今の区切り」のカード。ライト／ダークは閲覧者の設定に合わせる。"""
     width, row = 860, 22
     doing, ready = f["doing"][:6], f["ready"][:8]
+    doing_n, ready_n = f["doing_numbers"][:6], f["ready_numbers"][:8]
     rest_doing, rest_ready = len(f["doing"]) - len(doing), len(f["ready"]) - len(ready)
     rows = max(len(doing), 1) + (rest_doing > 0) + max(len(ready), 1) + (rest_ready > 0)
     height = 140 + row * rows + 2 * (row + 6) + 30
@@ -124,7 +126,7 @@ def focus_svg(f):
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="今の区切り">',
         "<style>",
         "svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP',sans-serif}",
-        ".bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:#0b0b0b}.t2{fill:#52514e}.track{fill:#ecebe8}.bar{fill:#2a78d6}.warn{fill:#8a4b00}",
+        "a:hover text{text-decoration:underline}.bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:#0b0b0b}.t2{fill:#52514e}.track{fill:#ecebe8}.bar{fill:#2a78d6}.warn{fill:#8a4b00}",
         "@media (prefers-color-scheme: dark){.bg{fill:#1a1a19;stroke:#383835}.t1{fill:#ffffff}.t2{fill:#c3c2b7}.track{fill:#2c2c2a}.bar{fill:#3987e5}.warn{fill:#f0a64a}}",
         "</style>",
         f'<rect class="bg" x="0.5" y="0.5" width="{width - 1}" height="{height - 1}" rx="8"/>',
@@ -141,11 +143,15 @@ def focus_svg(f):
     if f["risk"]:
         out.append(f'<text class="warn" x="{width - 20}" y="98" font-size="13" text-anchor="end">⚠ {esc(f["risk"])}</text>')
     y = 130
-    for heading, items, rest in (("着手中", doing, rest_doing), ("すぐ着手できる（担当なし）", ready, rest_ready)):
+    for heading, items, nums, rest in (("着手中", doing, doing_n, rest_doing), ("すぐ着手できる（担当なし）", ready, ready_n, rest_ready)):
         out.append(f'<text class="t1" x="20" y="{y}" font-size="13" font-weight="600">{heading}</text>')
         y += row
-        for text in items or ["なし"]:
-            out.append(f'<text class="{"t1" if items else "t2"}" x="32" y="{y}" font-size="13">{esc(clip(text, 70))}</text>')
+        if not items:
+            out.append(f'<text class="t2" x="32" y="{y}" font-size="13">なし</text>')
+            y += row
+        for text, n in zip(items, nums):
+            # SVG を直接開いたときは、行をクリックすると Issue に移動する（README の画像としては押せない）
+            out.append(f'<a href="{WEB}/issues/{n}" target="_blank"><text class="t1" x="32" y="{y}" font-size="13">{esc(clip(text, 70))}</text></a>')
             y += row
         if rest > 0:
             out.append(f'<text class="t2" x="32" y="{y}" font-size="13">ほか {rest} 件</text>')
@@ -324,7 +330,7 @@ def build(issues, milestones, roadmap_number):
         "  classDef done fill:#d4edda,stroke:#28a745,color:#155724",
         "  classDef risk fill:#fff3cd,stroke:#a15c00,color:#533f03",
     ]
-    graphs["milestones"] = "\n".join(lines)
+    graphs["milestones"] = with_links("\n".join(lines))
     out += ["", "## 区切りの流れ", "", "左の区切りから順に進みます。矢印の元の区切りに、先に終わらせる必要がある Issue があります。黄色は ⚠ の区切りです。", "", "```mermaid", graphs["milestones"], "```", ""]
 
     ancestors_memo = {}
@@ -419,7 +425,7 @@ def build(issues, milestones, roadmap_number):
     for m, members in groups:
         if not members or m["number"] is None:
             continue
-        code = goal_tree(m, members)
+        code = with_links(goal_tree(m, members))
         is_current = current is not None and m is current[0]
         if is_current:
             graphs["current"] = code
@@ -452,6 +458,23 @@ def sync_states(issues, api):
             print(f"Reopened state #{i['number']}")
             changed = True
     return changed
+
+
+# 図の箱の ID（i番号・x親_番号・r親_番号 は Issue、m番号 はマイルストーン）
+NODE = re.compile(r"^\s+(i(\d+)|x\d+_(\d+)|r\d+_(\d+)|m(\d+))[\[(]", re.M)
+
+
+def with_links(code):
+    """図の箱をクリックすると、その Issue・マイルストーンに移動するようにする。
+
+    ロードマップ Issue の本文の図で押せる。README の図（SVG）は画像として表示されるので押せない。
+    """
+    clicks = []
+    for m in NODE.finditer(code):
+        issue = m[2] or m[3] or m[4]
+        url = f"{WEB}/issues/{issue}" if issue else f"{WEB}/milestone/{m[5]}"
+        clicks.append(f'  click {m[1]} href "{url}" _blank')
+    return "\n".join([code, *clicks])
 
 
 def main():
