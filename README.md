@@ -20,6 +20,7 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 - 設計方針と避けること: [docs/architecture.md](./docs/architecture.md)
 - 決めたことと、採用しなかった案: [docs/decisions.md](./docs/decisions.md)
 - 見た目の方針と、何にどの素材を使うか: [docs/visual-direction.md](./docs/visual-direction.md)
+- 体験の台本（場面ごとの語り・画面・進む条件。仮）: [docs/scenario-book.md](./docs/scenario-book.md)
 - やることと進み具合: 下の「[プロジェクト管理](#プロジェクト管理)」
 
 ## プロジェクト管理
@@ -31,6 +32,7 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 2. 何日かかけて進めるなら、その Issue の **Assignee に自分を入れる**（「着手中」に出て、2 人が同じものを始めなくなる）。その日のうちに終わるときや、誰がやるか合意が取れているときは付けなくてよい（[CONTRIBUTING「作業の進め方」](CONTRIBUTING.md#作業の進め方)）。
 3. PR で Issue を閉じる。図と活動記録は自動で更新される。
 4. 週に 1 回（例: 月曜）、ロードマップを見て今週やるものを決める。⚠ が出ていたら、削るか後ろへ回すかを決める。
+5. ミーティングで話すことは、Issue に **`MTGで共有`**（見てほしい）か **`MTGで決める`**（その場で決めたい）のラベルを付けておく。MTG ではラベルの付いた Issue を順に見て、終わったら外す（[CONTRIBUTING「作業の進め方」](CONTRIBUTING.md#作業の進め方)）。
 
 新しい Issue を作ったら、マイルストーン（どの区切りか）と Blocked by を設定する。
 

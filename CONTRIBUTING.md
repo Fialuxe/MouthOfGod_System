@@ -128,6 +128,23 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 - 付けないと、ロードマップの「すぐ着手できる」やふりかえりの「次の一手」に、その Issue が出たままになる。気になるなら付ける。
 - 手を離すとき（しばらく触らない・ほかの人に渡す）は、Assignee を外す。
 
+**ミーティングで話すことは、ラベルで集める**。MTG の前に Issue を書いておき、ラベルを付ける。MTG では、ラベルの付いた Issue を上から順に見る。
+- `MTGで共有`: 見てほしい・知っておいてほしいもの（レビューしてほしい案、進み具合、困っていること）。**共有したら外す**。
+- `MTGで決める`: その場で決めたいもの。Issue に「決めてほしいこと」を番号付きで書いておく。**決めたら、結果を Issue に書いて外す**。
+- 一覧: [MTGで共有](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3AMTG%E3%81%A7%E5%85%B1%E6%9C%89)・[MTGで決める](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3AMTG%E3%81%A7%E6%B1%BA%E3%82%81%E3%82%8B)
+
+**ほかのラベル**:
+
+| ラベル | 意味 |
+|---|---|
+| `決めること` | 作業ではなく、決めることが中身の Issue（MTG で決めるとは限らない） |
+| `実装`・`ものづくり`・`素材・文言`・`試す・測る`・`応募`・`展示準備` | 作業の種類 |
+| `10月末まで` | 10/30 の応募に必要 |
+| `任意` | やれたらやる。区切りの完了条件に含めない（ロードマップの数に入らない） |
+| `状態` | 作業ではなく、区切りのゴールを分けたもの。子（Blocked by）がすべて閉じると自動で閉じる |
+| `Claude提案` | Claude が下書きした Issue |
+| `roadmap`・`activity` | ロードマップ・活動記録の Issue（自動で更新。手で付けない） |
+
 #### A. `feature/` / `fix/`（通常の個人作業）
 1. 必要なら最新化: `git switch main && git pull`
 2. ブランチ作成: `git switch -c feature/xxx`
