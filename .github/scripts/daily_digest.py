@@ -32,8 +32,9 @@ SKIP_LABELS = {"roadmap", "activity"}
 PROMPT_FILE = os.path.join(os.path.dirname(__file__), "daily_digest_prompt.md")
 
 # 上から順に試す。リポジトリの変数 GEMINI_MODELS（カンマ区切り）で上書きできる。コードを直さずに差し替えるため。
-# *-latest は Google 側で最新版を指す別名なので、モデルの入れ替わりに強い。
-DEFAULT_MODELS = "gemini-flash-latest,gemini-2.5-flash,gemini-flash-lite-latest,gemini-2.5-flash-lite"
+# 最後の gemini-flash-latest は Google 側で最新版を指す別名なので、上の版が消えても動く。
+# 今のモデルは https://ai.google.dev/gemini-api/docs/models 、終了予定は https://ai.google.dev/gemini-api/docs/deprecations
+DEFAULT_MODELS = "gemini-3.8-flash,gemini-3.5-flash,gemini-3.5-flash-lite,gemini-flash-latest"
 # LLM に渡す件数の上限。作ったばかりの時期などで件数が多い日に、入力が大きくなって遅くなるのを防ぐ
 MAX_ITEMS = 20
 # 上のモデルがすべて使えないとき、API のモデル一覧から見つけて試す数
@@ -235,6 +236,14 @@ def gemini(path, key, body=None, timeout=120):
         return json.load(res)
 
 
+def with_thinking(body, model):
+    """Gemini 3 以降は、考える深さを浅くして速くする（事実の要約なので深く考えなくてよい）。2 系はこの設定を受け付けない。"""
+    if model.startswith("gemini-2"):
+        return body
+    config = {**body["generationConfig"], "thinkingConfig": {"thinkingLevel": "low"}}
+    return {**body, "generationConfig": config}
+
+
 def discover(key, tried):
     """API のモデル一覧から、テキスト生成に使える flash 系を新しい順に選ぶ。"""
     try:
@@ -299,7 +308,7 @@ def summarize(facts, known):
                 if n in dead:
                     continue
                 try:
-                    res = gemini(f"models/{model}:generateContent", key, body)
+                    res = gemini(f"models/{model}:generateContent", key, with_thinking(body, model))
                 except urllib.error.HTTPError as e:
                     detail = " ".join(e.read().decode(errors="replace").split())[:300]
                     if e.code in (401, 403) or "API_KEY" in detail:  # キーが無効（無効なキーは 400 で返る）
