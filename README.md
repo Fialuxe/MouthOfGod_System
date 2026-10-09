@@ -99,6 +99,8 @@ IVRC に出展した作品を GDC 向けに再構成するプロジェクトで�
 
 ## 3. 体験フロー
 
+**体験はすべて英語で行う**（語り・画面の文・スタッフの説明）。この節の文は日本語の下書きで、英語の文は [シナリオブック](docs/scenario-book.md)（仮）にある。
+
 1 人あたり約 8 分（Quest をつけている間は約 6 分）。数字はすべて仮で、試遊しながら変える。詳しい案と経緯は [#38 のコメント](https://github.com/Fialuxe/MouthOfGod_System/issues/38#issuecomment-6083490067)。
 
 ```mermaid
