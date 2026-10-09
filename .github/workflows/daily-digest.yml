@@ -1,0 +1,49 @@
+# 1 日のふりかえりを Slack に送る（.github/scripts/daily_digest.py）。
+# 必要な設定（Settings → Secrets and variables → Actions）:
+# - Secrets: GEMINI_API_KEY_1〜3（1 つ以上）、SLACK_WEBHOOK_URL
+# - Variables（任意）: GEMINI_MODELS … 試すモデルをカンマ区切りで、上から順に。モデルが変わったらここだけ直す
+name: Daily Digest
+
+on:
+  schedule:
+    - cron: "0 13 * * *"  # 毎日 22:00 JST
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Slack に送らず、ログに出すだけ"
+        type: boolean
+        default: false
+      hours:
+        description: "何時間前からを対象にするか"
+        type: number
+        default: 24
+
+# 読むだけ。書き込みの権限は持たせない
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  actions: read
+
+concurrency:
+  group: daily-digest
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ふりかえりを作って送る
+        run: python3 .github/scripts/daily_digest.py --hours "$HOURS" $([ "$DRY_RUN" = "true" ] && echo --dry-run)
+        env:
+          HOURS: ${{ inputs.hours || 24 }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_MODELS: ${{ vars.GEMINI_MODELS }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
