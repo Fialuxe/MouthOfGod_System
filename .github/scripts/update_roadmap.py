@@ -23,6 +23,8 @@ JST = timezone(timedelta(hours=9))
 # 「対応しない」「重複」で閉じた Issue は、進み具合にも図にも含めない
 SKIPPED_REASONS = {"NOT_PLANNED", "DUPLICATE"}
 OPTIONAL = "任意"
+# 「状態」ラベルの Issue は作業ではなく、区切りのゴールを分解した命題。子（Blocked by）がすべて閉じたら自動で閉じる
+STATE = "状態"
 
 QUERY = """
 query($owner: String!, $name: String!, $after: String) {
@@ -167,6 +169,7 @@ def build(issues, milestones, roadmap_number):
         i["who"] = [a["login"] for a in i["assignees"]["nodes"]]
         # 「任意」ラベルの Issue は、やれたらやるもの。進み具合と ⚠ の計算に入れない
         i["optional"] = OPTIONAL in {l["name"] for l in i["labels"]["nodes"]}
+        i["is_state"] = STATE in {l["name"] for l in i["labels"]["nodes"]}
 
     def is_open(n):
         return by_number[n]["state"] == "OPEN"
@@ -174,6 +177,8 @@ def build(issues, milestones, roadmap_number):
     def status(i):
         if i["state"] == "CLOSED":
             return "done"
+        if i["is_state"]:
+            return "state"
         if i["who"]:
             return "doing"
         return "waiting" if any(is_open(b) for b in i["blockers"]) else "ready"
@@ -183,7 +188,8 @@ def build(issues, milestones, roadmap_number):
     def chain(n):
         """n を終えるまでに、順番に片付ける必要がある未完了 Issue の段数（n を含む）。"""
         if n not in chain_memo:
-            chain_memo[n] = 0 if not is_open(n) else 1 + max((chain(b) for b in by_number[n]["blockers"]), default=0)
+            own = 0 if not is_open(n) or by_number[n]["is_state"] else 1  # 状態は作業ではないので段に数えない
+            chain_memo[n] = 0 if not is_open(n) else own + max((chain(b) for b in by_number[n]["blockers"]), default=0)
         return chain_memo[n]
 
     def item(i, with_who=True):
@@ -208,9 +214,9 @@ def build(issues, milestones, roadmap_number):
     today = datetime.now(JST).date()
 
     def summary(m, all_members):
-        members = [i for i in all_members if not i["optional"]]
+        members = [i for i in all_members if not i["optional"] and not i["is_state"]]
         open_items = [i for i in members if i["state"] == "OPEN"]
-        optional_open = [i for i in all_members if i["optional"] and i["state"] == "OPEN"]
+        optional_open = [i for i in all_members if i["optional"] and not i["is_state"] and i["state"] == "OPEN"]
         due = due_date(m)
         longest = max((chain(i["number"]) for i in open_items), default=0)
         risk = ""
@@ -356,7 +362,11 @@ def build(issues, milestones, roadmap_number):
             i = by_number[n]
             who = f"<br/>@{' @'.join(i['who'])}" if i["who"] and i["state"] == "OPEN" else ""
             opt = "（任意）" if i["optional"] else ""
-            lines.append(f'  i{n}["#35;{n} {label_text(i["title"])}{opt}{who}"]:::{status(i)}')
+            if i["is_state"]:
+                # 状態は角の丸い箱。「【状態】」は形で分かるので省く
+                lines.append(f'  i{n}(["#35;{n} {label_text(i["title"].replace("【状態】", ""), 34)}"]):::{"statedone" if i["state"] == "CLOSED" else "state"}')
+            else:
+                lines.append(f'  i{n}["#35;{n} {label_text(i["title"])}{opt}{who}"]:::{status(i)}')
 
         # ゴールに近い順（幅優先）に置く。最初に出会った所が実体の場所になる
         placed = list(tops)
@@ -388,6 +398,8 @@ def build(issues, milestones, roadmap_number):
             "  classDef ready fill:#fff3cd,stroke:#d39e00,color:#533f03",
             "  classDef waiting fill:#f6f8fa,stroke:#8c959f,color:#24292f",
             "  classDef ref fill:#ffffff,stroke:#c3c2b7,color:#57606a",
+            "  classDef state fill:#eef4fc,stroke:#2a78d6,color:#0d366b",
+            "  classDef statedone fill:#d4edda,stroke:#28a745,color:#155724",
             "  classDef ext fill:#ffffff,stroke:#8c959f,stroke-dasharray:4 3,color:#57606a",
             "  classDef extdone fill:#ffffff,stroke:#28a745,stroke-dasharray:4 3,color:#57606a",
         ]
@@ -398,7 +410,7 @@ def build(issues, milestones, roadmap_number):
         "",
         "一番上（🎯）が区切りのゴールで、その下に「そのために先に要る Issue」が並びます。下から上へ進めます。",
         "",
-        "🟩 完了　🟦 着手中　🟨 すぐ着手できる　⬜ 待ち（先に終わらせる Issue がある）　↪ = ほかの所に出てくる Issue　点線の箱 = 別の区切りの Issue　点線の矢印 = 任意",
+        "丸い箱 = 状態（子がすべて終わると自動で閉じる）　🟩 完了　🟦 着手中　🟨 すぐ着手できる　⬜ 待ち（先に終わらせる Issue がある）　↪ = ほかの所に出てくる Issue　点線の箱 = 別の区切りの Issue　点線の矢印 = 任意",
         "",
     ]
     for m, members in groups:
@@ -416,11 +428,40 @@ def build(issues, milestones, roadmap_number):
     return "\n".join(out), graphs, focus
 
 
+def sync_states(issues, api):
+    """「状態」Issue を、子（Blocked by）に合わせて閉じる・開き直す。子のない状態は触らない。"""
+    by_number = {i["number"]: i for i in issues}
+    changed = False
+    for i in issues:
+        if STATE not in {l["name"] for l in i["labels"]["nodes"]} or i["stateReason"] in SKIPPED_REASONS:
+            continue
+        kids = [by_number[b["number"]] for b in i["blockedBy"]["nodes"] if b["number"] in by_number]
+        if not kids:
+            continue
+        all_done = all(k["state"] == "CLOSED" for k in kids)
+        if all_done and i["state"] == "OPEN":
+            request("POST", f"{api}/issues/{i['number']}/comments", {"body": "子の Issue がすべて閉じたので、この状態は成り立ちました。自動で閉じます。"})
+            request("PATCH", f"{api}/issues/{i['number']}", {"state": "closed", "state_reason": "completed"})
+            print(f"Closed state #{i['number']}")
+            changed = True
+        elif not all_done and i["state"] == "CLOSED":
+            request("PATCH", f"{api}/issues/{i['number']}", {"state": "open"})
+            print(f"Reopened state #{i['number']}")
+            changed = True
+    return changed
+
+
 def main():
     api = f"https://api.github.com/repos/{REPO}"
     found = request("GET", f"{api}/issues?labels={LABEL}&state=open&per_page=10")
     roadmap = found[0] if found else None
     issues, milestones = fetch()
+    # 状態を閉じると、その親の状態も閉じられるようになるので、変化がなくなるまで繰り返す
+    if "--dry-run" not in sys.argv:
+        for _ in range(10):
+            if not sync_states(issues, api):
+                break
+            issues, milestones = fetch()
     body, graphs, focus = build(issues, milestones, roadmap["number"] if roadmap else None)
     if "--mermaid-dir" in sys.argv:
         out_dir = sys.argv[sys.argv.index("--mermaid-dir") + 1]
