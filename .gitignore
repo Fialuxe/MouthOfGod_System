@@ -91,3 +91,6 @@ desktop.ini
 /Assets/ArtisticResources/ThirdParty/**/Preview.mp4.meta
 /Assets/ArtisticResources/ThirdParty/**/Preview.gif
 /Assets/ArtisticResources/ThirdParty/**/Preview.gif.meta
+
+# 外部素材: OBJ 形式のフォルダは入れる（上の [Oo]bj/ は大文字小文字を区別しない環境で OBJ/ にも当たってしまうため）
+!/Assets/ArtisticResources/ThirdParty/**/OBJ/
