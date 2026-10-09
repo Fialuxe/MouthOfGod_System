@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: ふりかえりを作って送る
         run: python3 .github/scripts/daily_digest.py --hours "$HOURS" $([ "$DRY_RUN" = "true" ] && echo --dry-run)
