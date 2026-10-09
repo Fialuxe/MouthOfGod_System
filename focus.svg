@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="860" height="380" viewBox="0 0 860 380" role="img" aria-label="今の区切り">
 <style>
 svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP',sans-serif}
-.bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:#0b0b0b}.t2{fill:#52514e}.track{fill:#ecebe8}.bar{fill:#2a78d6}.warn{fill:#8a4b00}
+a:hover text{text-decoration:underline}.bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:#0b0b0b}.t2{fill:#52514e}.track{fill:#ecebe8}.bar{fill:#2a78d6}.warn{fill:#8a4b00}
 @media (prefers-color-scheme: dark){.bg{fill:#1a1a19;stroke:#383835}.t1{fill:#ffffff}.t2{fill:#c3c2b7}.track{fill:#2c2c2a}.bar{fill:#3987e5}.warn{fill:#f0a64a}}
 </style>
 <rect class="bg" x="0.5" y="0.5" width="859" height="379" rx="8"/>
@@ -13,11 +13,11 @@ svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP
 <text class="t1" x="20" y="130" font-size="13" font-weight="600">着手中</text>
 <text class="t2" x="32" y="152" font-size="13">なし</text>
 <text class="t1" x="20" y="180" font-size="13" font-weight="600">すぐ着手できる（担当なし）</text>
-<text class="t1" x="32" y="202" font-size="13">#38 体験全体の流れを決める (起動から次の人に交代するまで)</text>
-<text class="t1" x="32" y="224" font-size="13">#39 「噛んで生み出して届ける」1 回分の流れを決める</text>
-<text class="t1" x="32" y="246" font-size="13">#40 デバイス入力の流れを決める (噛む・食感の切り替え・決定)</text>
-<text class="t1" x="32" y="268" font-size="13">#41 コードの型の名前とデータの置き場所を決める</text>
-<text class="t1" x="32" y="290" font-size="13">#52 食感の種類を決める</text>
-<text class="t1" x="32" y="312" font-size="13">#69 応募フォームと提出物を確かめる</text>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/38" target="_blank"><text class="t1" x="32" y="202" font-size="13">#38 体験全体の流れを決める (起動から次の人に交代するまで)</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/39" target="_blank"><text class="t1" x="32" y="224" font-size="13">#39 「噛んで生み出して届ける」1 回分の流れを決める</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/40" target="_blank"><text class="t1" x="32" y="246" font-size="13">#40 デバイス入力の流れを決める (噛む・食感の切り替え・決定)</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/41" target="_blank"><text class="t1" x="32" y="268" font-size="13">#41 コードの型の名前とデータの置き場所を決める</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/52" target="_blank"><text class="t1" x="32" y="290" font-size="13">#52 食感の種類を決める</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/69" target="_blank"><text class="t1" x="32" y="312" font-size="13">#69 応募フォームと提出物を確かめる</text></a>
 <text class="t2" x="20" y="366" font-size="11">詳しくはピン留めのロードマップ Issue。着手したら自分を Assignee にする。</text>
 </svg>
