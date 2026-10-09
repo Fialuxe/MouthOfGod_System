@@ -29,9 +29,10 @@ Scene Fusion 2 クラウド版（v2.0.5）は Package Manager 経由でリポジ
    - 現在は無料枠（**2 席**）のため、招待できる人数に制限がある。席の数え方（登録人数か同時接続数か）は未確認で、Issue #5 で検証中。
 3. 招待メールを承認する。
 4. Unity で `Window > Scene Fusion` を開き、2 のアカウントでログインする。
+5. セッションのメニューで、招待されたプロジェクトを選ぶ（初回だけ）。
 
 - アカウントのメールアドレスは Unity のものと同じでも別でもよい（連携していない）。
-- Scene Fusion のプロジェクト ID は `Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset` に入っており、Git で共有している（認証情報ではない）。
+- Scene Fusion の設定（`Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset`）は、選んだプロジェクトや表示・ログの設定など各自のものなので、Git で共有しない（`.gitignore` 済み）。初めて開いたときに自動で作られる。セッションの設定（マテリアル・Prefab の同期）は、セッションを作った人の値が使われる。
 - 使用時のルールは第 3 章を参照。
 
 #### 席が足りない・接続できない場合（想定している対処）

@@ -58,11 +58,18 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# IDE
+# IDE・OS（各自の環境のもの）
 .vs/
 .vscode/
 .idea/
+*.code-workspace
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# Scene Fusion: 各自の設定（選んだプロジェクト、表示、ログ）。セッションの設定は作った人の値が使われる
+/Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset
+/Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset.meta
 
 # Meta XR: local-only (LAN address / access token) and generated binaries
 /Assets/Resources/DevAgentSettings.asset
