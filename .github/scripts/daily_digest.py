@@ -34,6 +34,8 @@ PROMPT_FILE = os.path.join(os.path.dirname(__file__), "daily_digest_prompt.md")
 # 上から順に試す。リポジトリの変数 GEMINI_MODELS（カンマ区切り）で上書きできる。コードを直さずに差し替えるため。
 # *-latest は Google 側で最新版を指す別名なので、モデルの入れ替わりに強い。
 DEFAULT_MODELS = "gemini-flash-latest,gemini-2.5-flash,gemini-flash-lite-latest,gemini-2.5-flash-lite"
+# LLM に渡す件数の上限。作ったばかりの時期などで件数が多い日に、入力が大きくなって遅くなるのを防ぐ
+MAX_ITEMS = 20
 # 上のモデルがすべて使えないとき、API のモデル一覧から見つけて試す数
 DISCOVER_LIMIT = 3
 GEMINI = "https://generativelanguage.googleapis.com/v1beta"
@@ -168,16 +170,18 @@ def collect(hours):
             "closes": [n["number"] for n in p["closingIssuesReferences"]["nodes"]],
             "size": f"+{p['additions']} -{p['deletions']}（{p['changedFiles']} ファイル）",
             "files": [f["path"] for f in p["files"]["nodes"]][:15], "body": excerpt(p["body"]),
-        } for p in merged],
+        } for p in merged[:MAX_ITEMS]],
         "direct_commits": [c["commit"]["message"].splitlines()[0] for c in commits if not re.search(r"\(#\d+\)$", c["commit"]["message"].splitlines()[0])],
         "issues_closed": [{
             "number": i["number"], "title": i["title"], "reason": i["stateReason"],
             "is_state": roadmap.STATE in labels(i), "milestone": (i["milestone"] or {}).get("title"),
-        } for i in closed],
+        } for i in closed[:MAX_ITEMS * 2]],
         "issues_opened": [{
             "number": i["number"], "title": i["title"], "author": (i["author"] or {}).get("login"),
             "labels": sorted(labels(i)), "milestone": (i["milestone"] or {}).get("title"), "body": excerpt(i["body"], 300),
-        } for i in opened],
+        } for i in opened[:MAX_ITEMS]],
+        # 上限を超えて省いた件数（数は Slack の末尾にも出る）
+        "omitted": {"merged_prs": max(len(merged) - MAX_ITEMS, 0), "issues_opened": max(len(opened) - MAX_ITEMS, 0)},
         "unblocked": unblocked,
         "still_waiting": still_waiting,
         "open_prs": [{
@@ -190,7 +194,8 @@ def collect(hours):
     }
     # LLM が書いた #番号が、本当にあるものかを確かめるための一覧
     known = set(by_number) | {p["number"] for p in merged + open_prs}
-    return facts, known
+    counts = {"merged_prs": len(merged), "issues_closed": len(closed), "issues_opened": len(opened)}
+    return facts, known, counts
 
 
 def has_activity(f):
@@ -218,7 +223,7 @@ class SkipModel(Exception):
     """このモデルは、どのキーでも使えない（存在しない・出力が検査に通らない）。"""
 
 
-def gemini(path, key, body=None, timeout=90):
+def gemini(path, key, body=None, timeout=120):
     req = urllib.request.Request(
         f"{GEMINI}/{path}",
         method="GET" if body is None else "POST",
@@ -304,6 +309,9 @@ def summarize(facts, known):
                     print(f"::warning::{model} / キー {n}: {e.code} {detail}")
                     continue  # 429（上限）・5xx は次のキーへ
                 except (urllib.error.URLError, TimeoutError) as e:
+                    if isinstance(e, TimeoutError) or isinstance(getattr(e, "reason", None), TimeoutError):
+                        # 時間切れはモデル側の問題なので、キーを替えても同じ。次のモデルへ
+                        raise SkipModel(f"時間切れ（キー {n}）")
                     print(f"::warning::{model} / キー {n}: {e}")
                     continue
                 try:
@@ -349,7 +357,7 @@ def fallback(f):
     return s
 
 
-def blocks(f, s, model):
+def blocks(f, s, model, counts):
     today = datetime.now(JST)
     out = [
         {"type": "header", "text": {"type": "plain_text", "text": f"{today.month}/{today.day} のふりかえり"}},
@@ -365,7 +373,7 @@ def blocks(f, s, model):
         risk = f"　⚠ {focus['risk']}" if focus["risk"] else ""
         out.append({"type": "context", "elements": [{"type": "mrkdwn", "text": slack_text(f"今の区切り: *{focus['title']}*　{focus['due_text']}　`{bar}`{risk}")}]})
     waiting = sum(1 for p in f["open_prs"] if not p["draft"])
-    stats = (f"マージした PR {len(f['merged_prs'])}・閉じた Issue {len(f['issues_closed'])}・新しい Issue {len(f['issues_opened'])}"
+    stats = (f"マージした PR {counts['merged_prs']}・閉じた Issue {counts['issues_closed']}・新しい Issue {counts['issues_opened']}"
              f"・レビュー待ち PR {waiting}・失敗中の CI {len(f['ci']['failing_now'])}")
     by = f"要約: {model}" if model else "要約: LLM なし（Gemini が使えなかった）"
     links = f"<{WEB}/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap|ロードマップ>・<{WEB}/actions/workflows/daily-digest.yml|この通知の実行>"
@@ -384,11 +392,11 @@ def post(payload):
 
 def main():
     hours = int(sys.argv[sys.argv.index("--hours") + 1]) if "--hours" in sys.argv else 24
-    facts, known = collect(hours)
+    facts, known, counts = collect(hours)
     # 動きのない日は LLM を呼ばない（無料枠を使わない）。次の一手だけは出す
     s, model = summarize(facts, known) if has_activity(facts) else (None, None)
     s = s or fallback(facts)
-    payload = {"text": f"ふりかえり: {s['headline']}", "blocks": blocks(facts, s, model)}
+    payload = {"text": f"ふりかえり: {s['headline']}", "blocks": blocks(facts, s, model, counts)}
     if "--dry-run" in sys.argv:
         print(json.dumps(facts, ensure_ascii=False, indent=1))
         print(json.dumps(payload, ensure_ascii=False, indent=1))
