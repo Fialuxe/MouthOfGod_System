@@ -17,3 +17,13 @@
 | Ultimate Food Pack (Oct 2019) | CC0 1.0 | `Assets/ArtisticResources/ThirdParty/Quaternius/Ultimate Food Pack - Oct 2019/` |
 
 ライセンスの原文は、各パックのフォルダの `License.txt`（MegaKit は `License_Standard.txt`）。
+
+## MatrixRex
+
+作者: [MatrixRex](https://github.com/MatrixRex)。**MIT License**（再配布可。著作権表示とライセンス文を残す）。
+
+| パック | ライセンス | 置き場所 |
+|---|---|---|
+| [Uber Stylized Water](https://github.com/MatrixRex/Uber-Stylized-Water) v1.1.6（川・海の水のシェーダー。URP） | MIT | `Assets/ArtisticResources/ThirdParty/MatrixRex/Uber Stylized Water/` |
+
+ライセンスの原文は、フォルダの `LICENSE.txt`。同梱の `Third Party/` の 2 つ（ShaderGraphVariables・URP_ShaderGraphCustomLighting、作者 Cyanilux）も MIT で、原文はそれぞれのフォルダの `LICENSE`。
