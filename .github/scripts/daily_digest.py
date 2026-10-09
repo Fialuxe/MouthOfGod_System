@@ -386,10 +386,24 @@ def slack_text(text):
     return re.sub(r"#(\d+)", lambda m: f"<{WEB}/issues/{m[1]}|#{m[1]}>", text)
 
 
-def section(title, lines):
-    shown = lines[:SHOW] + ([f"ほか {len(lines) - SHOW} 件"] if len(lines) > SHOW else [])
-    text = f"*{title}*\n" + "\n".join(f"• {slack_text(l)}" for l in shown)
-    return {"type": "section", "text": {"type": "mrkdwn", "text": text[:2900]}}
+def item(main, sub=None):
+    """1 項目。sub（補足・LLM の読み取り）は次の行に、字下げして斜体で出す。"""
+    text = slack_text(main)
+    return text + (f"\n　　_{slack_text(sub)}_" if sub else "")
+
+
+def section(title, items, numbered=False):
+    """見出しと項目を 1 つの欄にする。補足のある項目が並ぶときは、項目の間を 1 行あける。"""
+    shown = items[:SHOW] + ([item(f"ほか {len(items) - SHOW} 件")] if len(items) > SHOW else [])
+    marks = [f"{i}." if numbered else "•" for i in range(1, len(shown) + 1)]
+    sep = "\n\n" if any("\n" in s for s in shown) else "\n"
+    body = sep.join(f"{m} {s}" for m, s in zip(marks, shown))
+    return {"type": "section", "text": {"type": "mrkdwn", "text": f"*{title}*\n{body}"[:2900]}}
+
+
+def bar(done, total, width=10):
+    filled = round(width * done / total) if total else 0
+    return "▰" * filled + "▱" * (width - filled)
 
 
 def render(f, llm, model):
@@ -397,29 +411,31 @@ def render(f, llm, model):
     effects = {e["number"]: e["text"] for e in llm.get("effects", [])}
     focus = f["focus"]
 
-    changes = [f"#{p['number']} {p['title']}（@{p['author']}）" + (f"\n　→ {effects[p['number']]}" if p["number"] in effects else "") for p in f["merged"]]
-    changes += [f"main に直接: {m}" for m in f["direct_commits"]]
-    changes += [f"状態が成り立った: #{d['number']} {d['title']}" for d in f["done"] if d["is_state"]]
-    changes += [f"完了（PR なし）: #{d['number']} {d['title']}" for d in f["done"] if not d["is_state"] and not d["via_pr"]]
+    changes = [item(f"#{p['number']} {p['title']}（@{p['author']}）", effects.get(p["number"])) for p in f["merged"]]
+    changes += [item(f"main に直接: {m}") for m in f["direct_commits"]]
+    changes += [item(f"状態が成り立った: #{d['number']} {d['title']}") for d in f["done"] if d["is_state"]]
+    changes += [item(f"完了（PR なし）: #{d['number']} {d['title']}") for d in f["done"] if not d["is_state"] and not d["via_pr"]]
 
     situation = []
     if focus:
         before = focus["done"] - focus["done_today"]
-        risk = f"　⚠ {focus['risk']}" if focus["risk"] else ""
-        situation.append(f"今の区切り「{focus['title']}」: {before} → {focus['done']}/{focus['total']} 完了（今日 +{focus['done_today']}）・{focus['due_text']}{risk}")
+        situation.append(item(f"今の区切り「{focus['title']}」・{focus['due_text']}"))
+        situation.append(item(f"{bar(focus['done'], focus['total'])}  {focus['done']}/{focus['total']} 完了（{before} → {focus['done']}、今日 +{focus['done_today']}）"))
+        if focus["risk"]:
+            situation.append(item(f"⚠ {focus['risk']}"))
     if f["opened"]:
-        situation.append(f"新しい Issue {len(f['opened'])} 件: {refs(o['number'] for o in f['opened'][:SHOW])}")
+        situation.append(item(f"新しい Issue {len(f['opened'])} 件: {refs(o['number'] for o in f['opened'][:SHOW])}"))
     if llm.get("situation"):
-        situation.append(llm["situation"])
+        situation.append(item(llm["situation"]))
 
-    unlocked = [f"#{u['number']} {u['title']}（{refs(u['freed_by'])} が閉じた）" for u in f["unblocked"]]
-    unlocked += [f"#{u['number']} はあと {refs(u['still_blocked_by'])} 待ち" for u in f["still_waiting"]]
+    unlocked = [item(f"#{u['number']} {u['title']}", f"{refs(u['freed_by'])} が閉じた") for u in f["unblocked"]]
+    unlocked += [item(f"#{u['number']} はあと {refs(u['still_blocked_by'])} 待ち") for u in f["still_waiting"]]
 
-    gaps = f["signals"] + [f"見立て: {t}" for t in llm.get("insights", [])[:2]]
+    gaps = [item(s) for s in f["signals"]] + [item(f"見立て: {t}") for t in llm.get("insights", [])[:2]]
 
     by_id = {c["id"]: c for c in f["candidates"]}
     picks = [(by_id[n["id"]], n["reason"]) for n in llm.get("next", [])[:NEXT]] or [(c, c["rule"]) for c in f["candidates"][:NEXT]]
-    nexts = [f"{c['text']} — {reason}" for c, reason in picks] or ["ロードマップ Issue を見て、次にやるものを決める"]
+    nexts = [item(c["text"], reason) for c, reason in picks] or [item("ロードマップ Issue を見て、次にやるものを決める")]
 
     if llm.get("headline"):
         headline = llm["headline"]
@@ -429,18 +445,21 @@ def render(f, llm, model):
         headline = "今日は記録された動きなし。次の一手から"
 
     today = datetime.now(JST)
+    stats = f"マージした PR {len(f['merged'])}　完了した Issue {len(f['done'])}　新しい Issue {len(f['opened'])}　レビュー待ち PR {f['open_prs']}"
     blocks = [
         {"type": "header", "text": {"type": "plain_text", "text": f"{today.month}/{today.day} のふりかえり"}},
         {"type": "section", "text": {"type": "mrkdwn", "text": f"*{slack_text(headline)}*"}},
+        {"type": "context", "elements": [{"type": "mrkdwn", "text": f"{f['period']}\n{stats}"}]},
     ]
-    for title, lines in (("🛠 今日変わったこと", changes), ("📈 状況の変化", situation), ("🔓 外れたブロック", unlocked),
-                         ("🔍 見落とし・気になる点", gaps), ("👉 次の一手", nexts)):
-        if lines:
-            blocks.append(section(title, lines))
-    stats = f"マージした PR {len(f['merged'])}・完了した Issue {len(f['done'])}・新しい Issue {len(f['opened'])}・レビュー待ち PR {f['open_prs']}"
+    # 次の一手をいちばん上に（読むのはまずここ）。区切りの線で欄を分ける
+    for title, items, numbered in (("👉 次の一手", nexts, True), ("🛠 今日変わったこと", changes, False),
+                                   ("📈 状況の変化", situation, False), ("🔓 外れたブロック", unlocked, False),
+                                   ("🔍 見落とし・気になる点", gaps, False)):
+        if items:
+            blocks += [{"type": "divider"}, section(title, items, numbered)]
     by = f"意味の読み取り: {model}" if model else "意味の読み取り: なし（LLM を使わなかった）"
     links = f"<{WEB}/issues?q=is%3Aissue+is%3Aopen+label%3Aroadmap|ロードマップ>・<{WEB}/actions/workflows/daily-digest.yml|この通知の実行>"
-    blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": f"{stats}\n{by}・{links}"}]})
+    blocks += [{"type": "divider"}, {"type": "context", "elements": [{"type": "mrkdwn", "text": f"{by}・{links}"}]}]
     return {"text": f"ふりかえり: {headline}", "blocks": blocks}
 
 

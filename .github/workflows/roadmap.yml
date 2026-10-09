@@ -2,18 +2,21 @@
 # - ロードマップ Issue（ラベル roadmap）: マイルストーンと Issue の依存関係（Blocked by）から
 # - 活動記録 Issue（ラベル activity）: コミット・マージした PR・クローズした Issue から
 # - README に載せる図（SVG）を描き、roadmap-assets ブランチに置く（main は PR 必須なので別ブランチ）
-# 依存関係の変更は Actions のトリガーにならないため、1 時間ごとにも実行する。
+# 実行回数を抑える（GitHub API の利用制限があるため）:
+# - Issue・マイルストーン・main への push で動く。続けて起動されたときは最初に待ち、その間に次が来たら前を取り消す
+#   （取り消された実行は API を使わない）。まとめて 10 件触っても、作り直すのは最後の 1 回だけ
+# - Issue の本文・題名の編集（edited）では動かない。依存関係の変更もトリガーにならないので、10 時間ごとに拾い直す
 name: Roadmap & Activity
 
 on:
   issues:
-    types: [opened, edited, closed, reopened, deleted, transferred, milestoned, demilestoned]
+    types: [opened, closed, reopened, deleted, transferred, milestoned, demilestoned]
   milestone:
     types: [created, edited, opened, closed, deleted]
   push:
     branches: [main]
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17 */10 * * *"  # 0:17・10:17・20:17 UTC（9:17・19:17・5:17 JST）
   workflow_dispatch:
 
 permissions:
@@ -28,6 +31,10 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
+      - name: 続けての変更をまとめるために待つ
+        if: github.event_name != 'schedule' && github.event_name != 'workflow_dispatch'
+        run: sleep 180
+
       - uses: actions/checkout@v5
 
       - name: ロードマップ Issue を更新し、図の元を書き出す
