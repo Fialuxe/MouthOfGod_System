@@ -48,9 +48,11 @@ jobs:
         run: |
           sudo apt-get install -y -qq fonts-noto-cjk > /dev/null
           echo '{"args":["--no-sandbox"]}' > puppeteer.json
+          # 図の箱を Issue へのリンクにする（click）には loose が要る。ラベルの文字はスクリプトで実体参照にしてある
+          echo '{"securityLevel":"loose"}' > mermaid.json
           mkdir -p svg
           for f in mmd/*.mmd; do
-            npx -y @mermaid-js/mermaid-cli@11.4.2 -p puppeteer.json -b white -i "$f" -o "svg/$(basename "$f" .mmd).svg"
+            npx -y @mermaid-js/mermaid-cli@11.4.2 -p puppeteer.json -c mermaid.json -b white -i "$f" -o "svg/$(basename "$f" .mmd).svg"
           done
           cp mmd/*.svg svg/ 2>/dev/null || true  # 今の区切りのカード（focus.svg）はスクリプトが直接描く
 
