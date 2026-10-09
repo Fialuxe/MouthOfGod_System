@@ -233,11 +233,14 @@ def build(issues, milestones, roadmap_number):
                 if open_items and longest > max(days, 1):
                     risk = "順番待ちの段数が、残りの日数より多い"
         return {
-            "title": m["title"], "due_text": due_text, "risk": risk, "chain": longest,
+            "number": m["number"], "title": m["title"], "due_text": due_text, "risk": risk, "chain": longest,
             "done": len(members) - len(open_items), "total": len(members), "open": len(open_items),
             "doing": [item(i) for i in open_items + optional_open if status(i) == "doing"],
             "ready": [item(i, False) for i in open_items + optional_open if status(i) == "ready"],
             "optional": len(optional_open),
+            # 毎日のふりかえり（daily_digest.py）が、次の一手の候補に使う
+            "doing_numbers": [i["number"] for i in open_items + optional_open if status(i) == "doing"],
+            "ready_numbers": [i["number"] for i in open_items + optional_open if status(i) == "ready"],
         }
 
     current = next(((m, mem) for m, mem in groups if m["number"] is not None and any(i["state"] == "OPEN" for i in mem)), None)
