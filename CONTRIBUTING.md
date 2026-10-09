@@ -51,6 +51,7 @@ Scene Fusion が使えなくても、開発は止めない。次の順で対処�
   - **Version Control > Mode**: `Visible Meta Files`
   - **Asset Serialization > Mode**: `Force Text`
 - `.meta` ファイルは必ずアセットと一緒にコミットする（`.gitignore` で除外しない）。
+- Package Manager の画面の状態（`ProjectSettings/PackageManagerSettings.asset`。選んだレジストリや開閉など）は各自のものなので、Git で共有しない（`.gitignore` 済み）。チームで共有するパッケージ（スコープ付きレジストリを含む）は `Packages/manifest.json` に書く。Unity が自動で作り直す。
 
 ### Git の設定
 ```bash
