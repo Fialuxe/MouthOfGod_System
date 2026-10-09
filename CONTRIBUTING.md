@@ -166,6 +166,9 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 ## 5. Pull Request
 - タイトルに目的、本文に変更内容と動作確認の方法を書く。
 - 本文に、この PR で終わる Issue を `Closes #番号` と書く（複数なら 1 行に 1 つ）。マージすると Issue が自動で閉じ、ロードマップと毎日のふりかえり（Slack）に「何が終わったか」が正しく出る。Issue のない小さな修正は書かなくてよい。
+  - **終わる Issue には、積極的に `Closes` を付ける**。PR を書く前に、Issue の「やること」「できたと言える状態（完了条件）」を読み、この PR で満たせるなら `Closes`。手で閉じ忘れた Issue は、ロードマップで「終わっていない」ままになり、後に続く Issue のブロックも外れない。
+  - Issue の一部だけを進める PR は `Refs #番号` にし、残っていることを本文に書く。いくつかの PR で 1 つの Issue を終えるときは、**最後の PR に `Closes`** を付ける。
+  - Issue に未決のことが少し残るだけなら、それを docs や新しい Issue に移してから `Closes` にする（Issue を開いたままにしない）。
 - 原則、最低 1 人のレビュー後に `main` へ **Squash merge** または Rebase merge。
 - **レビューなしでマージしてよい場合**: マージして問題がないと判断でき、かつレビュワーがレビューできない状況（レビュワーが自分しかいない、全員が多忙、など）のとき。**必ず動作確認をした上で**マージし、PR に確認内容を書く。シーンや共通設定を変更する PR は、可能な限りレビューを受ける。
 - マージ後、ローカルで `git switch main && git pull` して最新化する。
@@ -218,7 +221,8 @@ GDC では、Link で Unity を Play して動かす。**Play したあとに、
 この repo は公開されているので、**再配布できる素材だけ**を入れる。
 
 - **置き場所**: `Assets/ArtisticResources/ThirdParty/<提供元>/<パック名>/`（例: `Assets/ArtisticResources/ThirdParty/Quaternius/Ultimate Food Pack - Oct 2019/`）。パックのフォルダは、配布されたままの構成・名前で置く。
-- **入れてよいもの**: CC0 など、公開 repo で再配布してよいライセンスの素材。パックに付いているライセンスの文書（`License.txt` など）は、消さずに同じフォルダに残す。
+- **入れてよいもの**: CC0・MIT など、公開 repo で再配布してよいライセンスの素材。パックに付いているライセンスの文書（`License.txt` など）は、消さずに同じフォルダに残す。MIT のように著作権表示が要るライセンスで、配布物に文書が入っていなければ、配布元から取ってきて同じフォルダに置く。
+- **`.unitypackage` から入れるとき**: 中の `.meta` の GUID が、このプロジェクトのファイルとぶつかっていないか確かめる。URP のテンプレートから作った設定（`*_RPAsset.asset`・`*_Renderer.asset` など）は、`Assets/Settings/` のものと同じ GUID のことがある（Uber Stylized Water のデモがそうだった）。ぶつかるものは、使われていなければ入れない。確かめ方: `find Assets -name "*.meta" -print0 | xargs -0 grep -h "^guid" | sort | uniq -d`（何も出なければよい）。
 - **入れてはいけないもの**: 再配布できない素材（Asset Store の有償アセットなど）。手元で使うだけなら `Assets/Local/` に置く（`.gitignore` 済み。Git に上がらない）。
 - **CREDITS.md**: 素材を入れる PR で、[CREDITS.md](CREDITS.md) に「提供元・パック名・ライセンス・URL・置き場所」を 1 行足す。
 - **容量**: 使わないファイルは入れない。同じモデルが複数の形式（FBX / OBJ / glTF / Blend）で入っているパックでは、Unity で使う形式だけにする。`.blend`（元データ）とプレビューの動画・GIF は `.gitignore` で除外している（手元に置くのは自由）。
