@@ -330,7 +330,7 @@ def build(issues, milestones, roadmap_number):
         "  classDef done fill:#d4edda,stroke:#28a745,color:#155724",
         "  classDef risk fill:#fff3cd,stroke:#a15c00,color:#533f03",
     ]
-    graphs["milestones"] = "\n".join(lines)
+    graphs["milestones"] = with_links("\n".join(lines))
     out += ["", "## 区切りの流れ", "", "左の区切りから順に進みます。矢印の元の区切りに、先に終わらせる必要がある Issue があります。黄色は ⚠ の区切りです。", "", "```mermaid", graphs["milestones"], "```", ""]
 
     ancestors_memo = {}
@@ -425,7 +425,7 @@ def build(issues, milestones, roadmap_number):
     for m, members in groups:
         if not members or m["number"] is None:
             continue
-        code = goal_tree(m, members)
+        code = with_links(goal_tree(m, members))
         is_current = current is not None and m is current[0]
         if is_current:
             graphs["current"] = code
@@ -467,8 +467,7 @@ NODE = re.compile(r"^\s+(i(\d+)|x\d+_(\d+)|r\d+_(\d+)|m(\d+))[\[(]", re.M)
 def with_links(code):
     """図の箱をクリックすると、その Issue・マイルストーンに移動するようにする。
 
-    README の図（SVG）用。SVG を直接開いたときだけ押せる（README の画像としては押せない）。
-    ロードマップ Issue の本文の図には足さない（GitHub の Mermaid の表示はリンクを使えない）。
+    ロードマップ Issue の本文の図で押せる。README の図（SVG）は画像として表示されるので押せない。
     """
     clicks = []
     for m in NODE.finditer(code):
@@ -495,7 +494,7 @@ def main():
         os.makedirs(out_dir, exist_ok=True)
         for name, code in graphs.items():
             with open(os.path.join(out_dir, f"{name}.mmd"), "w", encoding="utf-8") as f:
-                f.write(with_links(code) + "\n")
+                f.write(code + "\n")
         if focus:
             with open(os.path.join(out_dir, "focus.svg"), "w", encoding="utf-8") as f:
                 f.write(focus_svg(focus))
