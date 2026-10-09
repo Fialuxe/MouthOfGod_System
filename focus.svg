@@ -9,7 +9,7 @@ svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP
 <text class="t1" x="20" y="54" font-size="20" font-weight="600">M1 見せるものが決まる</text>
 <text class="t1" x="840" y="54" font-size="16" text-anchor="end">期限 10/13（あと 4 日）</text>
 <rect class="track" x="20" y="68" width="820" height="10" rx="5"/>
-<text class="t2" x="20" y="98" font-size="13">0/15 完了・残り 15 件・待ちの最長 4 段</text>
+<text class="t2" x="20" y="98" font-size="13">0/11 完了・残り 11 件・待ちの最長 3 段</text>
 <text class="t1" x="20" y="130" font-size="13" font-weight="600">着手中</text>
 <text class="t2" x="32" y="152" font-size="13">なし</text>
 <text class="t1" x="20" y="180" font-size="13" font-weight="600">すぐ着手できる（担当なし）</text>
