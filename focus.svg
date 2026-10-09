@@ -9,16 +9,16 @@ a:hover text{text-decoration:underline}.bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:
 <text class="t1" x="20" y="54" font-size="20" font-weight="600">M1 見せるものが決まる</text>
 <text class="t1" x="840" y="54" font-size="16" text-anchor="end">期限 10/13（あと 3 日）</text>
 <rect class="track" x="20" y="68" width="820" height="10" rx="5"/>
-<rect class="bar" x="20" y="68" width="68" height="10" rx="5"/>
-<text class="t2" x="20" y="98" font-size="13">1/12 完了・残り 11 件・待ちの最長 3 段</text>
+<rect class="bar" x="20" y="68" width="189" height="10" rx="5"/>
+<text class="t2" x="20" y="98" font-size="13">3/13 完了・残り 10 件・待ちの最長 3 段</text>
 <text class="t1" x="20" y="130" font-size="13" font-weight="600">着手中</text>
 <text class="t2" x="32" y="152" font-size="13">なし</text>
 <text class="t1" x="20" y="180" font-size="13" font-weight="600">すぐ着手できる（担当なし）</text>
-<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/38" target="_blank"><text class="t1" x="32" y="202" font-size="13">#38 体験全体の流れを決める (起動から次の人に交代するまで)</text></a>
-<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/39" target="_blank"><text class="t1" x="32" y="224" font-size="13">#39 「噛んで生み出して届ける」1 回分の流れを決める</text></a>
-<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/40" target="_blank"><text class="t1" x="32" y="246" font-size="13">#40 デバイス入力の流れを決める (噛む・食感の切り替え・決定)</text></a>
-<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/41" target="_blank"><text class="t1" x="32" y="268" font-size="13">#41 コードの型の名前とデータの置き場所を決める</text></a>
-<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/52" target="_blank"><text class="t1" x="32" y="290" font-size="13">#52 食感の種類を決める</text></a>
-<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/182" target="_blank"><text class="t1" x="32" y="312" font-size="13">#182 シナリオブック（仮）をレビューし、プロローグの形式など未決のことを決める</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/39" target="_blank"><text class="t1" x="32" y="202" font-size="13">#39 「噛んで生み出して届ける」1 回分の流れを決める</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/40" target="_blank"><text class="t1" x="32" y="224" font-size="13">#40 デバイス入力の流れを決める (噛む・食感の切り替え・決定)</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/41" target="_blank"><text class="t1" x="32" y="246" font-size="13">#41 コードの型の名前とデータの置き場所を決める</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/52" target="_blank"><text class="t1" x="32" y="268" font-size="13">#52 食感の種類を決める</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/182" target="_blank"><text class="t1" x="32" y="290" font-size="13">#182 シナリオブック（仮）をレビューし、プロローグの形式など未決のことを決める</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/183" target="_blank"><text class="t1" x="32" y="312" font-size="13">#183 次の MTG の議題と議事録</text></a>
 <text class="t2" x="20" y="366" font-size="11">詳しくはピン留めのロードマップ Issue。着手したら自分を Assignee にする。</text>
 </svg>
