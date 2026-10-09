@@ -128,10 +128,19 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 - 付けないと、ロードマップの「すぐ着手できる」やふりかえりの「次の一手」に、その Issue が出たままになる。気になるなら付ける。
 - 手を離すとき（しばらく触らない・ほかの人に渡す）は、Assignee を外す。
 
-**ミーティングで話すことは、ラベルで集める**。MTG の前に Issue を書いておき、ラベルを付ける。MTG では、ラベルの付いた Issue を上から順に見る。
-- `MTGで共有`: 見てほしい・知っておいてほしいもの（レビューしてほしい案、進み具合、困っていること）。**共有したら外す**。
-- `MTGで決める`: その場で決めたいもの。Issue に「決めてほしいこと」を番号付きで書いておく。**決めたら、結果を Issue に書いて外す**。
-- 一覧: [MTGで共有](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3AMTG%E3%81%A7%E5%85%B1%E6%9C%89)・[MTGで決める](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3AMTG%E3%81%A7%E6%B1%BA%E3%82%81%E3%82%8B)
+**ミーティングで話すことは、ラベルと「議題 Issue」で集める**。
+
+- **ラベル**（MTG の前に、話したい Issue に付ける）:
+  - `MTGで共有`: 見てほしい・知っておいてほしいもの（レビューしてほしい案、進み具合、困っていること）
+  - `MTGで決める`: その場で決めたいもの。Issue に「決めてほしいこと」を番号付きで書いておく
+  - 一覧: [MTGで共有](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3AMTG%E3%81%A7%E5%85%B1%E6%9C%89)・[MTGで決める](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3AMTG%E3%81%A7%E6%B1%BA%E3%82%81%E3%82%8B)
+- **議題 Issue**（MTG 1 回につき 1 つ。題は「次の MTG の議題と議事録」、ラベルは `MTGで共有`）:
+  - 「共有すること」と「決めること（締切の近い順）」を並べる。Issue のないこと（マージした PR、決まりの変更、お知らせ）も、ここに書けば共有できる
+- **MTG が終わったら**:
+  1. 議題 Issue に**議事録**をコメントする（共有したこと・決めたこと・次にやる人）
+  2. 決めたことは、それぞれの Issue にも書き、`MTGで決める` を外す。決まらなかったものは、付けたまま次回へ
+  3. 共有した Issue から `MTGで共有` を外す。何を共有したかは議事録に残るので、外してよい
+  4. 議題 Issue を閉じ、次の MTG の議題 Issue を作る（閉じた議題 Issue が、MTG の記録になる）
 
 **ほかのラベル**:
 
