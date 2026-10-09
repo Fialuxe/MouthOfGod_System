@@ -1,0 +1,35 @@
+# 改行コードは LF にそろえる（リポジトリの中も、各自の手元も）。各自の core.autocrlf の設定によらない。
+# Unity はシーンや Prefab などを LF で書き出すので、手元でも LF にしておくと、開くたびに改行が変わらない。
+* text=auto eol=lf
+
+# Windows でしか動かないバッチファイルは CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# バイナリ（改行を変えない・差分を出さない）
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.psd binary
+*.tga binary
+*.tif binary
+*.tiff binary
+*.exr binary
+*.hdr binary
+*.fbx binary
+*.obj binary
+*.blend binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.mp4 binary
+*.ttf binary
+*.otf binary
+*.dll binary
+*.so binary
+*.a binary
+*.aar binary
+*.jar binary
+*.apk binary
+*.unitypackage binary
