@@ -2,7 +2,7 @@
 
 体験の始まりから次の人に交代するまでを、場面ごとに台本にしたもの。**すべて仮**で、試遊とレビューで直す前提。流れと時間配分の元は [README「3. 体験フロー」](../README.md#3-体験フロー)。
 
-- 語り・画面の文は、日本語と英語（仮訳）を並べる。GDC では英語を使う（英文の仕上げは #136）。
+- **体験はすべて英語で行う**（語り・画面の文・スタッフの説明）。日本語は、チームで読むための参考訳として並べる。英文はまだ仮で、仕上げは #136。
 - 〔 〕は未決のもの。とくに「どのフィールドが何を欲しがるか」は #54 で決まるまで、仮に **村 → リンゴ、海 → 魚** を使い、山・雪原は〔山の物〕〔雪原の物〕と書く。
 - プロローグは Case 1（巻物 + 妖精サイズの巫女）で書いた。Case 2（ウィジェット）にするなら、語りを画面の文に置き換える。
 - 操作は、ブースのキーボードも Inspector も使わない。スタッフの操作は左のコントローラーの長押しだけ（README「途中でやめた・止まったとき」）。
@@ -36,12 +36,12 @@
 
 ## S0 受付・装着（1 分）
 
-**画面（ブースのモニター）**: 待機中は、前の人のプレイの録画か、村の全景を流す。右上に「今日の神様」上位（案）。
+**画面（ブースのモニター。文字は英語）**: 待機中は、前の人のプレイの録画か、村の全景を流す。右上に「今日の神様」（*Today's Top Gods*）上位（案）。
 
-**スタッフの説明（英語、30 秒以内）**:
+**スタッフの説明（30 秒以内）**:
 > You are a god worshipped by a small village. You create food from your mouth. Bite this cloud — its texture changes as you chew. When it feels right, press the button, and that thing will be born. Help the villagers!
 
-（日本語: あなたは村で信仰される神様です。口から食べ物を生み出せます。この雲を噛むと、噛むたびに食感が変わります。これだと思ったらボタンを押すと、それが生まれます。村人を助けてください！）
+（参考訳: あなたは村で信仰される神様です。口から食べ物を生み出せます。この雲を噛むと、噛むたびに食感が変わります。これだと思ったらボタンを押すと、それが生まれます。村人を助けてください！）
 
 **スタッフがすること**:
 1. デバイスの口に触れる部分に、新しいカバーを付ける（#87）。
@@ -54,15 +54,15 @@
 
 お供え物は**見せるだけ**で、食べない。食感は S4 で初めて体験する。
 
-| # | 画面（体験者の視界） | 巫女の語り（日本語） | Narration (English, draft) |
+| # | 画面（体験者の視界） | Narration (English) | 日本語（参考訳） |
 |---|---|---|---|
-| 1 | 巻物・屏風が開く | 昔々、〔名前〕という神がいての、、、 | Long, long ago, there was a god named 〔name〕... |
-| 2 | 巻物に、雲から作物が生まれる絵 | その神は雲から農作物の始祖を生み出し、村の人々によく信仰されてたんじゃ、、、 | From the clouds, this god brought forth the very first crops, and the villagers worshipped it dearly... |
-| 3 | フェードアウト → お供え物が目の前に並ぶ | 村の人々は毎年、信仰してる神にお供え物をあげていての、、、 | Every year, the villagers offered food to their god... |
-| 4 | フェードアウト → 村に雨が降り続く | あるときのこと、その村は災害により飢饉に襲われてしまっての、、、 | But one year, disaster struck, and famine fell upon the village... |
-| 5 | 牛・魚・リンゴが村から消えていく | その村では一切、自然の恵みが取れなくなってしまったんじゃ、、、 | Nature's blessings vanished from the land... |
-| 6 | 巫女が正面に来る | これより体験してもらうは、村の人々が語るその神の神話。そなたには神になりて、その能力にて村を救うてもらう。驚くでないぞ、、、 | What you are about to live is the legend of that god. You shall become the god, and save the village with your power. Do not be startled... |
-| 7 | 指示の文を表示 | （語りなし） | **Please stand up and follow the booth staff.**（日本語: 立ち上がり、ブース担当者の指示を聞いてください） |
+| 1 | 巻物・屏風が開く | Long, long ago, there was a god named 〔name〕... | 昔々、〔名前〕という神がいての、、、 |
+| 2 | 巻物に、雲から作物が生まれる絵 | From the clouds, this god brought forth the very first crops, and the villagers worshipped it dearly... | その神は雲から農作物の始祖を生み出し、村の人々によく信仰されてたんじゃ、、、 |
+| 3 | フェードアウト → お供え物が目の前に並ぶ | Every year, the villagers offered food to their god... | 村の人々は毎年、信仰してる神にお供え物をあげていての、、、 |
+| 4 | フェードアウト → 村に雨が降り続く | But one year, disaster struck, and famine fell upon the village... | あるときのこと、その村は災害により飢饉に襲われてしまっての、、、 |
+| 5 | 牛・魚・リンゴが村から消えていく | Nature's blessings vanished from the land... | その村では一切、自然の恵みが取れなくなってしまったんじゃ、、、 |
+| 6 | 巫女が正面に来る | What you are about to live is the legend of that god. You shall become the god, and save the village with your power. Do not be startled... | これより体験してもらうは、村の人々が語るその神の神話。そなたには神になりて、その能力にて村を救うてもらう。驚くでないぞ、、、 |
+| 7 | 指示の文を表示 | **Please stand up and follow the booth staff.**（参考訳: 立ち上がり、ブース担当者の指示を聞いてください） | （文字だけ。語りなし） |
 
 **うまくいかないとき**: 語りは止まらずに進む。急ぐときは、スタッフが X を 2 秒長押しで飛ばす。
 
@@ -78,57 +78,57 @@
 
 ## S3 チュートリアル 1: 雲の使い方（40 秒）
 
-| # | 画面 | 巫女の語り（日本語） | Narration (English, draft) | 次へ進む条件 |
+| # | 画面 | Narration (English) | 日本語（参考訳） | 次へ進む条件 |
 |---|---|---|---|---|
-| 1 | 雲（デバイス）を口に運ぶ絵 | まずは、その雲を口にくわえてみよ。 | First, take the cloud into your mouth. | 噛み始めた |
-| 2 | 食感が切り替わるたびに、口の前の霞の色が変わる | 噛むたびに、味わいが移ろうであろう？ | Feel it? Each bite changes its texture. | 食感が 3 回切り替わった |
-| 3 | ボタンの位置を光らせる | これだと思うたら、手のボタンを押すのじゃ。 | When it feels right, press the button in your hand. | 決定した |
-| 4 | 霞がふわっと散る | うむ、よいぞ。 | Good. | — |
+| 1 | 雲（デバイス）を口に運ぶ絵 | First, take the cloud into your mouth. | まずは、その雲を口にくわえてみよ。 | 噛み始めた |
+| 2 | 食感が切り替わるたびに、口の前の霞の色が変わる | Feel it? Each bite changes its texture. | 噛むたびに、味わいが移ろうであろう？ | 食感が 3 回切り替わった |
+| 3 | ボタンの位置を光らせる | When it feels right, press the button in your hand. | これだと思うたら、手のボタンを押すのじゃ。 | 決定した |
+| 4 | 霞がふわっと散る | Good. | うむ、よいぞ。 | — |
 
 **うまくいかないとき**:
-- 10 秒噛まない → 巫女「やさしく噛んでみよ」(*Bite gently.*) とくり返す。20 秒でスタッフに知らせる印を出す。
+- 10 秒噛まない → 巫女 *Bite gently.*（やさしく噛んでみよ） とくり返す。20 秒でスタッフに知らせる印を出す。
 - ボタンを押さない → ボタンを強く光らせる。
 
 ---
 
 ## S4 チュートリアル 2: 物が生まれる（40 秒）
 
-| # | 画面 | 巫女の語り（日本語） | Narration (English, draft) | 次へ進む条件 |
+| # | 画面 | Narration (English) | 日本語（参考訳） | 次へ進む条件 |
 |---|---|---|---|---|
-| 1 | お供え物のリンゴが目の前に浮かぶ | 村の者が供えたリンゴを覚えておるか。あの歯ざわりを探してみよ。 | Remember the apple the villagers offered? Search for that bite. | — |
-| 2 | 噛んでいる間、霞の中にリンゴの影がうっすら見える | シャクッとした、あの感じじゃ。 | That crisp, crunchy feel. | リンゴの食感で決定した |
-| 3 | 口からリンゴが生まれる（音・光） | 見よ、そなたの口から恵みが生まれたぞ！ | Look! A blessing is born from your mouth! | — |
+| 1 | お供え物のリンゴが目の前に浮かぶ | Remember the apple the villagers offered? Search for that bite. | 村の者が供えたリンゴを覚えておるか。あの歯ざわりを探してみよ。 | — |
+| 2 | 噛んでいる間、霞の中にリンゴの影がうっすら見える | That crisp, crunchy feel. | シャクッとした、あの感じじゃ。 | リンゴの食感で決定した |
+| 3 | 口からリンゴが生まれる（音・光） | Look! A blessing is born from your mouth! | 見よ、そなたの口から恵みが生まれたぞ！ | — |
 
-**うまくいかないとき**: リンゴ以外で決定した → その物が生まれ、巫女「それも恵みじゃ。だが今はリンゴを」(*That too is a blessing — but now, the apple.*)。もう一度。3 回外したら、リンゴの食感の間だけ霞を強く光らせる。
+**うまくいかないとき**: リンゴ以外で決定した → その物が生まれ、巫女 *That too is a blessing — but now, the apple.*（それも恵みじゃ。だが今はリンゴを）。もう一度。3 回外したら、リンゴの食感の間だけ霞を強く光らせる。
 
 ---
 
 ## S5 チュートリアル 3: 食感で変わる・欲しい物（30 秒）
 
-| # | 画面 | 巫女の語り（日本語） | Narration (English, draft) | 次へ進む条件 |
+| # | 画面 | Narration (English) | 日本語（参考訳） | 次へ進む条件 |
 |---|---|---|---|---|
-| 1 | 海の村人に 🐟 の吹き出し。海が光る | おや、海の者が困っておる。魚が欲しいようじゃ。 | Oh, the people by the sea are troubled. They want fish. | — |
-| 2 | — | 噛み方を変えれば、生まれる物も変わる。魚の歯ざわりを探してみよ。 | A different bite brings a different blessing. Find the feel of fish. | 魚の食感で決定した |
-| 3 | 口から魚が生まれる | うむ、それじゃ。 | Yes, that's it. | — |
+| 1 | 海の村人に 🐟 の吹き出し。海が光る | Oh, the people by the sea are troubled. They want fish. | おや、海の者が困っておる。魚が欲しいようじゃ。 | — |
+| 2 | — | A different bite brings a different blessing. Find the feel of fish. | 噛み方を変えれば、生まれる物も変わる。魚の歯ざわりを探してみよ。 | 魚の食感で決定した |
+| 3 | 口から魚が生まれる | Yes, that's it. | うむ、それじゃ。 | — |
 
 ---
 
 ## S6 チュートリアル 4: 届ける（40 秒）
 
-| # | 画面 | 巫女の語り（日本語） | Narration (English, draft) | 次へ進む条件 |
+| # | 画面 | Narration (English) | 日本語（参考訳） | 次へ進む条件 |
 |---|---|---|---|---|
-| 1 | 手元に魚、海が光る | 生んだ恵みは、欲しがっておる場所へ届けるのじゃ。海を指して、離してみよ。 | Deliver your blessing where it is needed. Point at the sea, and let go. | 魚を海へ届けた |
-| 2 | 海に魚が泳ぎ、村人が喜ぶ（音・光・「+」） | 見事じゃ！ | Splendid! | — |
-| 3 | 村の村人に 🍎。村が光る | 村の者はリンゴを欲しがっておる。そちらへ歩いて、届けてみよ。 | The villagers want apples. Walk over there and deliver one. | リンゴを村へ届けた |
-| 4 | 村の木にリンゴがなる | これで、そなたも立派な神じゃ。 | Now you are a true god. | — |
+| 1 | 手元に魚、海が光る | Deliver your blessing where it is needed. Point at the sea, and let go. | 生んだ恵みは、欲しがっておる場所へ届けるのじゃ。海を指して、離してみよ。 | 魚を海へ届けた |
+| 2 | 海に魚が泳ぎ、村人が喜ぶ（音・光・「+」） | Splendid! | 見事じゃ！ | — |
+| 3 | 村の村人に 🍎。村が光る | The villagers want apples. Walk over there and deliver one. | 村の者はリンゴを欲しがっておる。そちらへ歩いて、届けてみよ。 | リンゴを村へ届けた |
+| 4 | 村の木にリンゴがなる | Now you are a true god. | これで、そなたも立派な神じゃ。 | — |
 
-**うまくいかないとき**: 違う場所へ届けた → 物が霞になって消え、村人が首を振る。巫女「そこではない。光っておる所じゃ」(*Not there — where it glows.*)。物は作り直す。
+**うまくいかないとき**: 違う場所へ届けた → 物が霞になって消え、村人が首を振る。巫女 *Not there — where it glows.*（そこではない。光っておる所じゃ）。物は作り直す。
 
 ---
 
 ## S7 本編（2 分。仮）
 
-**始まり**: 巫女「まだ村は困っておる。皆を助けてやってくれ！」(*The village still suffers. Help them all!*)。残り時間 2:00 を表示。
+**始まり**: 巫女 *The village still suffers. Help them all!*（まだ村は困っておる。皆を助けてやってくれ！）。残り時間 2:00 を表示。
 
 **流れ**:
 - 雪原・山・海・村の村人に、欲しい物の吹き出しが出る。最初の 30 秒は 1 つずつ、あとは同時に最大 2 つ。
@@ -137,16 +137,16 @@
 
 **反応（短い声・文）**:
 
-| とき | 画面 | 声・文（日本語 / English） |
+| とき | 画面 | 声・文（English。括弧は参考訳） |
 |---|---|---|
-| 正しく届けた | 音・光・村人の歓声・「+満足度」（0.5 秒以内）。届けた物は村に残る | 村人「ありがとう！」/ *Thank you!* |
-| 2 連続・3 連続… | 音が高くなり、光が大きくなる。「2 連続！」 | *2 in a row!* / *3 in a row!* |
-| 大当たり（まれに） | 金のリンゴ・村人が踊る | 巫女「おお、これは珍しい！」/ *Oh, how rare!* |
-| 違う物を届けた | 霞になって消え、村人が首を振る | 村人「うーん…」/ *Hmm...* |
-| 惜しい（近い食感） | 「惜しい！」 | *So close!* |
+| 正しく届けた | 音・光・村人の歓声・「+満足度」（0.5 秒以内）。届けた物は村に残る | 村人 *Thank you!*（ありがとう！） |
+| 2 連続・3 連続… | 音が高くなり、光が大きくなる | *2 in a row!* / *3 in a row!*（2 連続！） |
+| 大当たり（まれに） | 金のリンゴ・村人が踊る | 巫女 *Oh, how rare!*（おお、これは珍しい！） |
+| 違う物を届けた | 霞になって消え、村人が首を振る | 村人 *Hmm...*（うーん…） |
+| 惜しい（近い食感） | 文字で出す | *So close!*（惜しい！） |
 | 待ちきれなかった | 吹き出しが消え、村人がうなだれる | （声なし） |
 | 残り 10 秒 | カウントダウン | *10, 9, 8...* |
-| 時間切れ | すべて止まる。届けている途中の物は消える | 巫女「そこまでじゃ！」/ *Time's up!* |
+| 時間切れ | すべて止まる。届けている途中の物は消える | 巫女 *Time's up!*（そこまでじゃ！） |
 
 ---
 
@@ -154,12 +154,12 @@
 
 カメラは動かさない。体験者の周りの村が、届けた分だけ豊かになっている。
 
-| # | 画面 | 巫女の語り（日本語） | Narration (English, draft) |
+| # | 画面 | Narration (English) | 日本語（参考訳） |
 |---|---|---|---|
-| 1 | 村全体が明るくなり、村人が集まる | そなたのおかげで、村に恵みが戻った、、、 | Thanks to you, blessings have returned to the village... |
-| 2 | 星を 1 つずつ、間をためて出す（最大 3 つ） | （星ごとに音） | — |
-| 3 | 笑顔の村人の数と、満足度の数字（小さく） | 村の者たちは、この恵みをいつまでも語り継ぐであろう。 | The villagers will tell of this blessing for generations. |
-| 4 | 指示の文を表示 | （語りなし） | **The experience is over. Please remove the device from your mouth and wait.**（日本語: 体験は終わりです。デバイスを口から外して、そのままお待ちください） |
+| 1 | 村全体が明るくなり、村人が集まる | Thanks to you, blessings have returned to the village... | そなたのおかげで、村に恵みが戻った、、、 |
+| 2 | 星を 1 つずつ、間をためて出す（最大 3 つ） | — | （星ごとに音） |
+| 3 | 笑顔の村人の数と、満足度の数字（小さく） | The villagers will tell of this blessing for generations. | 村の者たちは、この恵みをいつまでも語り継ぐであろう。 |
+| 4 | 指示の文を表示 | **The experience is over. Please remove the device from your mouth and wait.**（参考訳: 体験は終わりです。デバイスを口から外して、そのままお待ちください） | （文字だけ。語りなし） |
 
 ---
 
@@ -168,7 +168,7 @@
 **スタッフがすること**:
 1. Quest を外す → **外して 30 秒で、自動で待機画面に戻る**（村・欲しい物・満足度は初期状態に戻る。AprilTag の位置合わせは残る）。
 2. デバイスのカバーを外して捨て、口に触れる部分を消毒する（#87）。
-3. 「今日の神様」に載ったら、名前を聞く（入れ方は #86）。
+3. 「今日の神様」に載ったら、名前を聞く（英語で。入れ方は #86）。
 4. 次の人の S0 へ。
 
 ---
@@ -179,6 +179,7 @@
 - S1 の最後の文: Case 1 の原文は「チュートリアルが終わりました。立ちあがり…」。ここはプロローグの終わりなので、「チュートリアルが終わりました」を外した（上の表 #7）
 - 神様の名前〔名前〕
 - 山・雪原が欲しがる物（#54）
-- 巫女の声: 録音するか、文字だけか（英語の録音は誰がするか。#136）
+- 巫女の声: 英語で録音するか、英語の文字だけか。録音するなら誰が読むか（#136）
+- 巫女の口調: 日本語の古風な口調（「〜じゃ」）を、英語でどう出すか（今の仮訳は、少し古めかしい言い回しにしている）
 - プレイヤーの手: コントローラーかハンドトラッキングか（#62）。S6 の「指して離す」の言い方が変わる
 - 「今日の神様」ランキングをやるか、名前をどう入れるか（#86）
