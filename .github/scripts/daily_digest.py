@@ -157,17 +157,14 @@ def collect(hours):
     ages = {p["number"]: (now - datetime.fromisoformat(p["createdAt"].replace("Z", "+00:00"))).days for p in open_prs}
     ci = failing_ci()
 
-    # 機械的に分かる見落とし
+    # 機械的に分かる見落とし。今から手を打てるものだけを出す（閉じた・マージした後では直せないものは出さない）
     signals = []
     no_ms = [n for n, i in by_number.items() if i["state"] == "OPEN" and not i["milestone"]]
     if no_ms:
         signals.append(f"マイルストーンのない Issue {len(no_ms)} 件: {refs(no_ms[:SHOW])}")
-    loose = [p["number"] for p in merged if not p["closingIssuesReferences"]["nodes"]]
+    loose = [p["number"] for p in open_prs if not p["closingIssuesReferences"]["nodes"]]
     if loose:
-        signals.append(f"`Closes #番号` のない PR: {refs(loose)}")
-    unlinked = [n for n in done if n not in via_pr and not is_state(n)]
-    if unlinked:
-        signals.append(f"PR を通さずに閉じた Issue: {refs(unlinked)}")
+        signals.append(f"`Closes #番号` のないレビュー待ちの PR（マージ前に本文へ。Issue のない小さな修正なら不要）: {refs(loose)}")
     stale = [n for n, d in ages.items() if d >= STALE_DAYS]
     if stale:
         signals.append(f"{STALE_DAYS} 日以上レビューを待っている PR: {refs(stale)}")
