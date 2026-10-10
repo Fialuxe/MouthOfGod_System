@@ -7,10 +7,11 @@ a:hover text{text-decoration:underline}.bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:
 <rect class="bg" x="0.5" y="0.5" width="859" height="379" rx="8"/>
 <text class="t2" x="20" y="30" font-size="12">今の区切り</text>
 <text class="t1" x="20" y="54" font-size="20" font-weight="600">M1 見せるものが決まる</text>
-<text class="t1" x="840" y="54" font-size="16" text-anchor="end">期限 10/13（あと 3 日）</text>
+<text class="t1" x="840" y="54" font-size="16" text-anchor="end">期限 10/13（あと 2 日）</text>
 <rect class="track" x="20" y="68" width="820" height="10" rx="5"/>
 <rect class="bar" x="20" y="68" width="189" height="10" rx="5"/>
 <text class="t2" x="20" y="98" font-size="13">3/13 完了・残り 10 件・待ちの最長 3 段</text>
+<text class="warn" x="840" y="98" font-size="13" text-anchor="end">⚠ 順番待ちの段数が、残りの日数より多い</text>
 <text class="t1" x="20" y="130" font-size="13" font-weight="600">着手中</text>
 <text class="t2" x="32" y="152" font-size="13">なし</text>
 <text class="t1" x="20" y="180" font-size="13" font-weight="600">すぐ着手できる（担当なし）</text>
