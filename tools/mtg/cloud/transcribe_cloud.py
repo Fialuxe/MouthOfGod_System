@@ -3,7 +3,10 @@
 Flow: a Google Drive folder (shared with a service account) holds the recordings.
   inbox/  -> a recording is moved to processing/ (the claim; Drive moves are atomic) -> downloaded -> loudness-normalised
   -> transcribe.py (faster-whisper large-v3, CPU) -> clean.py -> the PRIVATE transcripts repo (<date>/<name>.clean.txt/.srt)
-  -> moved to done/.   On failure the recording goes back to inbox/ so the next run retries it.
+  -> moved to done/.   On failure the recording goes back to inbox/ and is retried by the next run, at most MAX_ATTEMPTS times;
+  after that, or if it can never work (too long, unreadable), it is put in failed/ and the job fails so that a person is told.
+  A transcript is saved with a <name>.minutes.pending marker: a PC (watch.ps1) then makes the minutes (mtg-sync) from it.
+  While a PC holds a fresh claim file in the folder, the cloud does nothing.
 
 PRIVACY: this repo and its Actions logs are PUBLIC. This script never prints transcript text, file names or Drive ids;
 it prints only counts, dates and timings. Never upload outputs as workflow artifacts.
@@ -32,6 +35,14 @@ TOOLS = Path(__file__).resolve().parent.parent  # tools/mtg
 NORMALISE = "highpass=f=80,dynaudnorm=f=200:g=21:p=0.9:m=30,loudnorm=I=-16:TP=-1.5:LRA=11"  # same as transcribe.ps1
 JST = dt.timezone(dt.timedelta(hours=9))
 FOLDER_MIME = "application/vnd.google-apps.folder"
+MAX_ATTEMPTS = 3  # a recording that fails this many times is put in failed/ and not retried (no endless retry every 30 minutes)
+MAX_AUDIO_HOURS = 4.0  # longer than this will not fit in the 6-hour job (about 0.9x real time): split it into parts
+PC_CLAIM_NAME = ".mtg-processing.claim"  # written by watch.ps1 on a PC; the cloud stays away while a fresh one exists
+PC_CLAIM_HOURS = 3
+
+
+class Quarantine(Exception):
+    """This recording cannot be processed as it is; put it in failed/ at once (retrying will not help)."""
 
 
 def log(msg):
@@ -60,7 +71,7 @@ class Drive:
     def __init__(self, svc, inbox_id):
         self.svc, self.inbox = svc, inbox_id
 
-    def _list(self, q, fields="files(id,name,modifiedTime,size,mimeType)"):
+    def _list(self, q, fields="files(id,name,modifiedTime,size,mimeType,appProperties)"):
         out, token = [], None
         while True:
             r = self.svc.files().list(q=q, fields="nextPageToken," + fields, pageToken=token, pageSize=100,
@@ -80,6 +91,25 @@ class Drive:
     def waiting(self):
         files = self._list(f"'{self.inbox}' in parents and trashed = false and mimeType != '{FOLDER_MIME}'")
         return sorted((f for f in files if is_audio(f["name"])), key=lambda f: f["modifiedTime"])
+
+    def attempts(self, f) -> int:
+        try:
+            return int((f.get("appProperties") or {}).get("mtg_attempts", "0"))
+        except ValueError:
+            return 0
+
+    def set_attempts(self, file_id, n: int):
+        self.svc.files().update(fileId=file_id, body={"appProperties": {"mtg_attempts": str(n)}}, fields="id", supportsAllDrives=True).execute()
+
+    def pc_busy(self) -> bool:
+        """A PC is processing this folder right now (a claim file written less than PC_CLAIM_HOURS ago)."""
+        files = self._list(f"'{self.inbox}' in parents and name = '{PC_CLAIM_NAME}' and trashed = false")
+        now = dt.datetime.now(dt.timezone.utc)
+        for f in files:
+            t = dt.datetime.fromisoformat(f["modifiedTime"].replace("Z", "+00:00"))
+            if (now - t).total_seconds() < PC_CLAIM_HOURS * 3600:
+                return True
+        return False
 
     def move(self, file_id, src, dst):
         self.svc.files().update(fileId=file_id, addParents=dst, removeParents=src, fields="id", supportsAllDrives=True).execute()
@@ -150,6 +180,10 @@ def archive(private: Path, tx_dir: Path, stem: str, date: str):
         f = tx_dir / f"{stem}{ext}"
         if f.exists():
             shutil.copy(f, dest / f.name)
+    # tell a PC that the minutes (mtg-sync) are still to be made from this transcript; the PC replaces this with .minutes.done
+    marker = dest / f"{stem}.minutes.pending"
+    if not (dest / f"{stem}.minutes.done").exists():
+        marker.write_text(json.dumps({"created": dt.datetime.now(dt.timezone.utc).isoformat(), "attempts": 0}), encoding="utf-8")
     git = ["git", "-C", str(private)]
     run(git + ["add", "--", date])
     if subprocess.run(git + ["diff", "--cached", "--quiet"]).returncode != 0:
@@ -161,12 +195,17 @@ def archive(private: Path, tx_dir: Path, stem: str, date: str):
         raise RuntimeError("git push failed")
 
 
-def process_one(drive: Drive, f: dict, folders: dict, private: Path, model: str):
+def process_one(drive: Drive, f: dict, folders: dict, private: Path, model: str) -> str:
+    """Returns "done" or "quarantined". Raises on a failure that will be retried (or quarantined after MAX_ATTEMPTS)."""
     date = mtg_date(f["name"], f["modifiedTime"])
     stem = Path(f["name"]).stem
-    log(f"start: recording dated {date}, {int(f.get('size', 0)) // 1_000_000} MB")
+    tries = drive.attempts(f)
+    if tries >= MAX_ATTEMPTS:  # a person moved it back from failed/ after fixing the cause: start again from zero
+        tries = 0
+        drive.set_attempts(f["id"], 0)
+    log(f"start: recording dated {date}, {int(f.get('size', 0)) // 1_000_000} MB, attempt {tries + 1}/{MAX_ATTEMPTS}")
     drive.move(f["id"], folders["inbox"], folders["processing"])  # claim
-    ok = False
+    dest = folders["inbox"]  # where the recording goes when this function ends
     try:
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)
@@ -175,6 +214,10 @@ def process_one(drive: Drive, f: dict, folders: dict, private: Path, model: str)
             wav = td / "audio.norm.wav"
             normalise(src, wav)
             audio_min = duration_seconds(wav) / 60
+            if audio_min == 0:
+                raise Quarantine("the audio could not be read (0 minutes)")
+            if audio_min > MAX_AUDIO_HOURS * 60:
+                raise Quarantine(f"too long ({audio_min:.0f} min): split it into parts of about 2 hours")
             tx_dir = private / "transcripts"  # clean.py looks for config/corrections.local.tsv next to this folder
             tx_dir.mkdir(parents=True, exist_ok=True)
             t0 = time.time()
@@ -184,10 +227,24 @@ def process_one(drive: Drive, f: dict, folders: dict, private: Path, model: str)
             archive(private, tx_dir, stem, date)
             for p in tx_dir.glob(f"{stem}.*"):
                 p.unlink()
-        ok = True
+        dest = folders["done"]
+        log(f"archived: {date}")
+    except Quarantine as e:
+        dest = folders["failed"]
+        log(f"quarantined: {e}. The recording was put in failed/ (not retried).")
+    except Exception:
+        n = tries + 1
+        try:
+            drive.set_attempts(f["id"], n)
+        except Exception:
+            pass
+        if n >= MAX_ATTEMPTS:
+            dest = folders["failed"]
+            log(f"quarantined: failed {n} times. The recording was put in failed/ (not retried). Fix the cause, then move it back to the inbox.")
+        raise
     finally:
-        drive.move(f["id"], folders["processing"], folders["done"] if ok else folders["inbox"])
-    log(f"archived: {date}")
+        drive.move(f["id"], folders["processing"], dest)
+    return "quarantined" if dest == folders["failed"] else "done"
 
 
 def benchmark(drive: Drive, seconds: int, model: str):
@@ -232,7 +289,10 @@ def main():
         return 0
     drive = make_drive()
     if a.count:
-        n = len(drive.waiting())
+        busy = drive.pc_busy()
+        n = 0 if busy else len(drive.waiting())
+        if busy:
+            log("a PC is processing the folder now: leaving it alone")
         log(f"count={n}")
         if os.environ.get("GITHUB_OUTPUT"):
             Path(os.environ["GITHUB_OUTPUT"]).open("a").write(f"count={n}\n")
@@ -249,16 +309,33 @@ def main():
     if not a.private_clone:
         log("--private-clone is required")
         return 2
-    folders = {"inbox": drive.inbox, "processing": drive.subfolder("processing"), "done": drive.subfolder("done")}
+    folders = {"inbox": drive.inbox, "processing": drive.subfolder("processing"), "done": drive.subfolder("done"), "failed": drive.subfolder("failed")}
     failed = 0
+    if drive.pc_busy():
+        log("a PC is processing the folder now: leaving it alone")
+        return 0
     for f in drive.waiting():
         try:
-            process_one(drive, f, folders, Path(a.private_clone), a.model)
+            if process_one(drive, f, folders, Path(a.private_clone), a.model) == "quarantined":
+                failed += 1  # make the job fail, so that a person is told by e-mail
         except Exception as e:  # never print the message: it can contain names or text
             failed += 1
-            log(f"failed: {type(e).__name__} (the recording was put back in the inbox)")
+            log(f"failed: {type(e).__name__}")
     return 1 if failed else 0
 
 
+def safe_main() -> int:
+    """main(), but an unexpected error prints only its class (and the HTTP status), never its message:
+    a Google API error contains the request URL, which has the Drive folder id, and this log is public."""
+    try:
+        return main()
+    except SystemExit:
+        raise
+    except Exception as e:  # noqa: BLE001
+        status = getattr(getattr(e, "resp", None), "status", None) or getattr(e, "status_code", None)
+        log(f"error: {type(e).__name__}" + (f" (HTTP {status})" if status else "") + " - the message is not shown (the log is public)")
+        return 1
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(safe_main())

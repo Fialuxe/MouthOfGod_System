@@ -35,22 +35,74 @@ function New-Claim($path) {
   return $nonce
 }
 
+# Transcripts made by the cloud job wait in the private repo as <date>\<name>.minutes.pending.
+# A PC makes the minutes (mtg-sync) from them, then replaces the marker with .minutes.done (or .minutes.failed after 3 failures).
+$MaxMinutesAttempts = 3
+function Update-PrivateRepo {
+  if (-not (Test-Path (Join-Path $Root ".git"))) { return }
+  git -C $Root fetch -q origin 2>&1 | Out-Null
+  git -C $Root merge -q --ff-only "@{u}" 2>&1 | Out-Null
+}
+function Get-PendingMinutes {
+  if (-not (Test-Path $Root)) { return @() }
+  return @(Get-ChildItem $Root -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^\d{4}-\d{2}-\d{2}$' } |
+    ForEach-Object { Get-ChildItem $_.FullName -Filter "*.minutes.pending" -File -ErrorAction SilentlyContinue } | Sort-Object FullName)
+}
+function Save-MinutesResult($pending, [bool]$ok) {
+  $info = $null
+  try { $info = Get-Content $pending.FullName -Raw | ConvertFrom-Json } catch { }
+  $attempts = if ($info -and $info.attempts) { [int]$info.attempts } else { 0 }
+  $base = $pending.FullName -replace '\.minutes\.pending$', ''
+  $now = (Get-Date).ToUniversalTime().ToString("o")
+  if ($ok) {
+    Remove-Item $pending.FullName -Force
+    Set-Content -Path "$base.minutes.done" -Value (@{ done = $now; host = $HostName } | ConvertTo-Json) -Encoding UTF8
+    $what = "minutes done"
+  } else {
+    $attempts++
+    if ($attempts -ge $MaxMinutesAttempts) {
+      Remove-Item $pending.FullName -Force
+      Set-Content -Path "$base.minutes.failed" -Value (@{ failed = $now; attempts = $attempts; host = $HostName } | ConvertTo-Json) -Encoding UTF8
+      $what = "minutes FAILED $attempts times (not retried; delete the .minutes.failed file to retry)"
+    } else {
+      Set-Content -Path $pending.FullName -Value (@{ created = if ($info) { $info.created } else { $now }; attempts = $attempts } | ConvertTo-Json) -Encoding UTF8
+      $what = "minutes failed (attempt $attempts of $MaxMinutesAttempts)"
+    }
+  }
+  $dir = $pending.Directory.FullName
+  $name = Split-Path $base -Leaf
+  git -C $Root add -A -- $dir 2>&1 | Out-Null
+  git -C $Root diff --cached --quiet
+  if ($LASTEXITCODE -ne 0) {
+    git -C $Root commit -q -m "$($pending.Directory.Name) ${name}: $what" 2>&1 | Out-Null
+    for ($i = 0; $i -lt 3; $i++) {
+      git -C $Root push -q 2>&1 | Out-Null
+      if ($LASTEXITCODE -eq 0) { break }
+      git -C $Root pull -q --rebase 2>&1 | Out-Null
+    }
+  }
+}
+
 # one run at a time (a run takes from minutes to an hour)
 $mutex = New-Object System.Threading.Mutex($false, "MouthOfGodMtgWatch")
 if (-not $mutex.WaitOne(0)) { exit 0 }
 $claimed = $false
 try {
   if (-not (Test-Path $Inbox)) { exit 0 }
+  Update-PrivateRepo
   $files = @(Get-ChildItem $Inbox -File | Where-Object { $_.Extension.ToLower() -in $exts })
-  if ($files.Count -eq 0) { exit 0 }
+  $pending = @(Get-PendingMinutes)
+  if ($files.Count -eq 0 -and $pending.Count -eq 0) { exit 0 }
 
   # a synced file may still be downloading: wait until size and time stop changing and the file can be opened
-  $before = $files | ForEach-Object { "$($_.FullName)|$($_.Length)|$($_.LastWriteTimeUtc.Ticks)" }
-  Start-Sleep -Seconds 60
-  foreach ($f in $files) {
-    $g = Get-Item $f.FullName -ErrorAction SilentlyContinue
-    if (-not $g -or ("$($g.FullName)|$($g.Length)|$($g.LastWriteTimeUtc.Ticks)" -notin $before)) { exit 0 }  # still changing: next time
-    try { $fs = [IO.File]::Open($g.FullName, "Open", "Read", "None"); $fs.Close() } catch { exit 0 }
+  if ($files.Count -gt 0) {
+    $before = $files | ForEach-Object { "$($_.FullName)|$($_.Length)|$($_.LastWriteTimeUtc.Ticks)" }
+    Start-Sleep -Seconds 60
+    foreach ($f in $files) {
+      $g = Get-Item $f.FullName -ErrorAction SilentlyContinue
+      if (-not $g -or ("$($g.FullName)|$($g.Length)|$($g.LastWriteTimeUtc.Ticks)" -notin $before)) { exit 0 }  # still changing: next time
+      try { $fs = [IO.File]::Open($g.FullName, "Open", "Read", "None"); $fs.Close() } catch { exit 0 }
+    }
   }
 
   # the cloud job (GitHub Actions) moves a recording into <Inbox>\processing while it works: leave the folder alone then
@@ -79,7 +131,20 @@ try {
   $runArgs = @{ Root = $Root; Inbox = $Inbox }
   if (-not $Real) { $runArgs.DryRun = $true }
   if ($NoArchive) { $runArgs.NoArchive = $true }
-  & $runPs1 @runArgs
+  if ($files.Count -gt 0) { & $runPs1 @runArgs }
+
+  # the minutes (mtg-sync) for transcripts that the cloud job made. Trial mode: only a proposal, and only once per transcript.
+  foreach ($p in (Get-PendingMinutes)) {
+    $name = $p.Name -replace '\.minutes\.pending$', ''
+    $clean = Join-Path $p.Directory.FullName "$name.clean.txt"
+    if (-not (Test-Path $clean)) { if ($Real) { Save-MinutesResult $p $false }; continue }
+    if (-not $Real -and (Test-Path (Join-Path $Root "transcripts\$name.proposal.md"))) { continue }
+    $fromArgs = @{ Root = $Root; FromTranscript = $clean }
+    if (-not $Real) { $fromArgs.DryRun = $true }
+    & $runPs1 @fromArgs
+    $okMinutes = ($LASTEXITCODE -eq 0)
+    if ($Real) { Save-MinutesResult $p $okMinutes }
+  }
 
   # copy the results next to the recordings (readable from home via the synced folder)
   $out = Join-Path $Inbox "results"

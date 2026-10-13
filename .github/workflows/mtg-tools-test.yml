@@ -1,0 +1,57 @@
+# MTG の自動化（録音・文字起こし・議事録の補助スクリプト）を壊していないか、PR で確かめる。
+# 録音も文字起こしの中身も使わない（偽の Drive・偽の claude で、流れだけを確かめる）。
+name: MTG tools test
+
+on:
+  pull_request:
+    paths:
+      - "tools/mtg/**"
+      - ".github/workflows/transcribe-cloud.yml"
+      - ".github/workflows/mtg-tools-test.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/mtg/**"
+      - ".github/workflows/transcribe-cloud.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python scripts compile
+        run: python -m py_compile tools/mtg/*.py tools/mtg/cloud/*.py
+      - name: Cloud transcription flow (fake Drive, fake Whisper)
+        run: python tools/mtg/cloud/test_transcribe_cloud.py
+      - name: PowerShell scripts parse
+        shell: pwsh
+        run: |
+          $bad = 0
+          foreach ($f in Get-ChildItem tools/mtg -Recurse -Filter *.ps1) {
+            $errors = $null; $tokens = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($f.FullName, [ref]$tokens, [ref]$errors)
+            if ($errors.Count -gt 0) { "$($f.Name): $($errors[0].Message)"; $bad++ } else { "ok  $($f.Name)" }
+          }
+          if ($bad -gt 0) { exit 1 }
+      - name: PowerShell logic tests (minutes markers, minutes result)
+        shell: pwsh
+        run: |
+          foreach ($t in Get-ChildItem tools/mtg/tests -Filter *.test.ps1) {
+            "== $($t.Name)"
+            pwsh -NoProfile -File $t.FullName
+            if ($LASTEXITCODE -ne 0) { exit 1 }
+          }
+      - name: zsh script parses
+        run: |
+          sudo apt-get install -y -qq zsh
+          zsh -n tools/mtg/setup-mac.sh
+      - name: Workflows are valid YAML
+        run: |
+          pip install -q pyyaml
+          python -c "import glob,yaml;[yaml.safe_load(open(f,encoding='utf-8')) for f in glob.glob('.github/workflows/*.yml')];print('yaml ok')"
