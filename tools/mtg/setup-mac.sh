@@ -66,7 +66,8 @@ elif (( CHECK_ONLY )); then
 elif has python3; then
   [[ -x "$VENV/bin/python" ]] || python3 -m venv "$VENV"
   "$VENV/bin/python" -m pip install --upgrade pip >/dev/null 2>&1
-  "$VENV/bin/python" -m pip install --upgrade faster-whisper \
+  # av 19 breaks faster-whisper (it rejects the argument metadata_errors): keep av below 19
+  "$VENV/bin/python" -m pip install --upgrade faster-whisper "av<19" \
     && "$VENV/bin/python" -c 'import faster_whisper' >/dev/null 2>&1 \
     && add "faster-whisper" INSTALLED "$VENV" || add "faster-whisper" FAIL "$VENV/bin/python -m pip install faster-whisper"
 else
