@@ -247,6 +247,7 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 - **ID は文字列**（`FoodId` などは、文字列を包んだ型）。食感や食べ物を `enum` で `Core` に直書きしない（足すたびに全機能が再コンパイルされ、素材担当が触れなくなる）。重複した ID は、起動時にエラーにする。
 - **データ（ScriptableObject）の置き場所は `Assets/Resources/Data/<種類>/`**。種類は `Foods/` `Fields/` `Requests/` `Tutorial/`（`Tutorial/T1/`、`T2/` と、チュートリアルごとにさらに分ける）。起動時に、フォルダごと `Resources` から読み込む。1 件 = 1 アセットで、全部を入れた 1 つのリストは作らない。
 - 目次になるもの（`FoodCatalog` など）は、手で編集しない。`FoodDefinition` を集めて、起動時に作る。
+- **`Resources/` には、起動時に読むデータと Prefab だけを置く**。`Resources/` の中身は、使わなくてもビルドに入り、起動時間とビルドの大きさに効く。素材（モデル、テクスチャ、音）は `Assets/ArtisticResources/` など `Resources/` の外に置き、Prefab から参照する。置き場所は、上の `Data/<種類>/` と `Prefabs/<Feature>/` のどちらかにそろえる。新しいフォルダを足すときは、ここに 1 行足す。
 
 ### 書き方
 - **既定は `private`**。他の機能から呼ばせるものだけを `public` にする。Inspector に出したいだけなら `[SerializeField] private` を使う。
