@@ -6,7 +6,7 @@
 #   ./tools/mtg/setup-mac.sh                 # check, install what is missing
 #   ./tools/mtg/setup-mac.sh --check-only    # only report; install nothing
 #   ./tools/mtg/setup-mac.sh --test          # also transcribe 3 seconds of audio (downloads the small "tiny" model, about 75 MB)
-#   ./tools/mtg/setup-mac.sh --transcribe FILE [--model medium]   # transcribe one recording on the CPU (large-v3 is slow without a GPU)
+#   ./tools/mtg/setup-mac.sh --transcribe FILE   # transcribe one recording with large-v3 on the CPU (slow: leave it running)
 set -u
 
 CHECK_ONLY=0; DO_TEST=0; AUDIO=""; MODEL="large-v3"

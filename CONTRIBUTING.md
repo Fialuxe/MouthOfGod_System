@@ -151,7 +151,7 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
     ```zsh
     ./tools/mtg/setup-mac.sh --check-only        # 何も入れずに、足りないものを見る
     ./tools/mtg/setup-mac.sh --test              # 入れて、3 秒の音声で文字起こしの動作を確かめる
-    ./tools/mtg/setup-mac.sh --transcribe 録音.m4a --model medium   # 1 本を文字起こしする（CPU では large-v3 は遅い）
+    ./tools/mtg/setup-mac.sh --transcribe 録音.m4a   # 1 本を large-v3 で文字起こしする（CPU では遅いので、放置して待つ）
     ```
   - どちらも、何度実行してもよい（足りないものだけを入れる）。そのあとに手でやること: `gh auth login`、`claude` を一度起動してログイン、Google ドライブのデスクトップ版で `mtg-inbox` を「ミラーリング」にする。
 - **MTG が終わったら**:
