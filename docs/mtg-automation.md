@@ -83,6 +83,14 @@ Actions の「MTG transcribe (cloud)」→ Run workflow → `benchmark_seconds` 
 ### PC の見張りとの関係
 Windows の見張り（`watch.ps1`）は、`processing/` に録音がある間は何もしない（クラウドが処理中）。クラウドを使う間は、PC の見張りは止めておいてよい。止まった場合は、クラウドが続きをやる。
 
+## Mac で使う（Apple Silicon、GPU なし）
+
+`tools/mtg/setup-mac.sh`（zsh）で、環境（Homebrew 経由の git・ffmpeg・gh・Python と、仮想環境 `~/.mtg-venv` の faster-whisper）を確かめて入れ、文字起こしの動作を確かめられる。GPU が無いので、`transcribe.py` は自動で CPU（int8）に切り替わる（`--device auto`）。
+
+- `--check-only`: 何も入れずに確認する / `--test`: 3 秒の音声で動作確認（小さな `tiny` モデルを初回にダウンロード）/ `--transcribe FILE`: 1 本を large-v3 で文字起こしする
+- **large-v3 は、CPU では遅い**（録音の長さの数倍かかる見込み。未計測）。**medium・small は、精度が足りないので使わない**（誤認識が増える）。時間がかかっても large-v3 のまま、放置して待つ
+- フォルダの見張りと議事録の生成（`watch.ps1`・`run.ps1`）は Windows のみ。Mac は、文字起こしの確認や、予備として手で文字起こしするために使う
+
 ## 複数の PC で見張る（1 台が動かなくても止まらない）
 
 同じ同期フォルダを、2 台以上の PC で見張ってよい（どの PC も `setup-pc.ps1` で用意できる）。処理が重ならないように、PC どうしは、フォルダの中の `.mtg-processing.claim` というファイルで譲り合う。

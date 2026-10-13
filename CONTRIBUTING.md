@@ -141,6 +141,19 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
   2. 終わったら、ファイル名に MTG の日付を入れる（例: `2026-10-16 MTG.m4a`）
   3. Google ドライブの共有フォルダ `mtg-inbox` にアップロードする
 
+- **録音を処理する PC を用意する**（1 台に頼らないよう、2 台以上あるとよい。詳細は [docs/mtg-automation.md](docs/mtg-automation.md)）:
+  - **Windows（NVIDIA の GPU）**: PowerShell で、リポジトリのフォルダから実行する。足りないものを入れ、録音のフォルダを見張るタスクまで登録する。
+    ```powershell
+    .\tools\mtg\setup-pc.ps1 -CheckOnly                                  # 何も入れずに、足りないものを見る
+    .\tools\mtg\setup-pc.ps1 -Inbox "<Google ドライブの mtg-inbox>" -Real  # 入れて、見張りを本番で登録する
+    ```
+  - **Mac（Apple Silicon、GPU なし）**: ターミナル（zsh）で実行する。環境を整えて、文字起こしの動作を確かめるところまで（フォルダの見張りと議事録は Windows のみ）。
+    ```zsh
+    ./tools/mtg/setup-mac.sh --check-only        # 何も入れずに、足りないものを見る
+    ./tools/mtg/setup-mac.sh --test              # 入れて、3 秒の音声で文字起こしの動作を確かめる
+    ./tools/mtg/setup-mac.sh --transcribe 録音.m4a   # 1 本を large-v3 で文字起こしする（CPU では遅いので、放置して待つ）
+    ```
+  - どちらも、何度実行してもよい（足りないものだけを入れる）。そのあとに手でやること: `gh auth login`、`claude` を一度起動してログイン、Google ドライブのデスクトップ版で `mtg-inbox` を「ミラーリング」にする。
 - **MTG が終わったら**:
   1. 議題 Issue に**議事録**がコメントされる（決定事項・アクション・議題ごとの要点・未解決。録音が処理されたあと、自動で）
   2. 決めたことは、それぞれの Issue にも書き、`mtg-decide` を外す。決まらなかったものは、付けたまま次回へ
