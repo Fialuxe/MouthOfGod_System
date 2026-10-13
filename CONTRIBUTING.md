@@ -165,6 +165,8 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 
 担当を決めるのが一番重いので、MTG で決める。決まらなければ、議事録に Leading「未定」と書かれ、次の議題に回る。
 
+**議題 Issue と議事録は、全員を Assignee にする**（全員で見るもので、Leading・Support は置かない）。
+
 #### A. `feature/` / `fix/`（通常の個人作業）
 1. 必要なら最新化: `git switch main && git pull`
 2. ブランチ作成: `git switch -c feature/xxx`
