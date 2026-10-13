@@ -15,7 +15,7 @@ MTG は毎週金曜。今日より後で最も近い金曜を `M/D` にする（
 ### 2. 材料を集める
 - `mtg-share`・`mtg-decide` が付いた open の Issue（`gh issue list`）
 - 前回の MTG 以降に、閉じた Issue とマージした PR（`gh issue list --state closed --search "closed:>=YYYY-MM-DD"`、`gh pr list --state merged`）。前回の日付は、直近の `docs/minutes/*.md` のファイル名
-- 直近の議事録 `docs/minutes/*.md` の「次にやる人」と「確認してほしいこと」
+- 直近の議事録 `docs/minutes/*.md` の「アクション」（旧「次にやる人」）と「未解決・次回」（旧「確認してほしいこと」）
 - マイルストーンの期限（`gh api repos/{owner}/{repo}/milestones`）。締切が 14 日以内のもの
 - README「今の区切り」と、`roadmap` ラベルの Issue
 
