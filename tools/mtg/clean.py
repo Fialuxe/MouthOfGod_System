@@ -18,6 +18,7 @@ HALLUCINATIONS = [
     r"(最後まで)?ご覧いただきありがとうございました。?",
 ]
 HALLU_RE = re.compile(r"^(?:%s)$" % "|".join(HALLUCINATIONS))
+LOW_LOGPROB = -0.7  # Whisper avg_logprob below this = the model itself is unsure
 MAX_REPEAT = 2  # a cue repeated more than this many times in a row is collapsed
 
 
@@ -29,6 +30,16 @@ def load_corrections(path: Path):
                 wrong, right = line.split("\t", 1)
                 pairs.append((wrong, right))
     return pairs
+
+
+def load_confidence(src: Path):
+    conf = {}
+    f = src.with_suffix(".conf.tsv")
+    if f.exists():
+        for line in f.read_text(encoding="utf-8").splitlines():
+            start, logprob, _ = line.split("\t")
+            conf[start] = float(logprob)
+    return conf
 
 
 def parse_srt(text: str):
@@ -43,6 +54,7 @@ def parse_srt(text: str):
 def main(src: Path):
     pairs = load_corrections(Path(__file__).with_name("corrections.tsv"))
     cues = parse_srt(src.read_text(encoding="utf-8"))
+    conf = load_confidence(src)
     kept, dropped, run = [], 0, 0
     prev = None
     for ts, text in cues:
@@ -56,16 +68,18 @@ def main(src: Path):
             continue
         for wrong, right in pairs:
             text = text.replace(wrong, right)
-        kept.append((ts, text))
+        low = conf.get(ts.split(" --> ")[0], 0.0) < LOW_LOGPROB
+        kept.append((ts, text, low))
 
     srt, txt = [], []
-    for i, (ts, text) in enumerate(kept, 1):
+    for i, (ts, text, low) in enumerate(kept, 1):
         srt.append(f"{i}\n{ts}\n{text}\n")
         mm_ss = ts.split(",")[0][3:]  # HH:MM:SS -> MM:SS
-        txt.append(f"[{mm_ss}] {text}")
+        txt.append(f"[{mm_ss}] {'?' if low else ''}{text}")
     src.with_suffix(".clean.srt").write_text("\n".join(srt), encoding="utf-8")
     src.with_suffix(".clean.txt").write_text("\n".join(txt), encoding="utf-8")
-    print(f"{src.name}: {len(cues)} cues -> {len(kept)} kept, {dropped} dropped")
+    n_low = sum(1 for *_, low in kept if low)
+    print(f"{src.name}: {len(cues)} cues -> {len(kept)} kept, {dropped} dropped, {n_low} low-confidence (?)")
 
 
 if __name__ == "__main__":

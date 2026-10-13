@@ -4,7 +4,8 @@
 param(
   [Parameter(Mandatory = $true)][string]$Audio,
   [Parameter(Mandatory = $true)][string]$OutDir,
-  [string]$Model = "large-v3"
+  [string]$Model = "large-v3",
+  [string]$ExtraGlossary = ""
 )
 $ErrorActionPreference = "Stop"
 
@@ -23,6 +24,6 @@ $ErrorActionPreference = "Continue"  # native tools print harmless warnings on s
 ffmpeg -y -loglevel error -i $Audio -af "highpass=f=80,dynaudnorm=f=200:g=21:p=0.9:m=30,loudnorm=I=-16:TP=-1.5:LRA=11" -ar 16000 -ac 1 $norm
 if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed ($LASTEXITCODE)" }
 
-python -I (Join-Path $PSScriptRoot "transcribe.py") $norm $OutDir --stem $stem --model $Model
+python -I (Join-Path $PSScriptRoot "transcribe.py") $norm $OutDir --stem $stem --model $Model --extra-glossary $ExtraGlossary
 if ($LASTEXITCODE -ne 0) { throw "transcribe.py failed ($LASTEXITCODE)" }
 Remove-Item $norm -ErrorAction SilentlyContinue

@@ -36,7 +36,7 @@ try {
     $name = $f.BaseName
     $date = $f.LastWriteTime.ToString("yyyy-MM-dd")
     Write-Host "=== $($f.Name) ($date) ==="
-    & (Join-Path $tools "transcribe.ps1") -Audio $f.FullName -OutDir $tx -Model $Model
+    & (Join-Path $tools "transcribe.ps1") -Audio $f.FullName -OutDir $tx -Model $Model -ExtraGlossary (Join-Path $Root "glossary.local.txt")
     python -I (Join-Path $tools "clean.py") (Join-Path $tx "$name.srt")
     Move-Item $f.FullName (Join-Path $done $f.Name) -Force
 
