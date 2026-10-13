@@ -160,6 +160,24 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 | `claude-proposal` | Claude が下書きした Issue |
 | `roadmap`・`activity` | ロードマップ・活動記録の Issue（自動で更新。手で付けない） |
 
+**担当の役割**（少人数なので、役割は 3 つだけ）:
+
+| 役割 | 内容 | Issue の Assignee |
+|---|---|---|
+| **Leading** | 進める・決める人（1 人） | 付ける |
+| **Support** | Leading を助ける人（1 人。いなくてもよい） | 付ける |
+| **Follower** | それ以外の全員。進み具合を見て、必要なら意見を言う | 付けない |
+
+担当を決めるのが一番重いので、MTG で決める。決まらなければ、議事録に Leading「未定」と書かれ、次の議題に回る。
+
+**議題 Issue と議事録は、全員を Assignee にする**（全員で見るもので、Leading・Support は置かない）。
+
+**「決めること」の Issue の決まり**（決める系の Issue が、作業になっても残り続けないように）:
+
+- **作るとき**: テンプレート（`.github/ISSUE_TEMPLATE/decision.md`）を使い、**決めたあとの行き先**（残る作業を移す、実装の Issue）を最初に書く。行き先を書けないものは、決めることではなく、作業か、まだ早い話。
+- **方針が出て、残りが作業になったら、閉じる。** 残る作業は、行き先の Issue の「やること」に「（#N から移した）」と付けて移し、閉じるコメントに、決まったことと移した先を書く。
+- **グループで決める必要がない問い**（担当が一人で決められるもの）は、決めることにしない。行き先の Issue の Leading が決める。
+
 #### A. `feature/` / `fix/`（通常の個人作業）
 1. 必要なら最新化: `git switch main && git pull`
 2. ブランチ作成: `git switch -c feature/xxx`
