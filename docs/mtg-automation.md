@@ -32,6 +32,10 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 
 文字起こしだけ試すときは `-NoClaude`。`run.ps1` は専用のクローンを `~\Documents\mtg\repo` に作って使うので、作業中のリポジトリ（Unity）には触れない。
 
+## 文字起こしの保管
+
+文字起こし（`clean.txt`・`clean.srt`）は、**非公開リポジトリ** [MouthOfGod_transcripts](https://github.com/Fialuxe/MouthOfGod_transcripts) に `YYYY-MM-DD/` ごとに保存される（`run.ps1` が `archive.ps1` で push する）。公開リポジトリ（このリポジトリ）には、文字起こしの全文を入れない。見るにはそのリポジトリへのアクセス権が要るので、チームの人は招待する。保存先が非公開でなければ、`archive.ps1` は何もせず止まる。
+
 ## Claude が自動でやること・やらないこと
 
 | やる | やらない |
