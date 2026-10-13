@@ -6,7 +6,8 @@ param(
   [string]$Ref = "main",
   [string]$Model = "large-v3",
   [switch]$NoClaude,
-  [switch]$DryRun   # trial: Claude writes <name>.proposal.md only; nothing is written to GitHub or the repo
+  [switch]$DryRun,  # trial: Claude writes <name>.proposal.md only; nothing is written to GitHub or the repo
+  [switch]$NoArchive  # tests: do not push the transcript to the private repo
 )
 $ErrorActionPreference = "Continue"  # git/claude write progress to stderr; check $LASTEXITCODE instead
 $inbox = Join-Path $Root "inbox"
@@ -23,7 +24,7 @@ Add-Type -Namespace Win -Name Power -MemberDefinition '[DllImport("kernel32.dll"
 
 try {
   # a dedicated clone, so the working copy (Unity!) is never touched
-  if (-not (Test-Path $repo)) { git clone https://github.com/Fialuxe/MouthOfGod_System.git $repo }
+  if (-not (Test-Path $repo)) { git -c core.longpaths=true clone https://github.com/Fialuxe/MouthOfGod_System.git $repo; git -C $repo config core.longpaths true }  # the repo has deep asset paths (Windows MAX_PATH)
   git -C $repo fetch origin
   git -C $repo checkout -f $Ref
   git -C $repo reset --hard "origin/$Ref"
@@ -41,7 +42,7 @@ try {
     python -I (Join-Path $tools "clean.py") (Join-Path $tx "$name.srt")
     Move-Item $f.FullName (Join-Path $done $f.Name) -Force
     # keep the transcript in the private repo (not in the public system repo)
-    & (Join-Path $tools "archive.ps1") -Name $name -Date $date -Root $Root
+    if (-not $NoArchive) { & (Join-Path $tools "archive.ps1") -Name $name -Date $date -Root $Root }
 
     if ($NoClaude) { continue }
     $clean = Join-Path $tx "$name.clean.txt"
@@ -53,7 +54,7 @@ try {
     Pop-Location
     if ($DryRun) {
       $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Join-Path $Root 'members.local.tsv')) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
-      $tools = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Read", "Write", "Glob", "Grep")
+      $tools = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Bash(gh pr view *)", "Bash(gh api repos/*/issues/*/dependencies/blocked_by)", "Read", "Write", "Glob", "Grep")
     } else {
       $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Join-Path $Root 'members.local.tsv')) を処理してください。確認は取らず、最後まで実行すること。"
       $tools = @("Bash(gh *)", "Bash(git *)", "Bash(python *)", "Read", "Write", "Edit", "Glob", "Grep")
