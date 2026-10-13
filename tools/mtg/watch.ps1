@@ -53,6 +53,10 @@ try {
     try { $fs = [IO.File]::Open($g.FullName, "Open", "Read", "None"); $fs.Close() } catch { exit 0 }
   }
 
+  # the cloud job (GitHub Actions) moves a recording into <Inbox>\processing while it works: leave the folder alone then
+  $procDir = Join-Path $Inbox "processing"
+  if ((Test-Path $procDir) -and (Get-ChildItem $procDir -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension.ToLower() -in $exts })) { exit 0 }
+
   # claim the folder (another PC may be watching it too)
   $claimPath = Join-Path $Inbox ".mtg-processing.claim"
   if (Test-OtherClaim $claimPath) { exit 0 }

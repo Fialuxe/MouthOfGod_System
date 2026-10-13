@@ -59,6 +59,30 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 
 **モード**: 既定は**試運転**（GitHub には何も書き込まず、提案書だけ）。`-Real` を付けて登録すると、**本番**（Issue・ラベル・PR まで）を自動で行う。やめるときは `-Remove`。
 
+## クラウドで文字起こしする（GitHub Actions、PC が無くても進む）
+
+録音を Google ドライブの `mtg-inbox` に入れるだけで、GitHub Actions（CPU、large-v3）が文字起こしして、非公開リポジトリ `MouthOfGod_transcripts` に保存する。**遅くてよい**（1 ジョブ 6 時間まで。公開リポジトリの標準ランナーは無料）。ワークフローは `.github/workflows/transcribe-cloud.yml`、本体は `tools/mtg/cloud/transcribe_cloud.py`。
+
+**流れ**: 30 分おきに inbox を見る → 録音を `processing/` に移す（取り合いを防ぐ）→ 音量をそろえる → large-v3 で文字起こし → `clean.py` → 非公開リポジトリの `YYYY-MM-DD/` に保存 → `done/` に移す。失敗したら inbox に戻す（次の回でやり直す）。MTG の日付は、ファイル名の日付があればそれ、無ければ Drive の更新日（日本時間）。
+
+**公開リポジトリなので**: ログに、文字起こしの中身・ファイル名・Drive の ID を出さない（日付、件数、時間だけ）。成果物（artifact）はアップロードしない。Secrets は、このリポジトリの Settings → Secrets and variables → Actions に置く。
+
+### 初回の設定（あなた、または管理者が 1 回だけ）
+1. **Google Cloud でサービスアカウントを作る**: プロジェクトを作り、「Google Drive API」を有効にし、サービスアカウントを作って、JSON のキーを発行する
+2. **Drive のフォルダ `mtg-inbox` を、そのサービスアカウントのメールアドレスと共有する**（権限は「編集者」。録音を `processing/` `done/` に移すため）
+3. **フォルダの ID** を控える（フォルダを開いた URL の最後の部分）
+4. **GitHub の Secrets を 3 つ置く**:
+   - `GDRIVE_SA_JSON`: 手順 1 の JSON の中身
+   - `MTG_INBOX_FOLDER_ID`: 手順 3 のフォルダ ID
+   - `TRANSCRIPTS_PAT`: 非公開リポジトリ `MouthOfGod_transcripts` だけに、Contents の読み書きを許した Fine-grained personal access token
+5. Secrets が無いうちは、ワークフローは何もせずに終わる（エラーにならない）
+
+### 最初にやる: 速さの計測
+Actions の「MTG transcribe (cloud)」→ Run workflow → `benchmark_seconds` に `300`（5 分）を入れる。inbox か done にある録音の先頭 5 分を文字起こしして、「録音の長さの何倍の時間がかかったか」だけをログに出す（中身は出ない）。**1 時間の録音が 6 時間に収まるか**（倍率が 5 未満なら安全）をここで判断する。収まらないなら、録音を分割する仕組みを足す。
+
+### PC の見張りとの関係
+Windows の見張り（`watch.ps1`）は、`processing/` に録音がある間は何もしない（クラウドが処理中）。クラウドを使う間は、PC の見張りは止めておいてよい。止まった場合は、クラウドが続きをやる。
+
 ## 複数の PC で見張る（1 台が動かなくても止まらない）
 
 同じ同期フォルダを、2 台以上の PC で見張ってよい（どの PC も `setup-pc.ps1` で用意できる）。処理が重ならないように、PC どうしは、フォルダの中の `.mtg-processing.claim` というファイルで譲り合う。
