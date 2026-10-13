@@ -78,8 +78,10 @@ def main(src: Path):
     srt, txt = [], []
     for i, (ts, text, low) in enumerate(kept, 1):
         srt.append(f"{i}\n{ts}\n{text}\n")
-        mm_ss = ts.split(",")[0][3:]  # HH:MM:SS -> MM:SS
-        txt.append(f"[{mm_ss}] {'?' if low else ''}{text}")
+        hms = ts.split(",")[0]  # HH:MM:SS
+        # MM:SS under 1 h, H:MM:SS after (recordings can be 2-3 h; [12:34] alone would be ambiguous)
+        label = hms[3:] if hms.startswith("00:") else f"{int(hms[:2])}:{hms[3:]}"
+        txt.append(f"[{label}] {'?' if low else ''}{text}")
     src.with_suffix(".clean.srt").write_text("\n".join(srt), encoding="utf-8")
     src.with_suffix(".clean.txt").write_text("\n".join(txt), encoding="utf-8")
     n_low = sum(1 for *_, low in kept if low)
