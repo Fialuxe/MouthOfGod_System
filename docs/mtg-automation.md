@@ -11,7 +11,21 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 翌日    PR を見てマージする。議事録の「アクション」「Issue にしたほうがよさそうなもの」「未解決・次回」を見る
 ```
 
-## 事前準備（初回のみ）
+## 事前準備（初回のみ）: セットアップのスクリプト
+
+録音を処理する PC（Windows、NVIDIA の GPU）は、**スクリプト 1 本でそろえられる**。足りないものだけを入れる（何度実行してもよい）。**この PC は、誰のものでもよい。2 台以上で用意しておくと、1 台が動かなくても止まらない**（属人化を避ける）。
+
+```powershell
+# PowerShell で、リポジトリのフォルダから
+.\tools\mtg\setup-pc.ps1 -Inbox "<Google ドライブの mtg-inbox のフォルダ>" -Real
+.\tools\mtg\setup-pc.ps1 -CheckOnly      # 何も入れずに、足りないものだけを表で見る
+```
+
+入れる・確かめるもの: Git、Python、ffmpeg、GitHub CLI（`gh auth login` まで）、NVIDIA GPU、faster-whisper（と CUDA のライブラリ）、Claude Code、非公開リポジトリのクローン、電源（スリープしない）、Chrome リモート デスクトップのサービス、フォルダを見張るタスク（`register-watch-task.ps1`）。`-Real` を付けると、見張るタスクが本番（Issue・ラベル・PR まで）になる。付けないと試運転。`-Test` で GPU の小さな動作確認、`-SkipPower` `-SkipClaude` `-SkipWatch` で省ける。
+
+あとで手でやること: Google ドライブのデスクトップ版にログインし、`mtg-inbox` を「ミラーリング」にする。`claude` を一度起動してログインする。
+
+以下は、スクリプトが入れるものの内訳（手で入れたいとき用）。
 
 - Windows、NVIDIA の GPU（VRAM 8GB 以上で、large-v3 が動く）
 - Python と [faster-whisper](https://github.com/SYSTRAN/faster-whisper)（`pip install faster-whisper`）。GPU 用の CUDA ライブラリが要る（`nvidia-smi` が通れば、多くは追加の設定なしで動く）
@@ -44,6 +58,16 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 4. 結果は、同じフォルダの `results\` に出る（提案書 `*.proposal.md` と実行ログ）。GitHub への反映は、モードによる
 
 **モード**: 既定は**試運転**（GitHub には何も書き込まず、提案書だけ）。`-Real` を付けて登録すると、**本番**（Issue・ラベル・PR まで）を自動で行う。やめるときは `-Remove`。
+
+## 複数の PC で見張る（1 台が動かなくても止まらない）
+
+同じ同期フォルダを、2 台以上の PC で見張ってよい（どの PC も `setup-pc.ps1` で用意できる）。処理が重ならないように、PC どうしは、フォルダの中の `.mtg-processing.claim` というファイルで譲り合う。
+
+- 処理を始める PC が、自分の PC 名と時刻を書いた claim を置く。ほかの PC は、新しい claim（3 時間以内）が他の PC のものである間は、何もしない
+- 同期の遅れで同時に置いてしまったときは、90 秒待って読み直し、最後に残った claim の PC だけが進める
+- claim が 3 時間より古いときは、その PC が止まったとみなして、ほかの PC が引き継ぐ（フェイルオーバー）
+- 処理が終わると、claim は消える
+- 文字起こしの保管先の非公開リポジトリは共通なので、どの PC で処理しても、結果は同じ場所に出る
 
 ## GUI で使う
 
