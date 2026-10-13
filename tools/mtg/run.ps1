@@ -52,7 +52,7 @@ try {
     }
     Push-Location $repo
     try {
-      claude -p $prompt --permission-mode acceptEdits --allowedTools $tools
+      claude -p $prompt --permission-mode acceptEdits --add-dir $Root --allowedTools $tools
       if ($LASTEXITCODE -ne 0) { Write-Warning "claude exited with $LASTEXITCODE for $name" }
     } finally { Pop-Location }
   }
