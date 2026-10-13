@@ -236,7 +236,18 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 | `UI/` | 画面表示 |
 
 - 各フォルダに短い `README.md`（目的、外に見せる API、担当者）を置くと、他の人が探しやすい。
+- **シーンは `Assets/Scenes/` に置く。実行用の共有シーンは `Assets/Scenes/Main.unity` の 1 つだけ**（村・フィールド・XR リグ・UI をすべて入れる。分けない: [決めたことの記録](docs/decisions.md)）。個人の動作確認用は `Assets/Scenes/Sandbox/` に置く。`SampleScene`（Unity の初期シーン）は使わず、`Main` を Build Settings に登録するときに削除する（#34）。
 - **Prefab はすべて `Assets/Resources/Prefabs/` 以下に置く。** スクリプトと同じく機能ごとにフォルダを切り、フォルダ名はスクリプトとそろえる（例: `Village/` のスクリプトで使う Prefab は `Assets/Resources/Prefabs/Village/`）。フォルダの中の分け方は担当者が自由に決めてよい。
+
+### 型の名前とデータの置き場所
+決めたこと（2026-10-13）。型の一覧と、機能どうしのつなぎ方は [docs/architecture.md「3. 流れはイベントの連鎖にする」](docs/architecture.md#3-流れはイベントの連鎖にする) にある。
+
+- **食べ物と生物は同じ型にする**。名前は `Food`（`FoodDefinition`、`FoodId`、`FoodCatalog`）。`Offering` や `Creature` の型は作らない。
+- 他の型の名前: `TextureId`（食感）、`FieldId` と `FieldDefinition`（フィールド）、`RequestSet`（村人の要求）、`TutorialStep`（チュートリアルの 1 ステップ）。
+- **ID は文字列**（`FoodId` などは、文字列を包んだ型）。食感や食べ物を `enum` で `Core` に直書きしない（足すたびに全機能が再コンパイルされ、素材担当が触れなくなる）。重複した ID は、起動時にエラーにする。
+- **データ（ScriptableObject）の置き場所は `Assets/Resources/Data/<種類>/`**。種類は `Foods/` `Fields/` `Requests/` `Tutorial/`（`Tutorial/T1/`、`T2/` と、チュートリアルごとにさらに分ける）。起動時に、フォルダごと `Resources` から読み込む。1 件 = 1 アセットで、全部を入れた 1 つのリストは作らない。
+- 目次になるもの（`FoodCatalog` など）は、手で編集しない。`FoodDefinition` を集めて、起動時に作る。
+- **`Resources/` には、起動時に読むデータと Prefab だけを置く**。`Resources/` の中身は、使わなくてもビルドに入り、起動時間とビルドの大きさに効く。素材（モデル、テクスチャ、音）は `Assets/ArtisticResources/` など `Resources/` の外に置き、Prefab から参照する。置き場所は、上の `Data/<種類>/` と `Prefabs/<Feature>/` のどちらかにそろえる。新しいフォルダを足すときは、ここに 1 行足す。
 
 ### 書き方
 - **既定は `private`**。他の機能から呼ばせるものだけを `public` にする。Inspector に出したいだけなら `[SerializeField] private` を使う。
