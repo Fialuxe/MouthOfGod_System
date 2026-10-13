@@ -242,7 +242,7 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 - **既定は `private`**。他の機能から呼ばせるものだけを `public` にする。Inspector に出したいだけなら `[SerializeField] private` を使う。
 - 名前空間は `MouthOfGod.<Feature>`（例: `MouthOfGod.Device`）。
 - **疎結合**: 他の機能とのやり取りは、`event` / `interface` / ScriptableObject 経由にする。他の機能のクラスのフィールドを直接読み書きしない。`FindObjectOfType` や `GameObject.Find` で他機能を探さない。
-- 依存の向きは `Core` ← 各機能 ← `Game` / `Tutorial`。`Core` は誰にも依存しない。
+- 依存の向きは `Core` ← 各機能 ← `Game` / `Tutorial`。`Core` は誰にも依存しない。機能のコードが他の機能の名前空間（`MouthOfGod.<他の機能>`）を参照すると、PR に警告が出る（`.github/scripts/check_coupling.py`。止めはしない）。警告が出たら、Core の interface かイベントに直す。`Bootstrap` だけは全機能を参照してよい。
 - 機能ごとに Assembly Definition（`*.asmdef`）を置くと、依存を**コンパイルで強制**できる。必須ではないが、`Device/` と `Core/` には置くことを推奨する。
 - 定数や設定値（ポート名、しきい値など）をコードに埋め込まず、`ScriptableObject` か Inspector で渡す。
 

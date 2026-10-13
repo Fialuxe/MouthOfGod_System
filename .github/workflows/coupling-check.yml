@@ -1,0 +1,22 @@
+# 機能フォルダが、他の機能を直接参照していないかを調べ、見つけたら PR に警告を出す。
+# 警告だけで、PR は止めない（密結合に気づくための検査。強制は、問題が出てから asmdef で行う）。
+name: Coupling check
+
+on:
+  pull_request:
+    paths:
+      - "Assets/Scripts/**"
+      - ".github/scripts/check_coupling.py"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python .github/scripts/check_coupling.py
