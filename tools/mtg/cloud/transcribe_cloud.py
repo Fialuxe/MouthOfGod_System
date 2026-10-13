@@ -131,6 +131,10 @@ def transcribe(wav: Path, out_dir: Path, stem: str, model: str, extra_glossary: 
         if line.startswith("device=") or re.match(r"^\S+: \d+ segments$", line):
             log(re.sub(r"^\S+: ", "recording: ", line))
     if r.returncode != 0:
+        # show only the last line when it is an exception line (e.g. "OSError: ..."). Exceptions do not contain transcript text.
+        last = next((l.strip() for l in reversed(r.stderr.splitlines()) if l.strip()), "")
+        shown = last[:200] if re.match(r"^[\w.]+(Error|Exception|Exit)\b", last) else "(not an exception line)"
+        log(f"transcribe.py exit={r.returncode}: {shown}")
         raise RuntimeError("transcribe.py failed")
 
 
