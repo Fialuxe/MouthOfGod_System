@@ -47,7 +47,7 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 3. そのまま帰ってよい（実行中は PC がスリープしない。電源とふたは閉じない設定にしておく）
 4. 結果は GitHub に出る（議題 Issue へのコメント、`docs/mtg-YYYYMMDD` の PR）。ログは `~\Github\MouthOfGod_transcripts\logs\`
 
-文字起こしだけ試すときは `-NoClaude`。`run.ps1` は専用のクローンを `~\Documents\mtg\repo` に作って使うので、作業中のリポジトリ（Unity）には触れない。
+文字起こしだけ試すときは `-NoClaude`。`run.ps1` は専用のクローンを `~\Github\MouthOfGod_transcripts\repo` に作って使うので、作業中のリポジトリ（Unity）には触れない。
 
 ## 文字起こしの保管
 
