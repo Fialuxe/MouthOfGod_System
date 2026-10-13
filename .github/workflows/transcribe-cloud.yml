@@ -1,0 +1,76 @@
+# MTG の録音を、クラウド（GitHub Actions、CPU、large-v3）で文字起こしする。遅くてよい。PC が無くても進む。
+# 公開リポジトリのログは誰でも読める。文字起こしの中身・ファイル名・Drive の ID は、ログに出さない（transcribe_cloud.py がそう作ってある）。
+# 成果物（artifact）をアップロードしない。結果は、非公開リポジトリにだけ書く。
+# 必要な Secrets: GDRIVE_SA_JSON、MTG_INBOX_FOLDER_ID、TRANSCRIPTS_PAT（無ければ、何もせず終わる）。docs/mtg-automation.md を見る。
+name: MTG transcribe (cloud)
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"   # 30 分おきに、Drive の inbox を見る（録音が無ければ 1 分以内に終わる）
+  workflow_dispatch:
+    inputs:
+      benchmark_seconds:
+        description: "速さの計測: 録音の先頭の何秒を文字起こしするか（0 なら通常の処理）"
+        default: "0"
+      model:
+        description: "モデル"
+        default: "large-v3"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mtg-transcribe
+  cancel-in-progress: false
+
+jobs:
+  transcribe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+      MTG_INBOX_FOLDER_ID: ${{ secrets.MTG_INBOX_FOLDER_ID }}
+      BENCH: ${{ github.event.inputs.benchmark_seconds || '0' }}
+      MODEL: ${{ github.event.inputs.model || 'large-v3' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install google-api-python-client google-auth
+      - name: Count recordings waiting
+        id: count
+        run: python tools/mtg/cloud/transcribe_cloud.py --count
+
+      - name: Install ffmpeg and faster-whisper
+        if: steps.count.outputs.count != '0' || env.BENCH != '0'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          # av 19 no longer accepts the argument faster-whisper passes (metadata_errors): keep av below 19
+          pip install faster-whisper "av<19"
+      - name: Cache the model
+        if: steps.count.outputs.count != '0' || env.BENCH != '0'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ env.MODEL }}
+
+      - name: Speed benchmark (prints only timings)
+        if: env.BENCH != '0'
+        run: python tools/mtg/cloud/transcribe_cloud.py --benchmark "$BENCH" --model "$MODEL"
+
+      - name: Check out the private transcripts repo
+        if: env.BENCH == '0' && steps.count.outputs.count != '0'
+        uses: actions/checkout@v4
+        with:
+          repository: Fialuxe/MouthOfGod_transcripts
+          token: ${{ secrets.TRANSCRIPTS_PAT }}
+          path: private
+      - name: Transcribe and archive to the private repo
+        if: env.BENCH == '0' && steps.count.outputs.count != '0'
+        run: python tools/mtg/cloud/transcribe_cloud.py --private-clone private --model "$MODEL"
+
+      - name: Put unfinished recordings back (after a crash or a timeout)
+        if: always() && env.BENCH == '0' && steps.count.outputs.count != '0'
+        run: python tools/mtg/cloud/transcribe_cloud.py --release
