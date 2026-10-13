@@ -43,11 +43,17 @@ try {
 
     if ($NoClaude) { continue }
     $clean = Join-Path $tx "$name.clean.txt"
+    # what was already written / changed around the MTG (the file time = end of the recording)
+    $activity = Join-Path $tx "$name.activity.md"
+    $since = $f.LastWriteTime.AddDays(-1).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    Push-Location $repo
+    python -I (Join-Path $tools "activity.py") $since $activity
+    Pop-Location
     if ($DryRun) {
-      $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
+      $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
       $tools = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Read", "Write", "Glob", "Grep")
     } else {
-      $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date) を処理してください。確認は取らず、最後まで実行すること。"
+      $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity) を処理してください。確認は取らず、最後まで実行すること。"
       $tools = @("Bash(gh *)", "Bash(git *)", "Bash(python *)", "Read", "Write", "Edit", "Glob", "Grep")
     }
     Push-Location $repo
