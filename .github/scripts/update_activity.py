@@ -23,7 +23,7 @@ LABEL = "activity"
 TITLE = "活動記録（自動更新）"
 JST = timezone(timedelta(hours=9))
 WEEKS = 12  # 図に出す週の数
-SKIP_LABELS = {"roadmap", "activity"}
+SKIP_LABELS = {"roadmap", "activity", "hygiene"}
 
 PR_QUERY = """
 query($owner: String!, $name: String!, $after: String) {

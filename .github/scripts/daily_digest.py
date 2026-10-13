@@ -30,7 +30,7 @@ REPO = roadmap.REPO
 JST = roadmap.JST
 API = f"https://api.github.com/repos/{REPO}"
 WEB = f"https://github.com/{REPO}"
-SKIP_LABELS = {"roadmap", "activity"}
+SKIP_LABELS = {"roadmap", "activity", "hygiene"}
 PROMPT_FILE = os.path.join(os.path.dirname(__file__), "daily_digest_prompt.md")
 
 # 上から順に試す。リポジトリの変数 GEMINI_MODELS（カンマ区切り）で上書きできる。コードを直さずに差し替えるため。
