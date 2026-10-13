@@ -7,14 +7,38 @@ param(
   [string]$Root = "$HOME\Github\MouthOfGod_transcripts",
   [switch]$Real,
   [switch]$NoArchive,  # tests: do not push the transcript to the private repo
-  [string]$RunScript = ""  # tests: use this run.ps1 instead of the one in the dedicated clone (main)
+  [string]$RunScript = "",  # tests: use this run.ps1 instead of the one in the dedicated clone (main)
+  [string]$HostName = [Environment]::MachineName,  # tests: pretend to be another PC
+  [int]$ClaimHours = 3,  # a claim older than this is ignored (the PC that made it is assumed dead)
+  [int]$ClaimWaitSeconds = 90  # wait for the synced folder to show the other PC's claim
 )
 $ErrorActionPreference = "Continue"
 $exts = ".mp3", ".m4a", ".wav", ".aac", ".flac", ".mp4", ".ogg"
 
+# Several PCs can watch the same folder (so the work does not depend on one person's PC).
+# The PC that wants to process writes a claim file in the folder; the others skip while a fresh claim of another PC exists.
+# A claim older than $ClaimHours hours is ignored, so another PC takes over if the first one died.
+function Read-Claim($path) {
+  if (-not (Test-Path $path)) { return $null }
+  try { return (Get-Content $path -Raw | ConvertFrom-Json) } catch { return $null }
+}
+function Test-OtherClaim($path) {
+  $c = Read-Claim $path
+  if (-not $c) { return $false }
+  if ($c.host -eq $HostName) { return $false }
+  try { $age = (Get-Date).ToUniversalTime() - ([datetime]$c.time).ToUniversalTime() } catch { return $false }
+  return ($age.TotalHours -lt $ClaimHours)
+}
+function New-Claim($path) {
+  $nonce = [guid]::NewGuid().ToString()
+  @{ host = $HostName; time = (Get-Date).ToUniversalTime().ToString("o"); nonce = $nonce } | ConvertTo-Json | Set-Content -Path $path -Encoding UTF8
+  return $nonce
+}
+
 # one run at a time (a run takes from minutes to an hour)
 $mutex = New-Object System.Threading.Mutex($false, "MouthOfGodMtgWatch")
 if (-not $mutex.WaitOne(0)) { exit 0 }
+$claimed = $false
 try {
   if (-not (Test-Path $Inbox)) { exit 0 }
   $files = @(Get-ChildItem $Inbox -File | Where-Object { $_.Extension.ToLower() -in $exts })
@@ -28,6 +52,15 @@ try {
     if (-not $g -or ("$($g.FullName)|$($g.Length)|$($g.LastWriteTimeUtc.Ticks)" -notin $before)) { exit 0 }  # still changing: next time
     try { $fs = [IO.File]::Open($g.FullName, "Open", "Read", "None"); $fs.Close() } catch { exit 0 }
   }
+
+  # claim the folder (another PC may be watching it too)
+  $claimPath = Join-Path $Inbox ".mtg-processing.claim"
+  if (Test-OtherClaim $claimPath) { exit 0 }
+  $nonce = New-Claim $claimPath
+  Start-Sleep -Seconds $ClaimWaitSeconds
+  $c = Read-Claim $claimPath
+  if (-not $c -or $c.nonce -ne $nonce) { exit 0 }  # another PC claimed it at the same time and won
+  $claimed = $true
 
   # always use the latest run.ps1 from the dedicated clone (main)
   $repo = Join-Path $Root "repo"
@@ -52,5 +85,6 @@ try {
   Get-ChildItem (Join-Path $Root "logs") -Filter "run-*.log" -ErrorAction SilentlyContinue |
     Where-Object { $_.LastWriteTime -ge $start } | Sort-Object LastWriteTime | Select-Object -Last 1 | Copy-Item -Destination $out -Force
 } finally {
+  if ($claimed) { $c2 = Read-Claim $claimPath; if ($c2 -and $c2.nonce -eq $nonce) { Remove-Item $claimPath -Force -ErrorAction SilentlyContinue } }
   $mutex.ReleaseMutex()
 }
