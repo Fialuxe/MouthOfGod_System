@@ -136,8 +136,13 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
   - 一覧: [mtg-share](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3Amtg-share)・[mtg-decide](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3Amtg-decide)
 - **議題 Issue**（MTG 1 回につき 1 つ。題は「次の MTG の議題と議事録」、ラベルは `mtg-share`）:
   - 「共有すること」と「決めること（締切の近い順）」を並べる。Issue のないこと（マージした PR、決まりの変更、お知らせ）も、ここに書けば共有できる
+- **議事録のもとになる録音は、誰が用意してもよい**（スマホでよい）:
+  1. MTG の最初に、スマホの録音アプリで録音を始める（話す人の近くに置く）
+  2. 終わったら、ファイル名に MTG の日付を入れる（例: `2026-10-16 MTG.m4a`）
+  3. Google ドライブの共有フォルダ `mtg-inbox` にアップロードする
+
 - **MTG が終わったら**:
-  1. 議題 Issue に**議事録**をコメントする（共有したこと・決めたこと・次にやる人）
+  1. 議題 Issue に**議事録**がコメントされる（決定事項・アクション・議題ごとの要点・未解決。録音が処理されたあと、自動で）
   2. 決めたことは、それぞれの Issue にも書き、`mtg-decide` を外す。決まらなかったものは、付けたまま次回へ
   3. 共有した Issue から `mtg-share` を外す。何を共有したかは議事録に残るので、外してよい
   4. 議題 Issue を閉じ、次の MTG の議題 Issue を作る（閉じた議題 Issue が、MTG の記録になる）
