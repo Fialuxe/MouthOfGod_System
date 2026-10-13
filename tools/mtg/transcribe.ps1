@@ -1,9 +1,10 @@
-﻿# Usage: .\transcribe.ps1 <audio> -OutDir <dir> [-Model turbo]
-# Output: <OutDir>\<name>.srt / .txt / .json
+﻿# Usage: .\transcribe.ps1 <audio> -OutDir <dir> [-Model large-v3]
+# Normalises loudness (quiet / distant recordings are otherwise cut or misheard),
+# then runs faster-whisper. Output: <OutDir>\<name>.srt / .txt
 param(
   [Parameter(Mandatory = $true)][string]$Audio,
   [Parameter(Mandatory = $true)][string]$OutDir,
-  [string]$Model = "turbo"
+  [string]$Model = "large-v3"
 )
 $ErrorActionPreference = "Stop"
 
@@ -14,20 +15,14 @@ if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
   $env:Path += ";" + $ff.DirectoryName
 }
 
-# glossary.txt -> initial_prompt (Whisper reads only ~224 tokens: keep the glossary short)
-$prompt = ""
-$glossary = Join-Path $PSScriptRoot "glossary.txt"
-if (Test-Path $glossary) {
-  $prompt = ((Get-Content $glossary -Encoding UTF8 | Where-Object { $_.Trim() -ne "" }) -join "、")
-}
-
 New-Item -ItemType Directory -Force $OutDir | Out-Null
+$stem = [IO.Path]::GetFileNameWithoutExtension($Audio)
+$norm = Join-Path ([IO.Path]::GetTempPath()) "$stem.norm.wav"
 
-# --hallucination_silence_threshold: drop "ご視聴ありがとうございました" etc. made up in silence
-$ErrorActionPreference = "Continue"  # whisper prints harmless warnings on stderr
-whisper $Audio --language Japanese --model $Model --device cuda `
-  --output_dir $OutDir --output_format all `
-  --condition_on_previous_text False `
-  --word_timestamps True --hallucination_silence_threshold 2 `
-  --initial_prompt $prompt
-if ($LASTEXITCODE -ne 0) { throw "whisper failed ($LASTEXITCODE)" }
+$ErrorActionPreference = "Continue"  # native tools print harmless warnings on stderr
+ffmpeg -y -loglevel error -i $Audio -af "highpass=f=80,loudnorm=I=-16:TP=-1.5:LRA=11" -ar 16000 -ac 1 $norm
+if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed ($LASTEXITCODE)" }
+
+python -I (Join-Path $PSScriptRoot "transcribe.py") $norm $OutDir --stem $stem --model $Model
+if ($LASTEXITCODE -ne 0) { throw "transcribe.py failed ($LASTEXITCODE)" }
+Remove-Item $norm -ErrorAction SilentlyContinue

@@ -5,7 +5,7 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 ```
 水曜    ルーティン (mtg-agenda)   金曜 MTG の議題 Issue を作る
 金曜    録音 → inbox に置く → run.ps1 を実行して帰る
-          ├ transcribe.ps1  Whisper (turbo) で文字起こし
+          ├ transcribe.ps1  音量の正規化 → faster-whisper (large-v3) で文字起こし
           ├ clean.py        幻覚・繰り返しの除去、corrections.tsv の置換
           └ Claude (mtg-sync)  校正 → 議事録コメント → Issue の片づけ → 議事録の PR
 翌日    PR を見てマージする。議事録の「確認してほしいこと」を見る
@@ -13,8 +13,8 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 
 ## 事前準備（初回のみ）
 
-- Windows、NVIDIA の GPU（VRAM 8GB 以上。`turbo` は約 6GB 使う）
-- Python と [openai-whisper](https://github.com/openai/whisper)（`pip install -U openai-whisper`）、PyTorch の CUDA 版
+- Windows、NVIDIA の GPU（VRAM 8GB 以上で、large-v3 が動く）
+- Python と [faster-whisper](https://github.com/SYSTRAN/faster-whisper)（`pip install faster-whisper`）。GPU 用の CUDA ライブラリが要る（`nvidia-smi` が通れば、多くは追加の設定なしで動く）
 - ffmpeg: `winget install Gyan.FFmpeg`
 - GitHub CLI: `gh auth login`
 - Claude Code: `claude` を一度起動してログインしておく
@@ -52,3 +52,12 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 ## 水曜のルーティン
 
 Claude Code のルーティン（クラウド）が、毎週水曜に `mtg-agenda` スキルを実行して、金曜 MTG の議題 Issue を作る。設定は https://claude.ai/code/routines 。
+
+## モデルと前処理を選んだ理由
+
+同じ 3 分間（声が小さい録音）で比べた結果、**large-v3（faster-whisper）+ 音量の正規化**が一番誤認識が少なかった（turbo、kotoba-whisper v2.0 とも比較）。
+
+- 音量の正規化（`loudnorm`）が一番効く。小さい声や遠い声が、聞き取れる・切られない
+- kotoba-whisper は速い（約 7 倍）が、この録音では文がくずれ、VAD を入れると発言が抜けた
+- VAD は切っている（小さい声を捨てるため）。代わりに `clean.py` が幻覚を除く
+- 速度の目安: RTX 5060 Laptop（8GB）で、43 分の録音が数分

@@ -4,7 +4,7 @@
 param(
   [string]$Root = "$HOME\Documents\mtg",
   [string]$Ref = "main",
-  [string]$Model = "turbo",
+  [string]$Model = "large-v3",
   [switch]$NoClaude
 )
 $ErrorActionPreference = "Continue"  # git/claude write progress to stderr; check $LASTEXITCODE instead
