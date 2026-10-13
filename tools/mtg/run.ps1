@@ -5,7 +5,8 @@ param(
   [string]$Root = "$HOME\Documents\mtg",
   [string]$Ref = "main",
   [string]$Model = "large-v3",
-  [switch]$NoClaude
+  [switch]$NoClaude,
+  [switch]$DryRun   # trial: Claude writes <name>.proposal.md only; nothing is written to GitHub or the repo
 )
 $ErrorActionPreference = "Continue"  # git/claude write progress to stderr; check $LASTEXITCODE instead
 $inbox = Join-Path $Root "inbox"
@@ -42,11 +43,22 @@ try {
 
     if ($NoClaude) { continue }
     $clean = Join-Path $tx "$name.clean.txt"
-    $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date) を処理してください。確認は取らず、最後まで実行すること。"
+    # what was already written / changed around the MTG (the file time = end of the recording)
+    $activity = Join-Path $tx "$name.activity.md"
+    $since = $f.LastWriteTime.AddDays(-1).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    Push-Location $repo
+    python -I (Join-Path $tools "activity.py") $since $activity
+    Pop-Location
+    if ($DryRun) {
+      $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Join-Path $Root 'members.local.tsv')) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
+      $tools = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Read", "Write", "Glob", "Grep")
+    } else {
+      $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Join-Path $Root 'members.local.tsv')) を処理してください。確認は取らず、最後まで実行すること。"
+      $tools = @("Bash(gh *)", "Bash(git *)", "Bash(python *)", "Read", "Write", "Edit", "Glob", "Grep")
+    }
     Push-Location $repo
     try {
-      claude -p $prompt --permission-mode acceptEdits `
-        --allowedTools "Bash(gh *)" "Bash(git *)" "Bash(python *)" "Read" "Write" "Edit" "Glob" "Grep"
+      claude -p $prompt --permission-mode acceptEdits --add-dir $Root --allowedTools $tools
       if ($LASTEXITCODE -ne 0) { Write-Warning "claude exited with $LASTEXITCODE for $name" }
     } finally { Pop-Location }
   }
