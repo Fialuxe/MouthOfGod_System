@@ -1,8 +1,8 @@
 ﻿# Register a Windows scheduled task that runs agenda.ps1 every Wednesday 09:00.
-# Usage: .\register-agenda-task.ps1 [-Root ~\Documents\mtg] [-Time 09:00] [-Day Wednesday]
-# Re-run to update (it copies agenda.ps1 to <Root> and replaces the task).
+# Usage: .\register-agenda-task.ps1 [-Root ~\Github\MouthOfGod_transcripts] [-Time 09:00] [-Day Wednesday]
+# Re-run to update (it copies agenda.ps1 to <Root>\work and replaces the task).
 param(
-  [string]$Root = "$HOME\Documents\mtg",
+  [string]$Root = "$HOME\Github\MouthOfGod_transcripts",
   [string]$Time = "09:00",
   [string]$Day = "Wednesday",
   [string]$TaskName = "MouthOfGod-MTG-Agenda"
@@ -10,7 +10,8 @@ param(
 $ErrorActionPreference = "Stop"
 New-Item -ItemType Directory -Force $Root | Out-Null
 # the task runs a copy under <Root>, so it does not depend on where this repo is checked out
-$script = Join-Path $Root "agenda.ps1"
+$script = Join-Path $Root "work\agenda.ps1"  # work\ is git-ignored in the transcripts repo
+New-Item -ItemType Directory -Force (Split-Path $script) | Out-Null
 Copy-Item (Join-Path $PSScriptRoot "agenda.ps1") $script -Force
 
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
