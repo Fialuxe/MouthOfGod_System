@@ -1,0 +1,2 @@
+# wrong<TAB>right  (1 pair per line, applied as plain substring replace by clean.py)
+# mtg-sync appends high-confidence pairs here; keep it small and reviewed in the PR.
