@@ -69,6 +69,9 @@ jobs:
           path: private
       - name: Transcribe and archive to the private repo
         if: env.BENCH == '0' && steps.count.outputs.count != '0'
+        env:
+          MTG_ROUTINE_URL: ${{ secrets.MTG_ROUTINE_URL }}
+          MTG_ROUTINE_TOKEN: ${{ secrets.MTG_ROUTINE_TOKEN }}
         run: python tools/mtg/cloud/transcribe_cloud.py --private-clone private --model "$MODEL"
 
       - name: Put unfinished recordings back (after a crash or a timeout)

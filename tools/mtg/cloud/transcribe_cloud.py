@@ -5,7 +5,9 @@ Flow: a Google Drive folder (shared with a service account) holds the recordings
   -> transcribe.py (faster-whisper large-v3, CPU) -> clean.py -> the PRIVATE transcripts repo (<date>/<name>.clean.txt/.srt)
   -> moved to done/.   On failure the recording goes back to inbox/ and is retried by the next run, at most MAX_ATTEMPTS times;
   after that, or if it can never work (too long, unreadable), it is put in failed/ and the job fails so that a person is told.
-  A transcript is saved with a <name>.minutes.pending marker: a PC (watch.ps1) then makes the minutes (mtg-sync) from it.
+  A transcript is saved with a <name>.minutes.pending marker. If MTG_ROUTINE_URL and MTG_ROUTINE_TOKEN are set, the cloud routine
+  that makes the minutes (mtg-sync) is started right after (marker route=cloud); a PC (watch.ps1) is the fallback: it waits 6 hours
+  for the cloud, and makes the minutes itself if they do not exist by then. Without the secrets, the marker says route=pc.
   While a PC holds a fresh claim file in the folder, the cloud does nothing.
 
 PRIVACY: this repo and its Actions logs are PUBLIC. This script never prints transcript text, file names or Drive ids;
@@ -16,7 +18,8 @@ Usage:
   python transcribe_cloud.py --private-clone PATH       # process everything waiting
   python transcribe_cloud.py --benchmark 300            # transcribe the first 300 s of one recording; print only the speed
   python transcribe_cloud.py --release                  # put every recording in processing/ back into inbox/ (after a crash or a timeout)
-Environment: GDRIVE_SA_JSON (service account key), MTG_INBOX_FOLDER_ID (the Drive folder id).
+Environment: GDRIVE_SA_JSON (service account key), MTG_INBOX_FOLDER_ID (the Drive folder id),
+  MTG_ROUTINE_URL and MTG_ROUTINE_TOKEN (optional: the API trigger of the routine that makes the minutes).
 """
 import argparse
 import datetime as dt
@@ -26,6 +29,8 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 import tempfile
 import time
 from pathlib import Path
@@ -39,6 +44,7 @@ MAX_ATTEMPTS = 3  # a recording that fails this many times is put in failed/ and
 MAX_AUDIO_HOURS = 4.0  # longer than this will not fit in the 6-hour job (about 0.9x real time): split it into parts
 PC_CLAIM_NAME = ".mtg-processing.claim"  # written by watch.ps1 on a PC; the cloud stays away while a fresh one exists
 PC_CLAIM_HOURS = 3
+FIRE_RETRY_STATUSES = (429, 503)  # the request was not processed: safe to retry. (Every accepted request starts a new session: never retry anything else.)
 
 
 class Quarantine(Exception):
@@ -173,6 +179,37 @@ def transcribe(wav: Path, out_dir: Path, stem: str, model: str, extra_glossary: 
         raise RuntimeError("transcribe.py failed")
 
 
+def routine_configured() -> bool:
+    return bool(os.environ.get("MTG_ROUTINE_URL") and os.environ.get("MTG_ROUTINE_TOKEN"))
+
+
+def fire_routine(date: str, stem: str, attempts: int = 3) -> bool:
+    """Start the cloud routine that makes the minutes. Best effort: a failure only logs the HTTP status (never the URL or the token),
+    because the transcript is already saved and a PC will make the minutes later. Returns True when the routine was started."""
+    if not routine_configured():
+        return False
+    body = json.dumps({"text": f"date={date} name={stem}"}).encode("utf-8")
+    req = urllib.request.Request(os.environ["MTG_ROUTINE_URL"], data=body, method="POST", headers={
+        "Authorization": "Bearer " + os.environ["MTG_ROUTINE_TOKEN"],
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json"})
+    for i in range(attempts):
+        try:
+            with urllib.request.urlopen(req, timeout=60):
+                log("minutes routine: started")
+                return True
+        except urllib.error.HTTPError as e:
+            if e.code in FIRE_RETRY_STATUSES and i < attempts - 1:
+                time.sleep(10 * (i + 1))
+                continue
+            log(f"minutes routine: not started (HTTP {e.code}). A PC will make the minutes later.")
+            return False
+        except Exception as e:  # noqa: BLE001  network error etc.: do not retry (the request may have been accepted)
+            log(f"minutes routine: not started ({type(e).__name__}). A PC will make the minutes later.")
+            return False
+    return False
+
+
 def archive(private: Path, tx_dir: Path, stem: str, date: str):
     dest = private / date
     dest.mkdir(parents=True, exist_ok=True)
@@ -183,7 +220,8 @@ def archive(private: Path, tx_dir: Path, stem: str, date: str):
     # tell a PC that the minutes (mtg-sync) are still to be made from this transcript; the PC replaces this with .minutes.done
     marker = dest / f"{stem}.minutes.pending"
     if not (dest / f"{stem}.minutes.done").exists():
-        marker.write_text(json.dumps({"created": dt.datetime.now(dt.timezone.utc).isoformat(), "attempts": 0}), encoding="utf-8")
+        marker.write_text(json.dumps({"created": dt.datetime.now(dt.timezone.utc).isoformat(), "attempts": 0,
+                                      "route": "cloud" if routine_configured() else "pc"}), encoding="utf-8")
     git = ["git", "-C", str(private)]
     run(git + ["add", "--", date])
     if subprocess.run(git + ["diff", "--cached", "--quiet"]).returncode != 0:
@@ -229,6 +267,7 @@ def process_one(drive: Drive, f: dict, folders: dict, private: Path, model: str)
                 p.unlink()
         dest = folders["done"]
         log(f"archived: {date}")
+        fire_routine(date, stem)
     except Quarantine as e:
         dest = folders["failed"]
         log(f"quarantined: {e}. The recording was put in failed/ (not retried).")

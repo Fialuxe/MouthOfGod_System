@@ -16,6 +16,16 @@ MTG の文字起こしから、議事録・Issue・docs を更新する。**無�
 - このリポジトリは**公開**。文字起こしの全文は Issue・PR・コミットに載せない。書くのは決定事項と要点だけ。雑談や個人的な発言は書かない。
 - 文字数は少なく。議事録は 40 行を目安に、短く。
 
+## クラウドで動かすとき（ルーティンから呼ばれる）
+文字起こしのクラウドジョブが、ルーティンの API を呼ぶ。プロンプトは `date=YYYY-MM-DD name=<名前>`。PC は無い。次の点だけ、上の手順と違う。
+- リポジトリは 2 つ（公開の `MouthOfGod_System`、非公開の `MouthOfGod_transcripts`）。非公開のほうを、作業ディレクトリの隣へ `git clone` する（clone できなければ、何もせず、その旨を報告して終わる）。文字起こしは `<非公開>/<date>/<name>.clean.txt`。
+- **最初に確認する**: `<非公開>/<date>/<name>.minutes.done` があれば、何もせず終わる。`docs/minutes/<date>.md` が `origin/main` に、または `claude/mtg-<日付8桁>` ブランチが origin にあれば、議事録は済んでいる。`.minutes.done` だけ書いて終わる。
+- `activity.md`: MTG の前日 0 時（UTC）を開始として `python tools/mtg/activity.py <開始時刻(UTC)> <出力先>` で作る。
+- 校正した `corrected.txt` と `activity.md` は、コミットしない。
+- 手順 6 のブランチは **`claude/mtg-YYYYMMDD`**（クラウドでは `claude/` 以外のブランチへ push できない）。
+- 手順 6 のあと、非公開リポジトリの `<date>/<name>.minutes.pending` を `.minutes.done`（中身は `{"done": <ISO 時刻>, "host": "cloud-routine"}`）に置き換えてコミットし、push する。失敗時は `.pending` を残す（PC の見張りが、6 時間後に引き継ぐ）。
+- 公開リポジトリに文字起こしの全文・ファイル名を書かない決まりは、そのまま。
+
 ## 試運転モード
 プロンプトに「試運転」とあるときは、**GitHub にも、リポジトリのファイルにも、何も書き込まない**。手順 1〜3（校正、読む、判断する）だけを行い、手順 4〜6 でやるはずだった内容を、文字起こしと同じフォルダの `<名前>.proposal.md` に書く。`gh` は読み取り（`issue list`・`issue view`・`pr list`）だけを使う。proposal.md には、実行したはずの操作を 1 件ずつ（対象の Issue 番号、コメント全文、新規 Issue の題と本文、クローズの理由と発言の MM:SS）書く。`corrections.tsv` への追記案も、書き込まずに proposal.md に書く。
 

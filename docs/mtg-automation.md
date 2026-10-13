@@ -88,7 +88,11 @@ Actions の「MTG transcribe (cloud)」→ Run workflow → `benchmark_seconds` 
 - **PC が処理中のときは、クラウドは何もしない**: PC の見張りが、フォルダに `.mtg-processing.claim`（3 時間以内）を置いている間は、クラウドは手を出さない。
 - 文字起こしを非公開リポジトリに保存するとき、`YYYY-MM-DD/<名前>.minutes.pending` という印も置く（次の節）。
 
-### クラウドで処理した録音の議事録（PC が作る）
+### クラウドで処理した録音の議事録（ルーティンが作る。PC は予備）
+GitHub の Secrets `MTG_ROUTINE_URL`・`MTG_ROUTINE_TOKEN`（Claude のルーティンの API トリガー）があると、クラウドの文字起こしが保存を終えたあと、ルーティンを API で呼ぶ（`date=… name=…` を渡す。呼べなくても文字起こしは止まらない）。ルーティンが `mtg-sync` を動かし、議事録の PR を作り、印を `.minutes.done` にする。印には `"route":"cloud"` が付き、**PC の見張りは、作成から 6 時間は手を出さない**。6 時間たっても印が残っていたら、PC が引き継ぐ。議事録がすでに `main` や `claude/mtg-<日付>` ブランチにあれば、PC は作らずに印を `.minutes.done` にする。Secrets が無いときは、従来どおり PC だけが作る（`"route":"pc"`）。
+
+以下は PC が作る場合（予備）の説明。
+
 議事録の生成（`mtg-sync`、Claude）は、いまは PC で動く。クラウドが文字起こしを保存すると、`<名前>.minutes.pending` の印が残る。**PC の見張り（`watch.ps1`）は、10 分おきに非公開リポジトリを更新して、この印がある文字起こしから、議事録だけを作る**（`run.ps1 -FromTranscript <文字起こしのパス>`。録音と文字起こしはやり直さない）。
 
 - 成功すると、印は `.minutes.done` に変わる（コミットして push する）。失敗すると、`attempts` を増やして残し、次の回にやり直す。**3 回失敗すると `.minutes.failed` になり、もう試さない**（直したら、このファイルを消して `.minutes.pending` を作り直す）
