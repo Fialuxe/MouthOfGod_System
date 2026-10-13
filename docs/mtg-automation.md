@@ -11,7 +11,17 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 翌日    PR を見てマージする。議事録の「アクション」「Issue にしたほうがよさそうなもの」「未解決・次回」を見る
 ```
 
-## 事前準備（初回のみ）
+## 事前準備（初回のみ）: セットアップのスクリプト
+
+録音を処理する PC（Windows、NVIDIA の GPU）は、**スクリプト 1 本でそろえられる**。足りないものだけを入れる（何度実行してもよい）。
+
+
+
+入れる・確かめるもの: Git、Python、ffmpeg、GitHub CLI（ まで）、NVIDIA GPU、faster-whisper（と CUDA のライブラリ）、Claude Code、非公開リポジトリのクローン、電源（スリープしない）、Chrome リモート デスクトップのサービス、フォルダを見張るタスク（）。 を付けると、見張るタスクが本番（Issue・ラベル・PR まで）になる。付けないと試運転。 で GPU の小さな動作確認、   で省ける。
+
+あとで手でやること: Google ドライブのデスクトップ版にログインし、 を「ミラーリング」にする。 を一度起動してログインする。
+
+以下は、スクリプトが入れるものの内訳（手で入れたいとき用）。
 
 - Windows、NVIDIA の GPU（VRAM 8GB 以上で、large-v3 が動く）
 - Python と [faster-whisper](https://github.com/SYSTRAN/faster-whisper)（`pip install faster-whisper`）。GPU 用の CUDA ライブラリが要る（`nvidia-smi` が通れば、多くは追加の設定なしで動く）
