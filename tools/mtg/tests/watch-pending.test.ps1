@@ -6,9 +6,10 @@ $tokens = $null; $errors = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $watch), [ref]$tokens, [ref]$errors)
 if ($errors.Count -gt 0) { throw "watch.ps1 does not parse: $($errors[0].Message)" }
 # take the real function definitions out of watch.ps1 (so the test cannot drift from the script)
-$ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -in "Update-PrivateRepo", "Get-PendingMinutes", "Save-MinutesResult" }, $true) |
+$ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -in "Update-PrivateRepo", "Get-PendingMinutes", "Save-MinutesResult", "Test-CloudGrace", "Test-MinutesExist" }, $true) |
   ForEach-Object { Invoke-Expression $_.Extent.Text }
 $MaxMinutesAttempts = 3
+$CloudGraceHours = 6
 $HostName = "PC-A"
 
 $fails = 0
@@ -50,6 +51,27 @@ for ($i = 1; $i -le 3; $i++) {
 }
 Check "failure 3: .minutes.failed, no longer pending" ((Test-Path "$Root/2026-10-16/b.minutes.failed") -and -not (Test-Path "$Root/2026-10-16/b.minutes.pending"))
 Check "nothing is left to do" ((Get-PendingMinutes).Count -eq 0)
+
+# cloud route: grace period, and "minutes already exist"
+$now = (Get-Date).ToUniversalTime()
+New-Item -ItemType Directory "$tmp/g" | Out-Null
+function Mk($n, $hoursAgo, $route) { Set-Content "$tmp/g/$n.minutes.pending" (@{ created = $now.AddHours(-$hoursAgo).ToString("o"); attempts = 0; route = $route } | ConvertTo-Json); Get-Item "$tmp/g/$n.minutes.pending" }
+Check "cloud route, 1h old: PC waits" (Test-CloudGrace (Mk "c1" 1 "cloud"))
+Check "cloud route, 7h old: PC takes over" (-not (Test-CloudGrace (Mk "c2" 7 "cloud")))
+Check "pc route: no grace" (-not (Test-CloudGrace (Mk "c3" 1 "pc")))
+Check "old marker without route: no grace" (-not (Test-CloudGrace (Get-Item "$Root/2026-10-16/b.minutes.failed")))
+Set-Content "$tmp/g/bad.minutes.pending" "not json"
+Check "broken marker: no grace (does not block)" (-not (Test-CloudGrace (Get-Item "$tmp/g/bad.minutes.pending")))
+git clone -q "$tmp/remote.git" "$tmp/proj" 2>&1 | Out-Null
+git -C "$tmp/proj" config user.name p; git -C "$tmp/proj" config user.email p@p
+Check "no minutes yet" (-not (Test-MinutesExist "2026-10-16" "$tmp/proj"))
+New-Item -ItemType Directory "$tmp/proj/docs/minutes" | Out-Null; Set-Content "$tmp/proj/docs/minutes/2026-10-16.md" "m"
+git -C "$tmp/proj" add -A 2>&1 | Out-Null; git -C "$tmp/proj" commit -q -m m 2>&1 | Out-Null; git -C "$tmp/proj" push -q origin HEAD:main 2>&1 | Out-Null
+Check "minutes on main: exist" (Test-MinutesExist "2026-10-16" "$tmp/proj")
+git -C "$tmp/proj" push -q origin HEAD:refs/heads/claude/mtg-20261020 2>&1 | Out-Null
+Check "routine branch exists: exist" (Test-MinutesExist "2026-10-20" "$tmp/proj")
+Check "other date: not exist" (-not (Test-MinutesExist "2026-10-27" "$tmp/proj"))
+Check "no clone: false" (-not (Test-MinutesExist "2026-10-16" "$tmp/nonexistent"))
 
 Remove-Item $tmp -Recurse -Force
 if ($fails -gt 0) { "`n$fails FAILED"; exit 1 } else { "`nALL PASSED" }

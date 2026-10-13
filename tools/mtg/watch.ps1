@@ -48,6 +48,24 @@ function Get-PendingMinutes {
   return @(Get-ChildItem $Root -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^\d{4}-\d{2}-\d{2}$' } |
     ForEach-Object { Get-ChildItem $_.FullName -Filter "*.minutes.pending" -File -ErrorAction SilentlyContinue } | Sort-Object FullName)
 }
+# route=cloud: a Claude routine in the cloud was called for this transcript. The PC waits for it (grace) and only takes over after that.
+$CloudGraceHours = 6
+function Test-CloudGrace($pending) {
+  try { $info = Get-Content $pending.FullName -Raw | ConvertFrom-Json } catch { return $false }
+  if (-not $info -or $info.route -ne "cloud" -or -not $info.created) { return $false }
+  try { $created = [DateTime]::Parse([string]$info.created, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime() } catch { return $false }
+  return (((Get-Date).ToUniversalTime() - $created).TotalHours -lt $CloudGraceHours)
+}
+# minutes already made (on main, or on a routine/PC branch that has a PR): do not make them twice
+function Test-MinutesExist($date, $repo) {
+  if (-not (Test-Path (Join-Path $repo ".git"))) { return $false }
+  git -C $repo fetch -q origin 2>&1 | Out-Null
+  git -C $repo cat-file -e "origin/main:docs/minutes/$date.md" 2>&1 | Out-Null
+  if ($LASTEXITCODE -eq 0) { return $true }
+  $ymd = $date -replace '-', ''
+  $heads = git -C $repo ls-remote --heads origin "claude/mtg-$ymd" "docs/mtg-$ymd" 2>$null
+  return [bool]$heads
+}
 function Save-MinutesResult($pending, [bool]$ok) {
   $info = $null
   try { $info = Get-Content $pending.FullName -Raw | ConvertFrom-Json } catch { }
@@ -65,7 +83,7 @@ function Save-MinutesResult($pending, [bool]$ok) {
       Set-Content -Path "$base.minutes.failed" -Value (@{ failed = $now; attempts = $attempts; host = $HostName } | ConvertTo-Json) -Encoding UTF8
       $what = "minutes FAILED $attempts times (not retried; delete the .minutes.failed file to retry)"
     } else {
-      Set-Content -Path $pending.FullName -Value (@{ created = if ($info) { $info.created } else { $now }; attempts = $attempts } | ConvertTo-Json) -Encoding UTF8
+      Set-Content -Path $pending.FullName -Value (@{ created = if ($info) { $info.created } else { $now }; attempts = $attempts; route = if ($info -and $info.route) { $info.route } else { "pc" } } | ConvertTo-Json) -Encoding UTF8
       $what = "minutes failed (attempt $attempts of $MaxMinutesAttempts)"
     }
   }
@@ -137,6 +155,8 @@ try {
   foreach ($p in (Get-PendingMinutes)) {
     $name = $p.Name -replace '\.minutes\.pending$', ''
     $clean = Join-Path $p.Directory.FullName "$name.clean.txt"
+    if (Test-CloudGrace $p) { continue }  # the cloud routine is still working on it
+    if (Test-MinutesExist $p.Directory.Name $repo) { if ($Real) { Save-MinutesResult $p $true }; continue }
     if (-not (Test-Path $clean)) { if ($Real) { Save-MinutesResult $p $false }; continue }
     if (-not $Real -and (Test-Path (Join-Path $Root "transcripts\$name.proposal.md"))) { continue }
     $fromArgs = @{ Root = $Root; FromTranscript = $clean }

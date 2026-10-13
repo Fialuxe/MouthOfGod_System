@@ -178,5 +178,83 @@ check("unexpected error: exit code 1", rc == 1)
 check("unexpected error: class name shown", "FakeHttpError" in buf.getvalue())
 check("unexpected error: the folder id is NOT in the log", "SECRETFOLDERID" not in buf.getvalue() and "googleapis" not in buf.getvalue())
 
+# 8) starting the minutes routine: right headers and body, retry only when the request was not processed, nothing secret in the log
+import os
+import urllib.error
+import urllib.request
+
+calls = []
+class FakeResp:
+    def __enter__(s): return s
+    def __exit__(s, *a): return False
+def make_urlopen(outcomes):
+    seq = list(outcomes)
+    def fake(req, timeout=0):
+        calls.append(req)
+        o = seq.pop(0)
+        if isinstance(o, int):
+            raise urllib.error.HTTPError(req.full_url, o, "x", {}, None)
+        if isinstance(o, Exception):
+            raise o
+        return FakeResp()
+    return fake
+real_urlopen = urllib.request.urlopen
+real_sleep = tc.time.sleep
+tc.time.sleep = lambda s: None
+os.environ.pop("MTG_ROUTINE_URL", None); os.environ.pop("MTG_ROUTINE_TOKEN", None)
+urllib.request.urlopen = make_urlopen([])
+check("routine not configured: nothing is sent", tc.fire_routine("2026-10-16", "stem") is False and not calls and not tc.routine_configured())
+os.environ["MTG_ROUTINE_URL"] = "https://api.example.test/v1/claude_code/routines/trig_SECRETID/fire"
+os.environ["MTG_ROUTINE_TOKEN"] = "sk-ant-oat01-SECRETTOKEN"
+check("routine configured", tc.routine_configured())
+
+calls.clear(); urllib.request.urlopen = make_urlopen([None])
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    ok = tc.fire_routine("2026-10-16", "my stem")
+req = calls[0]
+check("fire: started", ok is True and len(calls) == 1)
+check("fire: Bearer token and anthropic-version header", req.get_header("Authorization") == "Bearer sk-ant-oat01-SECRETTOKEN" and req.get_header("Anthropic-version") == "2023-06-01")
+check("fire: body is {text: date=... name=...}", __import__("json").loads(req.data)["text"] == "date=2026-10-16 name=my stem")
+
+calls.clear(); urllib.request.urlopen = make_urlopen([429, None])
+with contextlib.redirect_stdout(io.StringIO()):
+    ok = tc.fire_routine("2026-10-16", "s")
+check("fire: 429 is retried once, then started", ok is True and len(calls) == 2)
+
+calls.clear(); urllib.request.urlopen = make_urlopen([500])
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    ok = tc.fire_routine("2026-10-16", "s")
+check("fire: 500 is NOT retried (it may have started a session), returns False", ok is False and len(calls) == 1)
+check("fire: the log shows the status but not the URL or the token", "500" in buf.getvalue() and "SECRET" not in buf.getvalue() and "example.test" not in buf.getvalue())
+
+calls.clear(); urllib.request.urlopen = make_urlopen([TimeoutError("timed out")])
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    ok = tc.fire_routine("2026-10-16", "s")
+check("fire: a network error is NOT retried", ok is False and len(calls) == 1 and "SECRET" not in buf.getvalue())
+
+calls.clear(); urllib.request.urlopen = make_urlopen([503, 503, 503])
+with contextlib.redirect_stdout(io.StringIO()):
+    ok = tc.fire_routine("2026-10-16", "s")
+check("fire: 503 three times -> gives up (3 requests)", ok is False and len(calls) == 3)
+
+# the full flow: success fires the routine and the marker says route=cloud; a routine failure does not break the archive
+st, drive, folders, priv, tmp = new_world()
+tc.transcribe = ok_transcribe
+calls.clear(); urllib.request.urlopen = make_urlopen([500])
+res, err, out = run_process(drive, folders, priv)
+mk = next(priv.rglob("*.minutes.pending"))
+check("flow: the routine failed but the recording is in done/ (the transcript is safe)", res == "done" and where(st, folders) == "done")
+check("flow: marker says route=cloud", __import__("json").loads(mk.read_text(encoding="utf-8"))["route"] == "cloud")
+os.environ.pop("MTG_ROUTINE_URL"); os.environ.pop("MTG_ROUTINE_TOKEN")
+st, drive, folders, priv, tmp = new_world()
+res, err, out = run_process(drive, folders, priv)
+mk = next(priv.rglob("*.minutes.pending"))
+check("flow: without the routine secrets the marker says route=pc", __import__("json").loads(mk.read_text(encoding="utf-8"))["route"] == "pc")
+urllib.request.urlopen = real_urlopen
+tc.time.sleep = real_sleep
+
 print("\n" + ("ALL PASSED" if not FAILS else f"{len(FAILS)} FAILED: {FAILS}"))
 sys.exit(1 if FAILS else 0)
