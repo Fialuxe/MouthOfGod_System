@@ -137,6 +137,149 @@ sequenceDiagram
   C->>G: 議事録・Issue の片づけ・議事録の PR
 ```
 
+## 4.5 ファイルの流れ（1 本の録音が、どのファイルに変わるか）
+
+色: 🟦 Drive、🟨 作業用（その場かぎり。消える）、🟩 非公開リポジトリ、🟥 公開リポジトリ、⬜ GitHub の Issue など。
+
+```mermaid
+flowchart TB
+  classDef drive fill:#dbeafe,stroke:#3b82f6,color:#111
+  classDef temp fill:#fef9c3,stroke:#ca8a04,color:#111
+  classDef priv fill:#dcfce7,stroke:#16a34a,color:#111
+  classDef pub fill:#fee2e2,stroke:#dc2626,color:#111
+  classDef gh fill:#f3f4f6,stroke:#6b7280,color:#111
+
+  subgraph D["🗂️ Google ドライブ mtg-inbox"]
+    a1["2026-10-16 MTG.m4a<br/>(inbox/)"]:::drive
+    a2["同じファイル<br/>(processing/ 処理中)"]:::drive
+    a3["同じファイル<br/>(done/ 済み)"]:::drive
+  end
+
+  subgraph T["🟨 作業用（Actions のランナー / PC の transcripts フォルダ）"]
+    b1["audio.norm.wav<br/>16kHz・モノ・音量をそろえた音"]:::temp
+    b2["名前.srt / 名前.txt<br/>名前.conf.tsv (自信度)"]:::temp
+    b3["名前.clean.srt / 名前.clean.txt<br/>幻覚・繰り返しを除去、誤変換を置換"]:::temp
+    b4["名前.activity.md<br/>MTG 前後の Issue・PR・コミット (PC のみ)"]:::temp
+  end
+
+  subgraph R["🔒 非公開 MouthOfGod_transcripts"]
+    c1["YYYY-MM-DD/名前.clean.txt<br/>YYYY-MM-DD/名前.clean.srt"]:::priv
+    c2["config/glossary.local.txt<br/>config/corrections.local.tsv<br/>config/members.local.tsv"]:::priv
+  end
+
+  subgraph P["🐱 公開 MouthOfGod_System"]
+    d1["tools/mtg/glossary.txt<br/>tools/mtg/corrections.tsv"]:::pub
+    d2["docs/minutes/YYYY-MM-DD.md<br/>docs/decisions.md"]:::pub
+    d3["PR: docs/mtg-YYYYMMDD"]:::pub
+  end
+
+  subgraph G["📋 GitHub の Issue"]
+    e1["議題 Issue のコメント<br/>(議事録)"]:::gh
+    e2["各 Issue のコメント・ラベル・クローズ"]:::gh
+  end
+
+  a1 -- "① 移す(取り合い防止)" --> a2
+  a2 -- "② ダウンロード + FFmpeg" --> b1
+  b1 -- "③ Whisper large-v3" --> b2
+  d1 -. "用語を渡す" .-> b2
+  c2 -. "人名の用語" .-> b2
+  b2 -- "④ clean.py" --> b3
+  d1 -. "置換表" .-> b3
+  c2 -. "人名の置換表" .-> b3
+  b3 -- "⑤ git push (cloud / archive.ps1)" --> c1
+  a2 -- "⑥ 終わったら移す" --> a3
+  b3 -- "⑦ mtg-sync が読む" --> e1
+  b4 -- "⑦ mtg-sync が読む" --> e1
+  c1 -. "あとから読み返す" .-> e1
+  e1 --> e2
+  e1 -- "⑧ 追記" --> d2
+  e1 -- "⑧ 追記 (確信のある組)" --> d1
+  d2 --> d3
+```
+
+| ファイル | どこに | 誰が作る | 誰が読む | 残るか |
+|---|---|---|---|---|
+| `2026-10-16 MTG.m4a`（録音） | Drive の `inbox/` → `processing/` → `done/` | 録音した人 | クラウド / PC の見張り | Drive に残る（共有した人だけ） |
+| `audio.norm.wav` | ランナー、または PC の一時フォルダ | FFmpeg（音量の正規化） | Whisper | 終わると消える |
+| `名前.srt` `名前.txt` `名前.conf.tsv` | `transcripts/`（作業用、git の対象外） | `transcribe.py` | `clean.py` | 消える（ランナー）/ PC に残る |
+| `名前.clean.srt` `名前.clean.txt` | 同上 → 非公開リポジトリの `YYYY-MM-DD/` | `clean.py`、`git push` | `mtg-sync`、メンバー | **非公開リポジトリに残る** |
+| `名前.activity.md` | PC の `transcripts/` | `activity.py` | `mtg-sync` | PC に残る |
+| `名前.proposal.md`、`run-*.log` | PC の `transcripts/`、`logs/` → Drive の `results/` | 試運転の `mtg-sync`、`watch.ps1` | あなた | Drive に残る |
+| `docs/minutes/YYYY-MM-DD.md`、`docs/decisions.md` | 公開リポジトリ（PR 経由） | `mtg-sync` | 全員、`mtg-agenda` | 残る（PR をマージしたとき） |
+| `tools/mtg/corrections.tsv` | 公開リポジトリ（PR 経由） | `mtg-sync`（確信のある組だけ） | `clean.py` | 残る |
+| `config/*.local.*` | 非公開リポジトリ | 手で書く | `transcribe.py`、`clean.py`、`run.ps1` | 残る（人名はここにだけ置く） |
+
+- **文字起こしの全文が行き着く先は、非公開リポジトリだけ**。公開リポジトリには、要点（議事録・決定事項）だけが PR で入る。
+- ⑦ の `mtg-sync` は、いまは PC（`run.ps1`）で動く。クラウドの場合、③〜⑥ までが自動で、⑦ は、あとから PC で動かす（「まだつながっていないところ」参照）。
+
+## 4.6 例外フロー（うまくいかないとき、どうなるか）
+
+### クラウドの文字起こし（Actions）
+
+```mermaid
+flowchart TB
+  classDef ok fill:#dcfce7,stroke:#16a34a,color:#111
+  classDef ng fill:#fee2e2,stroke:#dc2626,color:#111
+  classDef wait fill:#fef9c3,stroke:#ca8a04,color:#111
+
+  S["30 分おきに起動"] --> K{"Secrets は置いてある?"}
+  K -- いいえ --> K1["何もせず成功で終了<br/>(エラーにしない)"]:::wait
+  K -- はい --> C{"inbox/ に録音がある?<br/>(音声以外は無視)"}
+  C -- いいえ --> C1["1 分以内に終了"]:::wait
+  C -- はい --> M{"processing/ に移せた?"}
+  M -- "移せない(他が処理中)" --> M1["何もしない"]:::wait
+  M -- はい --> D{"ダウンロード成功?"}
+  D -- いいえ --> B
+  D -- はい --> W{"文字起こし成功?"}
+  W -- いいえ --> L["ログに例外の最後の 1 行<br/>(中身は出さない)"]:::ng --> B
+  W -- はい --> P{"非公開リポジトリへ<br/>push 成功?"}
+  P -- "競合" --> R["pull --rebase<br/>最大 3 回"]:::wait --> P
+  P -- "失敗が続く<br/>(権限・期限切れ)" --> B
+  P -- はい --> OK["done/ に移す"]:::ok
+
+  B["inbox/ に戻す<br/>→ 30 分後に再実行"]:::wait
+  T["6 時間で強制終了・クラッシュ"]:::ng --> Rel["最後の手順 --release:<br/>processing/ → inbox/"]:::wait
+```
+
+| 状況 | どうなるか | 人がやること |
+|---|---|---|
+| Secrets が無い | 何もせず終わる（エラーにならない） | Secrets を置く |
+| Drive にテキストなど音声以外がある | 無視する | なし |
+| ファイル名に日付が無い、日付が読めない | Drive の更新日（日本時間）を MTG の日付にする | 日付がずれたら、ファイル名に日付を入れて入れ直す |
+| 文字起こしの失敗（ライブラリ・モデルの取得など） | ログに例外の最後の 1 行。録音は inbox に戻り、30 分後にやり直す | 同じ失敗が続くとき、ログの 1 行を見て直す |
+| 6 時間を超える・強制終了 | 録音は inbox に戻る。また同じところで止まる | 録音を分割して入れ直す |
+| 非公開リポジトリへの push の競合 | `pull --rebase` で最大 3 回やり直す | なし |
+| `TRANSCRIPTS_PAT` の期限切れ・権限なし | push に失敗し、録音は inbox に戻る。30 分ごとに失敗が続く | トークンを作り直して Secrets を更新する |
+| サービスアカウントの共有が外れた | Drive の一覧の取得に失敗する | `mtg-inbox` を、サービスアカウントと「編集者」で共有し直す |
+| 同じ名前の録音を入れ直した | 同じ日付のフォルダに上書きされる（差分があれば新しいコミット） | なし |
+| 同時に 2 つ動きそう | 同時に 1 つだけ動く（`concurrency`） | なし |
+
+### Windows PC の見張り（`watch.ps1`）
+
+| 状況 | どうなるか | 人がやること |
+|---|---|---|
+| 録音が同期の途中 | 60 秒待って、サイズ・時刻が変わる、または開けないなら、次の回（10 分後）に回す | なし |
+| ほかの PC の新しい claim（3 時間以内） | 何もしない | なし |
+| claim が 3 時間より古い | その PC が止まったとみなして引き継ぐ | なし |
+| `processing/` に録音がある（クラウドが処理中） | 何もしない | なし |
+| PC がスリープ・電源 OFF | 録音は Drive に残る。起きたあと、次の回で処理する | 電源の設定でスリープしないようにする（`setup-pc.ps1`） |
+| `claude`（`mtg-sync`）が失敗 | 警告だけ。文字起こしは非公開リポジトリに保管済みで、録音は `done` に移っている。**議事録は出ない** | 録音を inbox に戻して再実行する、または `claude` で `mtg-sync` を手で動かす |
+
+### 議事録づくり（`mtg-sync`）
+
+| 状況 | どうなるか |
+|---|---|
+| 聞き取りが不確か | 本文に「（聞き取り不明）」と書き、「未解決・次回」にも書く。推測で説明しない |
+| 閉じる根拠が発言にない | 閉じずに、「未解決・次回」に、何が分かれば閉じられるかを書く |
+| 言っていない理由 | 補わない（「理由は MTG では語られなかった」と書く） |
+| 議題 Issue が見つからない | 新しく「M/D MTG の議事録」の Issue を作って書く |
+| 手順の一部が失敗 | 止まらずに続け、最後の報告に、失敗した手順を書く |
+| 試運転 | GitHub には何も書かず、提案書（`*.proposal.md`）だけを作る |
+
+### 特に注意（つながっていない例外）
+
+- ⚠️ **クラウドで処理した録音は `done/` に移るので、PC の見張りの対象外になる。議事録（`mtg-sync`）が自動では動かない。** いまの手作業の回避策: `done/` の録音を PC の inbox に戻して、PC で最初から処理する（文字起こしを二重にやる、ムダの多い方法）。**直すなら、非公開リポジトリの文字起こしから、`mtg-sync` だけを動かす仕組みを足す**（次の課題）。
+
 ## 5. 何が公開で、何が非公開か
 
 | | 公開リポジトリ | 非公開リポジトリ / Drive / Secrets |
@@ -162,7 +305,7 @@ sequenceDiagram
 
 ## 7. まだつながっていないところ（次の課題）
 
-- ⚠️ **クラウドで文字起こしした後の `mtg-sync`（議事録づくり）は、まだ PC（`run.ps1`）に依存**している。クラウドは、文字起こしを非公開リポジトリに置くところまで。非公開リポジトリを読めるルーティンで `mtg-sync` を動かせば、全部クラウドになる。
+- ⚠️ **クラウドで文字起こしした後の `mtg-sync`（議事録づくり）は、まだ自動では動かない**（PC の見張りの対象外になるため。「4.6 例外フロー」の最後を参照）。クラウドは、文字起こしを非公開リポジトリに置くところまで。非公開リポジトリを読めるルーティンで `mtg-sync` を動かせば、全部クラウドになる。
 - ⚠️ 週次の Issue 整理（火）のルーティンは、リポジトリの設定を、ルーティンの画面（claude.ai/code/routines）で足す必要がある。
 - ⚠️ 長い録音（1 時間以上）でのクラウドの速さは、3 分の録音での実測（0.89 倍）だけ。長い録音の実測は、まだ。
 - 🍎 Mac は環境の確認まで（見張りと議事録は Windows のみ）。
