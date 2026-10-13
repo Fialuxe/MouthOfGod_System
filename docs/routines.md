@@ -9,8 +9,11 @@
 | MTG の議題 | 毎週水曜 | 金曜の MTG の議題 Issue を作る（前回のアクションの結果、決めることの候補つき） | `mtg-agenda スキルに従って、次の MTG（金曜）の議題 Issue を作ってください。確認は取らず、最後まで実行すること。` |
 | 週次の Issue 整理 | 毎週火曜 8:47 | 完了した Issue を閉じ、重複・担当なし・止まっているものを「Issue 整理（週次）」にまとめる | `issue-hygiene スキルに従って、Fialuxe/MouthOfGod_System の open の Issue を整理してください。確認は取らず、最後まで実行すること。` |
 
+| 議事録（クラウド） | 時刻なし（API で呼ぶ） | クラウドの文字起こしの後に呼ばれ、議事録の PR を作る | `mtg-sync スキルの「クラウドで動かすとき」に従って、渡された date と name の MTG の議事録を作ってください。確認は取らず、最後まで実行すること。` |
+
+- 「議事録（クラウド）」は、リポジトリを **`Fialuxe/MouthOfGod_System` と `Fialuxe/MouthOfGod_transcripts`（非公開）の 2 つ**付け、スケジュールは付けず、**API トリガー**を足す。トークンを生成したら、GitHub の Secrets `MTG_ROUTINE_URL`（`https://api.anthropic.com/v1/claude_code/routines/trig_…/fire`）と `MTG_ROUTINE_TOKEN`（`sk-ant-oat01-…`）に入れる。トークンは一度しか表示されない。
 - 作ったアカウント: 代表者の個人の Claude アカウント（研究室のアカウントは、GitHub の連携ができなかったため、使っていない）
-- 議事録づくり（`mtg-sync`）は、ルーティンではなく、**PC の見張り**（`watch.ps1`）が動かす。詳しくは [mtg-automation.md](mtg-automation.md)
+- 議事録づくり（`mtg-sync`）は、下の「議事録（クラウド）」のルーティンが動かす。ルーティンが動かないとき・未設定のときは、**PC の見張り**（`watch.ps1`）が引き継ぐ。詳しくは [mtg-automation.md](mtg-automation.md)
 
 ## スキルは、リポジトリにある
 
