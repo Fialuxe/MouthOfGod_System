@@ -438,7 +438,7 @@ def build(issues, milestones, roadmap_number):
 
 
 def sync_states(issues, api):
-    """「状態」Issue を、子（Blocked by）に合わせて閉じる・開き直す。子のない状態は触らない。"""
+    """「状態」Issue を、子（Blocked by）がすべて閉じたら自動で閉じる。開き直しはしない。子のない状態は触らない。"""
     by_number = {i["number"]: i for i in issues}
     changed = False
     for i in issues:
@@ -452,10 +452,6 @@ def sync_states(issues, api):
             request("POST", f"{api}/issues/{i['number']}/comments", {"body": "子の Issue がすべて閉じたので、この状態は成り立ちました。自動で閉じます。"})
             request("PATCH", f"{api}/issues/{i['number']}", {"state": "closed", "state_reason": "completed"})
             print(f"Closed state #{i['number']}")
-            changed = True
-        elif not all_done and i["state"] == "CLOSED":
-            request("PATCH", f"{api}/issues/{i['number']}", {"state": "open"})
-            print(f"Reopened state #{i['number']}")
             changed = True
     return changed
 
