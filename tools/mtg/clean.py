@@ -53,6 +53,10 @@ def parse_srt(text: str):
 
 def main(src: Path):
     pairs = load_corrections(Path(__file__).with_name("corrections.tsv"))
+    # local-only pairs (e.g. member names), kept out of the public repo:
+    # <transcripts dir>/corrections.local.tsv or its parent (the run.ps1 root)
+    for d in (src.resolve().parent, src.resolve().parent.parent):
+        pairs += load_corrections(d / "corrections.local.tsv")
     cues = parse_srt(src.read_text(encoding="utf-8"))
     conf = load_confidence(src)
     kept, dropped, run = [], 0, 0
