@@ -133,7 +133,7 @@ def transcribe(wav: Path, out_dir: Path, stem: str, model: str, extra_glossary: 
     if r.returncode != 0:
         # show only the last line when it is an exception line (e.g. "OSError: ..."). Exceptions do not contain transcript text.
         last = next((l.strip() for l in reversed(r.stderr.splitlines()) if l.strip()), "")
-        shown = last[:200] if re.match(r"^[\w.]+(Error|Exception|Exit)\b", last) else "(not an exception line)"
+        shown = last[:200] if re.match(r"^([\w.]+(Error|Exception|Exit)\b|transcribe\.py: error:)", last) else "(not an exception line)"
         log(f"transcribe.py exit={r.returncode}: {shown}")
         raise RuntimeError("transcribe.py failed")
 

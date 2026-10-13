@@ -1,6 +1,7 @@
 """Transcribe with faster-whisper (large-v3 by default; fits in 8GB VRAM).
 
-Usage: python transcribe.py <audio> <out_dir> [--stem NAME] [--model large-v3]
+Usage: python transcribe.py <audio> <out_dir> [--stem NAME] [--model large-v3] [--device auto|cuda|cpu]
+Device: auto = NVIDIA GPU (float16) if there is one, otherwise CPU (int8; e.g. a Mac with Apple Silicon. Slow for large-v3).
 Writes <stem>.srt (read by clean.py), <stem>.txt and <stem>.conf.tsv (per-segment confidence).
 """
 import argparse
@@ -23,6 +24,7 @@ def main():
     ap.add_argument("out_dir")
     ap.add_argument("--stem")
     ap.add_argument("--model", default="large-v3")
+    ap.add_argument("--device", default="auto", choices=["auto", "cuda", "cpu"])
     ap.add_argument("--extra-glossary", help="local-only glossary (e.g. member names); not committed")
     a = ap.parse_args()
 
@@ -39,7 +41,16 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     stem = a.stem or Path(a.audio).stem
 
-    model = WhisperModel(a.model, device="cuda", compute_type="float16")
+    device = a.device
+    if device == "auto":
+        try:
+            import ctranslate2
+            device = "cuda" if ctranslate2.get_cuda_device_count() > 0 else "cpu"
+        except Exception:
+            device = "cpu"
+    compute_type = "float16" if device == "cuda" else "int8"
+    print(f"device={device} compute_type={compute_type} model={a.model}")
+    model = WhisperModel(a.model, device=device, compute_type=compute_type)
     # VAD and hallucination_silence_threshold are off: both dropped quiet speech in
     # distant-mic recordings. clean.py removes the made-up text instead.
     segments, _ = model.transcribe(
