@@ -44,7 +44,12 @@ try {
 
   foreach ($f in $audio) {
     $name = $f.BaseName
-    $date = $f.LastWriteTime.ToString("yyyy-MM-dd")
+    # the MTG date: a date in the file name (2026-10-16 / 20261016) wins over the file time (a recording uploaded from a phone later has a later file time)
+    $mtgTime = $f.LastWriteTime
+    if ($name -match '(20\d{2})[-_.]?(\d{2})[-_.]?(\d{2})') {
+      try { $mtgTime = [datetime]::ParseExact("$($Matches[1])-$($Matches[2])-$($Matches[3]) 23:00", "yyyy-MM-dd HH:mm", $null) } catch { }
+    }
+    $date = $mtgTime.ToString("yyyy-MM-dd")
     Write-Host "=== $($f.Name) ($date) ==="
     & (Join-Path $tools "transcribe.ps1") -Audio $f.FullName -OutDir $tx -Model $Model -ExtraGlossary (Find-Local "glossary.local.txt")
     python -I (Join-Path $tools "clean.py") (Join-Path $tx "$name.srt")
@@ -56,7 +61,7 @@ try {
     $clean = Join-Path $tx "$name.clean.txt"
     # what was already written / changed around the MTG (the file time = end of the recording)
     $activity = Join-Path $tx "$name.activity.md"
-    $since = $f.LastWriteTime.AddDays(-1).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    $since = $mtgTime.AddDays(-1).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
     Push-Location $repo
     python -I (Join-Path $tools "activity.py") $since $activity
     Pop-Location
