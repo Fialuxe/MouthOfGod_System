@@ -139,7 +139,7 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 - **議事録のもとになる録音は、誰が用意してもよい**（スマホでよい）:
   1. MTG の最初に、スマホの録音アプリで録音を始める（話す人の近くに置く）
   2. 終わったら、ファイル名に MTG の日付を入れる（例: `2026-10-16 MTG.m4a`）
-  3. Google ドライブの共有フォルダ `mtg-inbox` にアップロードする
+  3. Google ドライブの共有フォルダ [`mtg-inbox`](https://drive.google.com/drive/folders/1PBN9Ckx2SGr4Tx_-3p87E8MYO3VkB2Xi) にアップロードする
 
 - **録音を処理する PC を用意する**（1 台に頼らないよう、2 台以上あるとよい。詳細は [docs/mtg-automation.md](docs/mtg-automation.md)）:
   - **Windows（NVIDIA の GPU）**: PowerShell で、リポジトリのフォルダから実行する。足りないものを入れ、録音のフォルダを見張るタスクまで登録する。
