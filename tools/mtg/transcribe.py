@@ -35,12 +35,12 @@ def main():
     stem = a.stem or Path(a.audio).stem
 
     model = WhisperModel(a.model, device="cuda", compute_type="float16")
-    # VAD off: it dropped quiet speech in distant-mic recordings. clean.py and
-    # hallucination_silence_threshold deal with the made-up text instead.
+    # VAD and hallucination_silence_threshold are off: both dropped quiet speech in
+    # distant-mic recordings. clean.py removes the made-up text instead.
     segments, _ = model.transcribe(
         a.audio, language="ja", beam_size=5, vad_filter=False,
         condition_on_previous_text=False, initial_prompt=prompt,
-        word_timestamps=True, hallucination_silence_threshold=2,
+        word_timestamps=True,
     )
     srt, txt = [], []
     for i, s in enumerate(segments, 1):

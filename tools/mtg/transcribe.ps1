@@ -1,5 +1,5 @@
 ﻿# Usage: .\transcribe.ps1 <audio> -OutDir <dir> [-Model large-v3]
-# Normalises loudness (quiet / distant recordings are otherwise cut or misheard),
+# Normalises loudness per short window (quiet / distant speech is otherwise dropped or misheard),
 # then runs faster-whisper. Output: <OutDir>\<name>.srt / .txt
 param(
   [Parameter(Mandatory = $true)][string]$Audio,
@@ -20,7 +20,7 @@ $stem = [IO.Path]::GetFileNameWithoutExtension($Audio)
 $norm = Join-Path ([IO.Path]::GetTempPath()) "$stem.norm.wav"
 
 $ErrorActionPreference = "Continue"  # native tools print harmless warnings on stderr
-ffmpeg -y -loglevel error -i $Audio -af "highpass=f=80,loudnorm=I=-16:TP=-1.5:LRA=11" -ar 16000 -ac 1 $norm
+ffmpeg -y -loglevel error -i $Audio -af "highpass=f=80,dynaudnorm=f=200:g=21:p=0.9:m=30,loudnorm=I=-16:TP=-1.5:LRA=11" -ar 16000 -ac 1 $norm
 if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed ($LASTEXITCODE)" }
 
 python -I (Join-Path $PSScriptRoot "transcribe.py") $norm $OutDir --stem $stem --model $Model
