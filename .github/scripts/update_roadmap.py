@@ -373,7 +373,7 @@ def build(issues, milestones, roadmap_number):
             opt = "（任意）" if i["optional"] else ""
             if i["is_state"]:
                 # 小ゴールは角の丸い箱。「【小ゴール】」は形で分かるので省く
-                lines.append(f'  i{n}(["#35;{n} {label_text(i["title"].replace("【小ゴール】", ""), 34)}"]):::{"statedone" if i["state"] == "CLOSED" else "state"}')
+                lines.append(f'  i{n}(["#35;{n} {label_text(re.sub(r"^#\d+ のために、", "", i["title"].replace("【小ゴール】", "")), 34)}"]):::{"statedone" if i["state"] == "CLOSED" else "state"}')
             else:
                 lines.append(f'  i{n}["#35;{n} {label_text(i["title"])}{opt}{who}"]:::{status(i)}')
 
