@@ -39,7 +39,7 @@ MTG の文字起こしから、議事録・Issue・docs を更新する。**無�
 - **`<名前>.activity.md`**（MTG の前日から今までの Issue・PR・コメント・ラベル変更・main のコミット。`run.ps1` が作る。無ければ `python tools/mtg/activity.py <開始時刻(UTC)> <出力先>` で作る）。**全部読む。** さらに、その中の次のものは `gh issue view N --comments` で全文を読む: 議題 Issue、`MTGで決める`・`MTGで共有` の Issue、MTG の最中・後にコメントされた Issue
 - 校正した文字起こし
 - [CONTRIBUTING.md「作業の進め方」](../../../CONTRIBUTING.md)（MTG の運用とラベルの意味）
-- 議題 Issue: 題が「M/D MTG の議題と議事録」の open な Issue のうち、MTG の日付に合うもの（`gh issue list --label "MTGで共有" --state open`）。無ければ、手順 5 の議題 Issue を新規に作る
+- 議題 Issue: `gh issue list --label "MTGで共有" --state open` から、題に「議題と議事録」を含み、**MTG の日付以前に作られた**もののうち、題の日付（M/D）が MTG の日付に合うもの、題に日付が無ければ作成日が MTG の日付に最も近いもの。MTG の日付より**後の日付**の議題 Issue（次回分）は選ばない。どれも無ければ、手順 5 で新規に作る
 - `MTGで共有`・`MTGで決める` が付いた open の Issue（本文も）
 - open の Issue 全体（`gh issue list --limit 200 --json number,title,labels,milestone,assignees`）
 
