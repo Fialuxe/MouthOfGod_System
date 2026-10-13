@@ -78,7 +78,7 @@ if (Real-Python) {
   if ($LASTEXITCODE -eq 0) { Add-Result "faster-whisper" "OK" "" }
   elseif (-not $CheckOnly) {
     & python -m pip install --upgrade pip
-    & python -m pip install --upgrade faster-whisper
+    & python -m pip install --upgrade faster-whisper "av<19"   # av 19 breaks faster-whisper (metadata_errors)
     # CUDA 12 libraries used by faster-whisper (ctranslate2). Harmless if already present.
     & python -m pip install --upgrade nvidia-cublas-cu12 "nvidia-cudnn-cu12==9.*"
     & python -c "import faster_whisper" *> $null

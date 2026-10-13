@@ -47,7 +47,8 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
-          pip install faster-whisper
+          # av 19 no longer accepts the argument faster-whisper passes (metadata_errors): keep av below 19
+          pip install faster-whisper "av<19"
       - name: Cache the model
         if: steps.count.outputs.count != '0' || env.BENCH != '0'
         uses: actions/cache@v4
