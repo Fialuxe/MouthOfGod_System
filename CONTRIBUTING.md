@@ -131,27 +131,28 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 **ミーティングで話すことは、ラベルと「議題 Issue」で集める**。
 
 - **ラベル**（MTG の前に、話したい Issue に付ける）:
-  - `MTGで共有`: 見てほしい・知っておいてほしいもの（レビューしてほしい案、進み具合、困っていること）
-  - `MTGで決める`: その場で決めたいもの。Issue に「決めてほしいこと」を番号付きで書いておく
-  - 一覧: [MTGで共有](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3AMTG%E3%81%A7%E5%85%B1%E6%9C%89)・[MTGで決める](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3AMTG%E3%81%A7%E6%B1%BA%E3%82%81%E3%82%8B)
-- **議題 Issue**（MTG 1 回につき 1 つ。題は「次の MTG の議題と議事録」、ラベルは `MTGで共有`）:
+  - `mtg-share`: 見てほしい・知っておいてほしいもの（レビューしてほしい案、進み具合、困っていること）
+  - `mtg-decide`: その場で決めたいもの。Issue に「決めてほしいこと」を番号付きで書いておく
+  - 一覧: [mtg-share](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3Amtg-share)・[mtg-decide](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3Amtg-decide)
+- **議題 Issue**（MTG 1 回につき 1 つ。題は「次の MTG の議題と議事録」、ラベルは `mtg-share`）:
   - 「共有すること」と「決めること（締切の近い順）」を並べる。Issue のないこと（マージした PR、決まりの変更、お知らせ）も、ここに書けば共有できる
 - **MTG が終わったら**:
   1. 議題 Issue に**議事録**をコメントする（共有したこと・決めたこと・次にやる人）
-  2. 決めたことは、それぞれの Issue にも書き、`MTGで決める` を外す。決まらなかったものは、付けたまま次回へ
-  3. 共有した Issue から `MTGで共有` を外す。何を共有したかは議事録に残るので、外してよい
+  2. 決めたことは、それぞれの Issue にも書き、`mtg-decide` を外す。決まらなかったものは、付けたまま次回へ
+  3. 共有した Issue から `mtg-share` を外す。何を共有したかは議事録に残るので、外してよい
   4. 議題 Issue を閉じ、次の MTG の議題 Issue を作る（閉じた議題 Issue が、MTG の記録になる）
 
 **ほかのラベル**:
 
 | ラベル | 意味 |
 |---|---|
-| `決めること` | 作業ではなく、決めることが中身の Issue（MTG で決めるとは限らない） |
-| `実装`・`ものづくり`・`素材・文言`・`試す・測る`・`応募`・`展示準備` | 作業の種類 |
-| `10月末まで` | 10/30 の応募に必要 |
-| `任意` | やれたらやる。区切りの完了条件に含めない（ロードマップの数に入らない） |
-| `状態` | 作業ではなく、区切りのゴールを分けたもの。子（Blocked by）がすべて閉じると自動で閉じる |
-| `Claude提案` | Claude が下書きした Issue |
+| `decision` | 作業ではなく、決めることが中身の Issue（MTG で決めるとは限らない） |
+| `enhancement`・`making/hardware`・`assets`・`test`・`submission`・`logistics` | 作業の種類（`enhancement` は新機能、`making/hardware` は実物づくり）。文書を作る Issue には `documentation` も付ける |
+| `tutorial-1-device`・`tutorial-2-chew`・`tutorial-3-texture`・`tutorial-4-deliver`・`main-game` | その `state` が関わるチュートリアル（デバイスの使い方・噛むと物が生まれる・食感と要求を知る・届ける）や本編。1 つでも複数でもよい。どれにも当たらない状態には付けない |
+| `due-oct` | 10/30 の応募に必要 |
+| `optional` | やれたらやる。区切りの完了条件に含めない（ロードマップの数に入らない） |
+| `state` | 作業ではなく、区切りのゴールを分けたもの。子（Blocked by）がすべて閉じると自動で閉じる |
+| `claude-proposal` | Claude が下書きした Issue |
 | `roadmap`・`activity` | ロードマップ・活動記録の Issue（自動で更新。手で付けない） |
 
 #### A. `feature/` / `fix/`（通常の個人作業）
