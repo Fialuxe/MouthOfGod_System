@@ -155,6 +155,16 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 | `claude-proposal` | Claude が下書きした Issue |
 | `roadmap`・`activity` | ロードマップ・活動記録の Issue（自動で更新。手で付けない） |
 
+**担当の役割**（少人数なので、役割は 3 つだけ）:
+
+| 役割 | 内容 | Issue の Assignee |
+|---|---|---|
+| **Leading** | 進める・決める人（1 人） | 付ける |
+| **Support** | Leading を助ける人（1 人。いなくてもよい） | 付ける |
+| **Follower** | それ以外の全員。進み具合を見て、必要なら意見を言う | 付けない |
+
+担当を決めるのが一番重いので、MTG で決める。決まらなければ、議事録に Leading「未定」と書かれ、次の議題に回る。
+
 #### A. `feature/` / `fix/`（通常の個人作業）
 1. 必要なら最新化: `git switch main && git pull`
 2. ブランチ作成: `git switch -c feature/xxx`
