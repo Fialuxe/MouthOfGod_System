@@ -3,7 +3,7 @@
 役割を分ける。数えれば分かること・決まりで決まることは、すべてこのスクリプトが構造的に出す。
 LLM（Gemini）には、文章を読んで意味を取る必要があるところだけを任せる。
 
-  スクリプト: 今日変わったもの（PR・Issue・小ゴール）の一覧、区切りの進み具合の変化、外れたブロック、
+  スクリプト: 今日変わったもの（PR・Issue・状態）の一覧、区切りの進み具合の変化、外れたブロック、
               機械的に分かる見落とし（signals）、次の一手の候補と、決まりによる並び
   LLM:        各 PR で何ができるようになったか（本文を読む）、状況の変化の解釈、
               機械では分からない見落とし、次の一手を候補から選んで理由を付ける
@@ -140,7 +140,7 @@ def collect(hours):
     # 今日の完了で、ブロックが外れた Issue と、まだ待っている Issue
     unblocked, still_waiting = [], []
     for n, i in by_number.items():
-        if i["state"] != "OPEN" or is_state(n):  # 小ゴールは作業ではない（子が閉じれば自動で閉じる）
+        if i["state"] != "OPEN" or is_state(n):  # 状態は作業ではない（子が閉じれば自動で閉じる）
             continue
         blockers = [b["number"] for b in i["blockedBy"]["nodes"] if b["number"] in by_number]
         freed = [b for b in blockers if b in done]
@@ -413,7 +413,7 @@ def render(f, llm, model):
 
     changes = [item(f"#{p['number']} {p['title']}（@{p['author']}）", effects.get(p["number"])) for p in f["merged"]]
     changes += [item(f"main に直接: {m}") for m in f["direct_commits"]]
-    changes += [item(f"小ゴールを達成した: #{d['number']} {d['title']}") for d in f["done"] if d["is_state"]]
+    changes += [item(f"状態が成り立った: #{d['number']} {d['title']}") for d in f["done"] if d["is_state"]]
     changes += [item(f"完了（PR なし）: #{d['number']} {d['title']}") for d in f["done"] if not d["is_state"] and not d["via_pr"]]
 
     situation = []

@@ -148,10 +148,10 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 |---|---|
 | `decision` | 作業ではなく、決めることが中身の Issue（MTG で決めるとは限らない） |
 | `enhancement`・`making/hardware`・`assets`・`test`・`submission`・`logistics` | 作業の種類（`enhancement` は新機能、`making/hardware` は実物づくり）。文書を作る Issue には `documentation` も付ける |
-| `tutorial-1-device`・`tutorial-2-chew`・`tutorial-3-texture`・`tutorial-4-deliver`・`main-game` | その `sub-goal` が関わるチュートリアル（デバイスの使い方・噛むと物が生まれる・食感と要求を知る・届ける）や本編。1 つでも複数でもよい。どれにも当たらない小ゴールには付けない |
+| `tutorial-1-device`・`tutorial-2-chew`・`tutorial-3-texture`・`tutorial-4-deliver`・`main-game` | その `state` が関わるチュートリアル（デバイスの使い方・噛むと物が生まれる・食感と要求を知る・届ける）や本編。1 つでも複数でもよい。どれにも当たらない状態には付けない |
 | `due-oct` | 10/30 の応募に必要 |
 | `optional` | やれたらやる。区切りの完了条件に含めない（ロードマップの数に入らない） |
-| `sub-goal` | 作業ではなく、区切りのゴールを分けたもの。題は「【小ゴール】〜ようにする」の形。子（Blocked by）がすべて閉じると自動で閉じる |
+| `state` | 作業ではなく、区切りのゴールを分けたもの。子（Blocked by）がすべて閉じると自動で閉じる |
 | `claude-proposal` | Claude が下書きした Issue |
 | `roadmap`・`activity` | ロードマップ・活動記録の Issue（自動で更新。手で付けない） |
 

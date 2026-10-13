@@ -24,8 +24,8 @@ JST = timezone(timedelta(hours=9))
 # 「対応しない」「重複」で閉じた Issue は、進み具合にも図にも含めない
 SKIPPED_REASONS = {"NOT_PLANNED", "DUPLICATE"}
 OPTIONAL = "optional"
-# 「sub-goal」ラベルの Issue（【小ゴール】）は作業ではなく、区切りのゴールを分けたもの。子（Blocked by）がすべて閉じたら自動で閉じる
-STATE = "sub-goal"
+# 「状態」ラベルの Issue は作業ではなく、区切りのゴールを分解した命題。子（Blocked by）がすべて閉じたら自動で閉じる
+STATE = "state"
 
 QUERY = """
 query($owner: String!, $name: String!, $after: String) {
@@ -194,7 +194,7 @@ def build(issues, milestones, roadmap_number):
     def chain(n):
         """n を終えるまでに、順番に片付ける必要がある未完了 Issue の段数（n を含む）。"""
         if n not in chain_memo:
-            own = 0 if not is_open(n) or by_number[n]["is_state"] else 1  # 小ゴールは作業ではないので段に数えない
+            own = 0 if not is_open(n) or by_number[n]["is_state"] else 1  # 状態は作業ではないので段に数えない
             chain_memo[n] = 0 if not is_open(n) else own + max((chain(b) for b in by_number[n]["blockers"]), default=0)
         return chain_memo[n]
 
@@ -372,8 +372,8 @@ def build(issues, milestones, roadmap_number):
             who = f"<br/>@{' @'.join(i['who'])}" if i["who"] and i["state"] == "OPEN" else ""
             opt = "（任意）" if i["optional"] else ""
             if i["is_state"]:
-                # 小ゴールは角の丸い箱。「【小ゴール】」は形で分かるので省く
-                lines.append(f'  i{n}(["#35;{n} {label_text(i["title"].replace("【小ゴール】", ""), 34)}"]):::{"statedone" if i["state"] == "CLOSED" else "state"}')
+                # 状態は角の丸い箱。「【状態】」は形で分かるので省く
+                lines.append(f'  i{n}(["#35;{n} {label_text(i["title"].replace("【状態】", ""), 34)}"]):::{"statedone" if i["state"] == "CLOSED" else "state"}')
             else:
                 lines.append(f'  i{n}["#35;{n} {label_text(i["title"])}{opt}{who}"]:::{status(i)}')
 
@@ -419,7 +419,7 @@ def build(issues, milestones, roadmap_number):
         "",
         "一番上（🎯）が区切りのゴールで、その下に「そのために先に要る Issue」が並びます。下から上へ進めます。",
         "",
-        "丸い箱 = 小ゴール（子がすべて終わると自動で閉じる）　🟩 完了　🟦 着手中　🟨 すぐ着手できる　⬜ 待ち（先に終わらせる Issue がある）　↪ = ほかの所に出てくる Issue　点線の箱 = 別の区切りの Issue　点線の矢印 = 任意",
+        "丸い箱 = 状態（子がすべて終わると自動で閉じる）　🟩 完了　🟦 着手中　🟨 すぐ着手できる　⬜ 待ち（先に終わらせる Issue がある）　↪ = ほかの所に出てくる Issue　点線の箱 = 別の区切りの Issue　点線の矢印 = 任意",
         "",
     ]
     for m, members in groups:
@@ -438,7 +438,7 @@ def build(issues, milestones, roadmap_number):
 
 
 def sync_states(issues, api):
-    """「小ゴール」Issue を、子（Blocked by）がすべて閉じたら自動で閉じる。開き直しはしない。子のない小ゴールは触らない。"""
+    """「状態」Issue を、子（Blocked by）がすべて閉じたら自動で閉じる。開き直しはしない。子のない状態は触らない。"""
     by_number = {i["number"]: i for i in issues}
     changed = False
     for i in issues:
@@ -449,7 +449,7 @@ def sync_states(issues, api):
             continue
         all_done = all(k["state"] == "CLOSED" for k in kids)
         if all_done and i["state"] == "OPEN":
-            request("POST", f"{api}/issues/{i['number']}/comments", {"body": "子の Issue がすべて閉じたので、この小ゴールは達成されました。自動で閉じます。"})
+            request("POST", f"{api}/issues/{i['number']}/comments", {"body": "子の Issue がすべて閉じたので、この状態は成り立ちました。自動で閉じます。"})
             request("PATCH", f"{api}/issues/{i['number']}", {"state": "closed", "state_reason": "completed"})
             print(f"Closed state #{i['number']}")
             changed = True
@@ -478,7 +478,7 @@ def main():
     found = request("GET", f"{api}/issues?labels={LABEL}&state=open&per_page=10")
     roadmap = found[0] if found else None
     issues, milestones = fetch()
-    # 小ゴールを閉じると、その親の小ゴールも閉じられるようになるので、変化がなくなるまで繰り返す
+    # 状態を閉じると、その親の状態も閉じられるようになるので、変化がなくなるまで繰り返す
     if "--dry-run" not in sys.argv:
         for _ in range(10):
             if not sync_states(issues, api):
