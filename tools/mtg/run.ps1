@@ -40,6 +40,8 @@ try {
     & (Join-Path $tools "transcribe.ps1") -Audio $f.FullName -OutDir $tx -Model $Model -ExtraGlossary (Join-Path $Root "glossary.local.txt")
     python -I (Join-Path $tools "clean.py") (Join-Path $tx "$name.srt")
     Move-Item $f.FullName (Join-Path $done $f.Name) -Force
+    # keep the transcript in the private repo (not in the public system repo)
+    & (Join-Path $tools "archive.ps1") -Name $name -Date $date -Root $Root
 
     if ($NoClaude) { continue }
     $clean = Join-Path $tx "$name.clean.txt"
