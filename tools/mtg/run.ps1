@@ -4,6 +4,7 @@
 param(
   [string]$Root = "$HOME\Github\MouthOfGod_transcripts",
   [string]$Ref = "main",
+  [string]$Inbox = "",  # recordings folder; default <Root>\inbox. A cloud-synced folder (Google Drive / OneDrive) works
   [string]$Model = "large-v3",
   [switch]$NoClaude,
   [switch]$DryRun,  # trial: Claude writes <name>.proposal.md only; nothing is written to GitHub or the repo
@@ -16,7 +17,7 @@ if (-not (Test-Path $Root)) { gh repo clone Fialuxe/MouthOfGod_transcripts $Root
   foreach ($d in @((Join-Path $Root "config"), $Root)) { $p = Join-Path $d $name; if (Test-Path $p) { return $p } }
   return (Join-Path $Root "config\$name")
 }
-$inbox = Join-Path $Root "inbox"
+$inbox = if ($Inbox) { $Inbox } else { Join-Path $Root "inbox" }
 $done = Join-Path $inbox "done"
 $tx = Join-Path $Root "transcripts"
 $logs = Join-Path $Root "logs"

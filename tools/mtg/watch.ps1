@@ -1,0 +1,52 @@
+﻿# Watch a recordings folder (e.g. a Google Drive / OneDrive synced folder) and process new recordings with run.ps1.
+# Started every few minutes by the scheduled task from register-watch-task.ps1.
+# Default is TRIAL mode: nothing is written to GitHub, a proposal is made. -Real runs everything (Issues, labels, PR).
+# Results (proposal.md, run log) are copied to <Inbox>\results so they can be read from anywhere via the synced folder.
+param(
+  [Parameter(Mandatory = $true)][string]$Inbox,
+  [string]$Root = "$HOME\Github\MouthOfGod_transcripts",
+  [switch]$Real
+)
+$ErrorActionPreference = "Continue"
+$exts = ".mp3", ".m4a", ".wav", ".aac", ".flac", ".mp4", ".ogg"
+
+# one run at a time (a run takes from minutes to an hour)
+$mutex = New-Object System.Threading.Mutex($false, "MouthOfGodMtgWatch")
+if (-not $mutex.WaitOne(0)) { exit 0 }
+try {
+  if (-not (Test-Path $Inbox)) { exit 0 }
+  $files = @(Get-ChildItem $Inbox -File | Where-Object { $_.Extension.ToLower() -in $exts })
+  if ($files.Count -eq 0) { exit 0 }
+
+  # a synced file may still be downloading: wait until size and time stop changing and the file can be opened
+  $before = $files | ForEach-Object { "$($_.FullName)|$($_.Length)|$($_.LastWriteTimeUtc.Ticks)" }
+  Start-Sleep -Seconds 60
+  foreach ($f in $files) {
+    $g = Get-Item $f.FullName -ErrorAction SilentlyContinue
+    if (-not $g -or ("$($g.FullName)|$($g.Length)|$($g.LastWriteTimeUtc.Ticks)" -notin $before)) { exit 0 }  # still changing: next time
+    try { $fs = [IO.File]::Open($g.FullName, "Open", "Read", "None"); $fs.Close() } catch { exit 0 }
+  }
+
+  # always use the latest run.ps1 from the dedicated clone (main)
+  $repo = Join-Path $Root "repo"
+  if (-not (Test-Path $repo)) { git -c core.longpaths=true clone https://github.com/Fialuxe/MouthOfGod_System.git $repo; git -C $repo config core.longpaths true }
+  git -C $repo fetch origin 2>&1 | Out-Null
+  git -C $repo checkout -q -f main 2>&1 | Out-Null
+  git -C $repo reset -q --hard origin/main 2>&1 | Out-Null
+  $runPs1 = Join-Path $repo "tools\mtg\run.ps1"
+
+  $start = Get-Date
+  $runArgs = @{ Root = $Root; Inbox = $Inbox }
+  if (-not $Real) { $runArgs.DryRun = $true }
+  & $runPs1 @runArgs
+
+  # copy the results next to the recordings (readable from home via the synced folder)
+  $out = Join-Path $Inbox "results"
+  New-Item -ItemType Directory -Force $out | Out-Null
+  Get-ChildItem (Join-Path $Root "transcripts") -Filter "*.proposal.md" -ErrorAction SilentlyContinue |
+    Where-Object { $_.LastWriteTime -ge $start } | Copy-Item -Destination $out -Force
+  Get-ChildItem (Join-Path $Root "logs") -Filter "run-*.log" -ErrorAction SilentlyContinue |
+    Where-Object { $_.LastWriteTime -ge $start } | Sort-Object LastWriteTime | Select-Object -Last 1 | Copy-Item -Destination $out -Force
+} finally {
+  $mutex.ReleaseMutex()
+}
