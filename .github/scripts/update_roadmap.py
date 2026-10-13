@@ -23,9 +23,9 @@ TITLE = "ロードマップ（自動更新）"
 JST = timezone(timedelta(hours=9))
 # 「対応しない」「重複」で閉じた Issue は、進み具合にも図にも含めない
 SKIPPED_REASONS = {"NOT_PLANNED", "DUPLICATE"}
-OPTIONAL = "任意"
+OPTIONAL = "optional"
 # 「状態」ラベルの Issue は作業ではなく、区切りのゴールを分解した命題。子（Blocked by）がすべて閉じたら自動で閉じる
-STATE = "状態"
+STATE = "state"
 
 QUERY = """
 query($owner: String!, $name: String!, $after: String) {
