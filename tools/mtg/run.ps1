@@ -1,5 +1,7 @@
 ﻿# Process every recording in <Root>\inbox: transcribe -> clean -> Claude (mtg-sync).
 # Usage: .\tools\mtg\run.ps1 [-Root ~\Github\MouthOfGod_transcripts] [-Ref main] [-NoClaude]
+#        .\tools\mtg\run.ps1 -FromTranscript <Root>\YYYY-MM-DD\<name>.clean.txt   # only the minutes (mtg-sync), from a transcript made in the cloud
+# Exit code: 0 = ok, 1 = the minutes step (claude) failed for at least one recording.
 # Put audio in <Root>\inbox, run this, and leave. The PC must stay on (sleep is blocked while running).
 param(
   [string]$Root = "$HOME\Github\MouthOfGod_transcripts",
@@ -8,9 +10,11 @@ param(
   [string]$Model = "large-v3",
   [switch]$NoClaude,
   [switch]$DryRun,  # trial: Claude writes <name>.proposal.md only; nothing is written to GitHub or the repo
-  [switch]$NoArchive  # tests: do not push the transcript to the private repo
+  [switch]$NoArchive,  # tests: do not push the transcript to the private repo
+  [string]$FromTranscript = ""  # skip the recording and the transcription: make only the minutes from this cleaned transcript (made by the cloud job)
 )
 $ErrorActionPreference = "Continue"  # git/claude write progress to stderr; check $LASTEXITCODE instead
+$claudeFailed = $false
 # the work folder is the private transcripts repo itself (config\, dated transcript folders); big files are git-ignored there
 if (-not (Test-Path $Root)) { gh repo clone Fialuxe/MouthOfGod_transcripts $Root }
 # local-only settings (member names etc.): <Root>\config\ first, then <Root>\
@@ -39,6 +43,45 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "git reset failed: origin/$Ref not found" }
   $tools = Join-Path $repo "tools\mtg"
 
+  # the minutes step: activity -> claude (mtg-sync). Returns $true when claude exited with 0.
+  function Invoke-MtgSync($name, $date, $mtgTime) {
+    $clean = Join-Path $tx "$name.clean.txt"
+    # what was already written / changed around the MTG (the file time = end of the recording)
+    $activity = Join-Path $tx "$name.activity.md"
+    $since = $mtgTime.AddDays(-1).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+    Push-Location $repo
+    python -I (Join-Path $tools "activity.py") $since $activity | Out-Host  # Out-Host: only $ok may leave this function as its result
+    Pop-Location
+    if ($DryRun) {
+      $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Find-Local 'members.local.tsv')) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
+      $allowed = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Bash(gh pr view *)", "Bash(gh api repos/*/*/issues/*/dependencies/blocked_by)", "Read", "Write", "Glob", "Grep")
+    } else {
+      $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Find-Local 'members.local.tsv')) を処理してください。確認は取らず、最後まで実行すること。"
+      $allowed = @("Bash(gh *)", "Bash(git *)", "Bash(python *)", "Read", "Write", "Edit", "Glob", "Grep")
+    }
+    Push-Location $repo
+    $ok = $true
+    try {
+      claude -p $prompt --permission-mode acceptEdits --add-dir $Root --allowedTools $allowed | Out-Host
+      if ($LASTEXITCODE -ne 0) { Write-Warning "claude exited with $LASTEXITCODE for $name"; $ok = $false }
+    } finally { Pop-Location }
+    return $ok
+  }
+
+
+  if ($FromTranscript) {
+    # only the minutes, from a transcript that is already in the private repo (the cloud job made it)
+    if (-not (Test-Path $FromTranscript)) { throw "transcript not found: $FromTranscript" }
+    $name = (Split-Path $FromTranscript -Leaf) -replace '\.clean\.txt$', ''
+    $date = Split-Path (Split-Path $FromTranscript -Parent) -Leaf
+    if ($date -notmatch '^\d{4}-\d{2}-\d{2}$') { throw "the transcript must be in a YYYY-MM-DD folder: $FromTranscript" }
+    Copy-Item $FromTranscript (Join-Path $tx "$name.clean.txt") -Force
+    $mtgTime = [datetime]::ParseExact("$date 23:00", "yyyy-MM-dd HH:mm", $null)
+    Write-Host "=== minutes only: $name ($date) ==="
+    if (-not (Invoke-MtgSync $name $date $mtgTime)) { $claudeFailed = $true }
+    return
+  }
+
   $audio = Get-ChildItem $inbox -File | Where-Object { $_.Extension -in ".mp3", ".m4a", ".wav", ".aac", ".flac", ".mp4", ".ogg" }
   if (-not $audio) { Write-Host "inbox is empty: $inbox"; return }
 
@@ -58,27 +101,10 @@ try {
     if (-not $NoArchive) { & (Join-Path $tools "archive.ps1") -Name $name -Date $date -Root $Root }
 
     if ($NoClaude) { continue }
-    $clean = Join-Path $tx "$name.clean.txt"
-    # what was already written / changed around the MTG (the file time = end of the recording)
-    $activity = Join-Path $tx "$name.activity.md"
-    $since = $mtgTime.AddDays(-1).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    Push-Location $repo
-    python -I (Join-Path $tools "activity.py") $since $activity
-    Pop-Location
-    if ($DryRun) {
-      $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Find-Local 'members.local.tsv')) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
-      $tools = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Bash(gh pr view *)", "Bash(gh api repos/*/*/issues/*/dependencies/blocked_by)", "Read", "Write", "Glob", "Grep")
-    } else {
-      $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Find-Local 'members.local.tsv')) を処理してください。確認は取らず、最後まで実行すること。"
-      $tools = @("Bash(gh *)", "Bash(git *)", "Bash(python *)", "Read", "Write", "Edit", "Glob", "Grep")
-    }
-    Push-Location $repo
-    try {
-      claude -p $prompt --permission-mode acceptEdits --add-dir $Root --allowedTools $tools
-      if ($LASTEXITCODE -ne 0) { Write-Warning "claude exited with $LASTEXITCODE for $name" }
-    } finally { Pop-Location }
+    if (-not (Invoke-MtgSync $name $date $mtgTime)) { $claudeFailed = $true }
   }
 } finally {
   [void][Win.Power]::SetThreadExecutionState([uint32]2147483648)
   Stop-Transcript | Out-Null
 }
+if ($claudeFailed) { exit 1 } else { exit 0 }
