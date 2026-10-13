@@ -260,7 +260,8 @@ GDC には 1 人あたりの時間の決まりはない。出展者の助言（�
 - リポジトリ: https://github.com/Fialuxe/MouthOfGod_System
 - Git ブランチ運用 + Scene Fusion。詳細は [CONTRIBUTING.md](./CONTRIBUTING.md) を参照。
 - ブランチの使い分け: 機能は `feature/`、バグは `fix/`、シーン制作は `scene/`。
-- 動作確認用シーンは `Assets/Scenes/Sandbox/` に自分専用のものを作る。
+- 実行用の共有シーンは `Assets/Scenes/Main.unity` の 1 つだけ。動作確認用シーンは `Assets/Scenes/Sandbox/` に自分専用のものを作る。
+- コードの型の名前とデータの置き場所（`Assets/Resources/Data/`）は [CONTRIBUTING.md「型の名前とデータの置き場所」](./CONTRIBUTING.md#型の名前とデータの置き場所)。
 - アセットはローポリで統一すると調達しやすい。
 
 
