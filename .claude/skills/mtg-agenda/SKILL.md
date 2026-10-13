@@ -23,6 +23,7 @@ MTG は毎週金曜。今日より後で最も近い金曜を `M/D` にする（
 ### 3. Issue を作る
 - 題: `M/D MTG の議題と議事録`
 - ラベル: `mtg-share`、`claude-proposal`
+- 担当（Assignee）: **全員**（`gh api repos/{owner}/{repo}/assignees --jq '.[].login'` の全員。議題 Issue と議事録は、全員で見るもので、Leading・Support は置かない）
 - 本文（日本語。冒頭に「この Issue は Claude が下書きしました。足したいことは、MTG の前に書き足してください。」）:
   1. **共有すること**: 前回以降に終わったこと（Issue・PR を番号つきで）、見てほしいもの
   2. **決めること**: `mtg-decide` の Issue を、**締切の近い順**に表で（番号・決めること・なぜ今）
