@@ -5,7 +5,9 @@
 param(
   [Parameter(Mandatory = $true)][string]$Inbox,
   [string]$Root = "$HOME\Github\MouthOfGod_transcripts",
-  [switch]$Real
+  [switch]$Real,
+  [switch]$NoArchive,  # tests: do not push the transcript to the private repo
+  [string]$RunScript = ""  # tests: use this run.ps1 instead of the one in the dedicated clone (main)
 )
 $ErrorActionPreference = "Continue"
 $exts = ".mp3", ".m4a", ".wav", ".aac", ".flac", ".mp4", ".ogg"
@@ -34,10 +36,12 @@ try {
   git -C $repo checkout -q -f main 2>&1 | Out-Null
   git -C $repo reset -q --hard origin/main 2>&1 | Out-Null
   $runPs1 = Join-Path $repo "tools\mtg\run.ps1"
+  if ($RunScript) { $runPs1 = $RunScript }
 
   $start = Get-Date
   $runArgs = @{ Root = $Root; Inbox = $Inbox }
   if (-not $Real) { $runArgs.DryRun = $true }
+  if ($NoArchive) { $runArgs.NoArchive = $true }
   & $runPs1 @runArgs
 
   # copy the results next to the recordings (readable from home via the synced folder)

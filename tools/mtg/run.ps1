@@ -13,7 +13,8 @@ param(
 $ErrorActionPreference = "Continue"  # git/claude write progress to stderr; check $LASTEXITCODE instead
 # the work folder is the private transcripts repo itself (config\, dated transcript folders); big files are git-ignored there
 if (-not (Test-Path $Root)) { gh repo clone Fialuxe/MouthOfGod_transcripts $Root }
-# local-only settings (member names etc.): <Root>\config\ first, then <Root>\nfunction Find-Local($name) {
+# local-only settings (member names etc.): <Root>\config\ first, then <Root>\
+function Find-Local($name) {
   foreach ($d in @((Join-Path $Root "config"), $Root)) { $p = Join-Path $d $name; if (Test-Path $p) { return $p } }
   return (Join-Path $Root "config\$name")
 }
@@ -61,7 +62,7 @@ try {
     Pop-Location
     if ($DryRun) {
       $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Find-Local 'members.local.tsv')) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
-      $tools = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Bash(gh pr view *)", "Bash(gh api repos/*/issues/*/dependencies/blocked_by)", "Read", "Write", "Glob", "Grep")
+      $tools = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Bash(gh pr view *)", "Bash(gh api repos/*/*/issues/*/dependencies/blocked_by)", "Read", "Write", "Glob", "Grep")
     } else {
       $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Find-Local 'members.local.tsv')) を処理してください。確認は取らず、最後まで実行すること。"
       $tools = @("Bash(gh *)", "Bash(git *)", "Bash(python *)", "Read", "Write", "Edit", "Glob", "Grep")
