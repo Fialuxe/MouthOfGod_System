@@ -17,7 +17,7 @@ Add-Type -Namespace Win -Name Power -MemberDefinition '[DllImport("kernel32.dll"
 
 try {
   # a dedicated clone, so the working copy (Unity!) is never touched
-  if (-not (Test-Path $repo)) { git clone https://github.com/Fialuxe/MouthOfGod_System.git $repo }
+  if (-not (Test-Path $repo)) { git -c core.longpaths=true clone https://github.com/Fialuxe/MouthOfGod_System.git $repo; git -C $repo config core.longpaths true }  # the repo has deep asset paths (Windows MAX_PATH)
   git -C $repo fetch origin
   git -C $repo checkout -f $Ref
   git -C $repo reset --hard "origin/$Ref"
