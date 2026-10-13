@@ -1001,7 +1001,7 @@ GameObject:
   - component: {fileID: 1841695183}
   - component: {fileID: 1841695182}
   m_Layer: 0
-  m_Name: Mountain
+  m_Name: Sea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
