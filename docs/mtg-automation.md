@@ -19,16 +19,33 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 - GitHub CLI: `gh auth login`
 - Claude Code: `claude` を一度起動してログインしておく
 
+## 作業フォルダと設定の置き場所
+
+作業フォルダ（`run.ps1` の `-Root`）の既定は、**非公開リポジトリの手元のクローン `~\Github\MouthOfGod_transcripts`**。初回に無ければ、`run.ps1` が自動でクローンする（`gh` のログインと、リポジトリへの招待が要る）。
+
+- `config\`: 人名などの設定（下の 3 ファイル）。**非公開リポジトリに入る**ので、チームで共有され、履歴も残る
+- `YYYY-MM-DD\`: 文字起こし。`run.ps1` が自動で push する
+- `inbox\`・`transcripts\`・`logs\`・`repo\`・`work\`: 作業用（録音・途中の出力・専用クローン）。`.gitignore` で除外される
+
+## GUI で使う
+
+`tools\mtg\mtg-gui.cmd`（ダブルクリック）で、小さなウィンドウが開く（Python だけで動く）。
+
+1. 「録音を追加…」で録音を選ぶ（`inbox` にコピーされる。更新日は保たれる）
+2. **試運転**（既定でオン）: GitHub にも、リポジトリにも書き込まず、提案書だけを作る。本番にするときは、チェックを外して「実行」（確認ダイアログが出る）
+3. 進み具合はウィンドウに出る。終わったら「提案書（最新）を開く」「文字起こしフォルダ」「ログフォルダ」
+4. 「環境チェック」で、ffmpeg・faster-whisper・GPU・git・claude・gh・非公開リポジトリへのアクセスを確かめられる
+
 ## 使い方
 
-1. 録音（mp3, m4a, wav など）を `~\Documents\mtg\inbox\` に置く。**ファイルの更新日が MTG の日付**として使われる（コピーで更新日が変わるときは、MTG の日に置く）
+1. 録音（mp3, m4a, wav など）を `~\Github\MouthOfGod_transcripts\inbox\` に置く。**ファイルの更新日が MTG の日付**として使われる（コピーで更新日が変わるときは、MTG の日に置く）
 2. PowerShell で、リポジトリの `tools\mtg\run.ps1` を実行する
 
    ```powershell
    .\tools\mtg\run.ps1
    ```
 3. そのまま帰ってよい（実行中は PC がスリープしない。電源とふたは閉じない設定にしておく）
-4. 結果は GitHub に出る（議題 Issue へのコメント、`docs/mtg-YYYYMMDD` の PR）。ログは `~\Documents\mtg\logs\`
+4. 結果は GitHub に出る（議題 Issue へのコメント、`docs/mtg-YYYYMMDD` の PR）。ログは `~\Github\MouthOfGod_transcripts\logs\`
 
 文字起こしだけ試すときは `-NoClaude`。`run.ps1` は専用のクローンを `~\Documents\mtg\repo` に作って使うので、作業中のリポジトリ（Unity）には触れない。
 
@@ -51,9 +68,9 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 
 - `tools/mtg/glossary.txt`: Whisper に渡す用語辞書（短く保つ。約 224 トークンまで）。固有名詞が違って聞き取られたら足す
 - `tools/mtg/corrections.tsv`: 「誤 → 正」の置換表。タブ区切り。Claude が、確信のある組を PR に追記する。PR で間違いを直す
-- `~\Documents\mtg\glossary.local.txt`（任意）: メンバーの名前など、**公開リポジトリに入れたくない語**を 1 行 1 語で書く。文字起こしの辞書として使われる（コミットされない）
-- `~\Documents\mtg\members.local.tsv`（任意）: 名前と GitHub ID の対応（`名前<タブ>GitHub ID`、1 行に 1 人）。担当者（Assignee）を付けるのに使う。無ければ付けない。これもコミットされない
-- `~\Documents\mtg\corrections.local.tsv`（任意）: 人名の聞き間違いの置換表（`誤<タブ>正`）。`clean.py` が使う。これもコミットされない
+- `~\Github\MouthOfGod_transcripts\config\glossary.local.txt`（任意）: メンバーの名前など、**公開リポジトリに入れたくない語**を 1 行 1 語で書く。文字起こしの辞書として使われる（非公開リポジトリには入る。公開リポジトリには入らない）
+- `~\Github\MouthOfGod_transcripts\config\members.local.tsv`（任意）: 名前と GitHub ID の対応（`名前<タブ>GitHub ID`、1 行に 1 人）。担当者（Assignee）を付けるのに使う。無ければ付けない。非公開リポジトリには入る（公開リポジトリには入らない）
+- `~\Github\MouthOfGod_transcripts\config\corrections.local.tsv`（任意）: 人名の聞き間違いの置換表（`誤<タブ>正`）。`clean.py` が使う。非公開リポジトリには入る（公開リポジトリには入らない）
 - 行頭の `?`（`clean.txt`）: Whisper 自身が自信を持てなかった行。Claude の校正で重点的に直される。自信を持った誤認識（例: 「時給」→「地球」）は `?` が付かないので、校正は全体を読む
 - `tools/mtg/clean.py`: 「ご視聴ありがとうございました」「音楽」などの幻覚と、同じ行の繰り返しを取り除く（Whisper は無音や雑音の区間で、学習データの字幕を作り出す）
 

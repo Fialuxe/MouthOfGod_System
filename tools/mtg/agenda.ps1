@@ -1,8 +1,8 @@
 ﻿# Create (or update) the agenda Issue for the next Friday MTG, using the mtg-agenda skill.
 # Normally started by the scheduled task from register-agenda-task.ps1 (Wednesday 09:00).
-# Usage: .\agenda.ps1 [-Root ~\Documents\mtg] [-Ref main]
+# Usage: .\agenda.ps1 [-Root ~\Github\MouthOfGod_transcripts] [-Ref main]
 param(
-  [string]$Root = "$HOME\Documents\mtg",
+  [string]$Root = "$HOME\Github\MouthOfGod_transcripts",
   [string]$Ref = "main"
 )
 $ErrorActionPreference = "Continue"  # git/claude write progress to stderr; check $LASTEXITCODE instead

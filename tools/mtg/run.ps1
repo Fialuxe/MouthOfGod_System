@@ -1,8 +1,8 @@
 ﻿# Process every recording in <Root>\inbox: transcribe -> clean -> Claude (mtg-sync).
-# Usage: .\tools\mtg\run.ps1 [-Root ~\Documents\mtg] [-Ref main] [-NoClaude]
+# Usage: .\tools\mtg\run.ps1 [-Root ~\Github\MouthOfGod_transcripts] [-Ref main] [-NoClaude]
 # Put audio in <Root>\inbox, run this, and leave. The PC must stay on (sleep is blocked while running).
 param(
-  [string]$Root = "$HOME\Documents\mtg",
+  [string]$Root = "$HOME\Github\MouthOfGod_transcripts",
   [string]$Ref = "main",
   [string]$Model = "large-v3",
   [switch]$NoClaude,
@@ -10,6 +10,12 @@ param(
   [switch]$NoArchive  # tests: do not push the transcript to the private repo
 )
 $ErrorActionPreference = "Continue"  # git/claude write progress to stderr; check $LASTEXITCODE instead
+# the work folder is the private transcripts repo itself (config\, dated transcript folders); big files are git-ignored there
+if (-not (Test-Path $Root)) { gh repo clone Fialuxe/MouthOfGod_transcripts $Root }
+# local-only settings (member names etc.): <Root>\config\ first, then <Root>\nfunction Find-Local($name) {
+  foreach ($d in @((Join-Path $Root "config"), $Root)) { $p = Join-Path $d $name; if (Test-Path $p) { return $p } }
+  return (Join-Path $Root "config\$name")
+}
 $inbox = Join-Path $Root "inbox"
 $done = Join-Path $inbox "done"
 $tx = Join-Path $Root "transcripts"
@@ -38,7 +44,7 @@ try {
     $name = $f.BaseName
     $date = $f.LastWriteTime.ToString("yyyy-MM-dd")
     Write-Host "=== $($f.Name) ($date) ==="
-    & (Join-Path $tools "transcribe.ps1") -Audio $f.FullName -OutDir $tx -Model $Model -ExtraGlossary (Join-Path $Root "glossary.local.txt")
+    & (Join-Path $tools "transcribe.ps1") -Audio $f.FullName -OutDir $tx -Model $Model -ExtraGlossary (Find-Local "glossary.local.txt")
     python -I (Join-Path $tools "clean.py") (Join-Path $tx "$name.srt")
     Move-Item $f.FullName (Join-Path $done $f.Name) -Force
     # keep the transcript in the private repo (not in the public system repo)
@@ -53,10 +59,10 @@ try {
     python -I (Join-Path $tools "activity.py") $since $activity
     Pop-Location
     if ($DryRun) {
-      $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Join-Path $Root 'members.local.tsv')) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
+      $prompt = "試運転です。mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Find-Local 'members.local.tsv')) を処理してください。GitHub にもリポジトリにも書き込まず、proposal.md だけを書くこと。"
       $tools = @("Bash(gh issue list *)", "Bash(gh issue view *)", "Bash(gh pr list *)", "Bash(gh pr view *)", "Bash(gh api repos/*/issues/*/dependencies/blocked_by)", "Read", "Write", "Glob", "Grep")
     } else {
-      $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Join-Path $Root 'members.local.tsv')) を処理してください。確認は取らず、最後まで実行すること。"
+      $prompt = "mtg-sync スキルに従って、MTG の文字起こし $clean (MTG の日付: $date、最近の動き: $activity、担当者の対応表: $(Find-Local 'members.local.tsv')) を処理してください。確認は取らず、最後まで実行すること。"
       $tools = @("Bash(gh *)", "Bash(git *)", "Bash(python *)", "Read", "Write", "Edit", "Glob", "Grep")
     }
     Push-Location $repo
