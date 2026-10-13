@@ -159,6 +159,7 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 | `sub-goal` | 作業ではなく、区切りのゴールを分けたもの。題は「【小ゴール】〜ようにする」の形。子（Blocked by）がすべて閉じると自動で閉じる |
 | `claude-proposal` | Claude が下書きした Issue |
 | `roadmap`・`activity` | ロードマップ・活動記録の Issue（自動で更新。手で付けない） |
+| `hygiene` | 「Issue 整理（週次）」の Issue（自動で更新。手で付けない） |
 
 **担当の役割**（少人数なので、役割は 3 つだけ）:
 
