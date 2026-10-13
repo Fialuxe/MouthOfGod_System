@@ -18,7 +18,7 @@ Start-Transcript -Path (Join-Path $logs ("run-" + (Get-Date -Format "yyyyMMdd-HH
 
 # keep the PC awake while this script runs
 Add-Type -Namespace Win -Name Power -MemberDefinition '[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint f);'
-[void][Win.Power]::SetThreadExecutionState(0x80000001)  # ES_CONTINUOUS | ES_SYSTEM_REQUIRED
+[void][Win.Power]::SetThreadExecutionState([uint32]2147483649)  # ES_CONTINUOUS | ES_SYSTEM_REQUIRED
 
 try {
   # a dedicated clone, so the working copy (Unity!) is never touched
@@ -51,6 +51,6 @@ try {
     } finally { Pop-Location }
   }
 } finally {
-  [void][Win.Power]::SetThreadExecutionState(0x80000000)
+  [void][Win.Power]::SetThreadExecutionState([uint32]2147483648)
   Stop-Transcript | Out-Null
 }
