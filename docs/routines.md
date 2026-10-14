@@ -11,9 +11,11 @@
 
 | 議事録（クラウド） | 時刻なし（API で呼ぶ） | クラウドの文字起こしの後に呼ばれ、議事録の PR を作る | `mtg-sync スキルの「クラウドで動かすとき」に従って、渡された date と name の MTG の議事録を作ってください。確認は取らず、最後まで実行すること。` |
 | 開発（dev-loop） | 1 日 2〜3 回（例: 10:13・15:13・21:13 JST）。最初は週 2 回から | PM が open の Issue から「Claude だけで実装できる小さな 1 件」を選び、engineer が実装し、reviewer が確かめて、PR にする（マージは人） | `dev-loop スキルに従って、open の Issue から 1 件を進めてください。確認は取らず、最後まで実行すること。` |
+| コンフリクトの調査 | 時刻なし（API で呼ぶ） | GitHub Actions の「Conflict check」が、`main` が進んだとき・PR が更新されたときに open の PR を git で調べ、**新しくぶつかった PR があるときだけ**呼ぶ。merge-doctor が原因と解消の案を調べ、PR に 1 回だけコメントする（解消は人） | `merge-check スキルに従って、渡された prs の PR のコンフリクトを調べ、PR にコメントしてください。確認は取らず、最後まで実行すること。` |
 
 - 「議事録（クラウド）」は、リポジトリを **`Fialuxe/MouthOfGod_System` と `Fialuxe/MouthOfGod_transcripts`（非公開）の 2 つ**付け、スケジュールは付けず、**API トリガー**を足す。トークンを生成したら、GitHub の Secrets `MTG_ROUTINE_URL`（`https://api.anthropic.com/v1/claude_code/routines/trig_…/fire`）と `MTG_ROUTINE_TOKEN`（`sk-ant-oat01-…`）に入れる。トークンは一度しか表示されない。
 - 「開発（dev-loop）」は、リポジトリ `Fialuxe/MouthOfGod_System` を付ける。サブエージェントの定義は `.claude/agents/`（pm・engineer・reviewer）。**マージ・Issue のクローズはしない**（PR を作るまで）。1 回の実行で PR は 1 件まで。選ぶ条件は `.claude/agents/pm.md` にある（`docs/`・`tools/`・`.github/`・Unity の新規 `.cs`・`.asmdef` と、その `.meta` だけ。既存のシーン・プレハブ・`decision` などは除外）。
+- 「コンフリクトの調査」は、リポジトリ `Fialuxe/MouthOfGod_System` を付け、スケジュールは付けず、**API トリガー**を足す。トークンを生成したら、GitHub の Secrets `CONFLICT_ROUTINE_URL`（`https://api.anthropic.com/v1/claude_code/routines/trig_…/fire`）と `CONFLICT_ROUTINE_TOKEN` に入れる。Secrets が無いあいだは、Actions が PR に警告を出すだけ（ルーティンは呼ばない）。1 回に渡す PR は 5 件まで。同じコンフリクト（同じベース・同じファイルの組）は、PR のコメントの目印 `<!-- merge-doctor:… -->` で二度報告しない
 - 作ったアカウント: 代表者の個人の Claude アカウント（研究室のアカウントは、GitHub の連携ができなかったため、使っていない）
 - 議事録づくり（`mtg-sync`）は、下の「議事録（クラウド）」のルーティンが動かす。ルーティンが動かないとき・未設定のときは、**PC の見張り**（`watch.ps1`）が引き継ぐ。詳しくは [mtg-automation.md](mtg-automation.md)
 
