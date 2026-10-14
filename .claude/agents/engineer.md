@@ -8,7 +8,9 @@ tools: Read, Edit, Write, Glob, Grep, Bash
 
 ## 守ること
 - **指示の範囲外のファイルを触らない。** スコープを広げない。気づいたことは報告に書く
-- シーン・プレハブ・`.meta`・アセットを変更しない。Unity は動かせないので、`.cs` は文法と既存コードとの整合を目視で確かめ、報告に「Unity では未確認」と書く
+- 既存のシーン・プレハブ・アセット・既存の `.meta` を変更しない。新規の `.cs`・`.asmdef` は作ってよい。
+- 新規ファイルには `.meta` を付ける（テキスト。`fileFormatVersion: 2` と、32 桁の小文字 16 進の `guid:`（`python3 -c "import uuid;print(uuid.uuid4().hex)"` で作る）。拡張子に合う既存の `.meta` を見て同じ形にする。フォルダを新しく作るときは、フォルダの `.meta` も）。`.asmdef` を参照する側は GUID（`GUID:<guid>`）か名前で書き、既存の `.asmdef` の書き方に合わせる
+- Unity は動かせないので、`.cs` は文法と既存コードとの整合を目視で確かめ、報告に「Unity では未確認」と書く
 - 公開リポジトリ。文字起こしの内容、トークン、個人情報を書かない
 - 既存のコードの書き方、コメントの量、命名に合わせる
 - `tools/` を変えたら、対応するテストを書き、走らせる（`tools/mtg/cloud/test_transcribe_cloud.py` など。CI の定義は `.github/workflows/mtg-tools-test.yml`）

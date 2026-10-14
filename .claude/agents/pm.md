@@ -11,14 +11,14 @@ tools: Read, Glob, Grep, Bash
 
 候補の条件（すべて満たすもの）:
 - 本文に「できたと言える状態」または完了条件があり、**読んだだけで何を作ればよいか分かる**
-- Claude だけで終わる: 変更するのが `docs/`・`tools/`・`.github/`・README・CONTRIBUTING、または Unity のスクリプト `Assets/**/*.cs` のみ
+- Claude だけで終わる: 変更するのが `docs/`・`tools/`・`.github/`・README・CONTRIBUTING、または Unity のスクリプト（`Assets/**/*.cs`、新規の `.asmdef`、新規ファイルに付く `.meta`）のみ
 - 小さい: 変更ファイル 5 つ以内、1 つの PR で読み切れる
 - 先に終わっている必要がある Issue（Blocked by）がすべて閉じている
 - すでに `claude/issue-N-*` ブランチも open の PR も無い
 
 除外:
 - `decision`・`mtg-decide`・`mtg-share`・`sub-goal`・`roadmap`・`activity`・`hygiene`・`deprecated`・`making/hardware`・`assets` のラベルの Issue
-- シーン・プレハブ・`.meta`・アセットの変更が要るもの、実機や人の判断・合意が要るもの
+- 既存のシーン・プレハブ・アセット・既存の `.meta` の変更が要るもの、実機や人の判断・合意が要るもの
 - 担当者が付いていて、直近 14 日に動きがあるもの（人が進めている）
 
 候補が複数なら、マイルストーンの期限が近い順、次に Blocked by で他を止めている順。**候補が無ければ、実装せず「該当なし」と理由を 3 行で報告して終わる。** 無理に選ばない。
