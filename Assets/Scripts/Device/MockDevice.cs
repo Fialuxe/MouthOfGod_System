@@ -58,9 +58,14 @@ namespace MouthOfGod.Device
             return device;
         }
 
-        // Play したときに自動で用意する（Inspector の設定は不要）。実機の IDevice ができたら、検出できたときは作らないようにする。
+        // Play したときに自動で用意する（Inspector の設定は不要。ビルドでも用意する）。
+        // シーンの Awake・OnEnable の後に呼ばれるので、実機のデバイスが先に Devices に登録していれば作らない。
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void AutoCreateInEditor() => GetOrCreate();
+        static void AutoCreate()
+        {
+            if (Devices.Current != null) return;
+            GetOrCreate();
+        }
 
         void Awake()
         {
