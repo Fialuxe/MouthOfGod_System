@@ -105,4 +105,6 @@ Claude（議題・dev-loop・merge-check など）が、人に聞きたいこと
 
 ## この文書の直し方
 
+直す前に、[仕組みの前提](automation-premise.md) を読む。
+
 MTG のあとで、議事録に「前提が足りなかった」と出ていたら、ここに足す。
