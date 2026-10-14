@@ -1,7 +1,9 @@
 {
     "name": "MouthOfGod.Village.Editor",
     "rootNamespace": "MouthOfGod.Village.Editor",
-    "references": [],
+    "references": [
+        "MouthOfGod.Village"
+    ],
     "includePlatforms": [
         "Editor"
     ],
