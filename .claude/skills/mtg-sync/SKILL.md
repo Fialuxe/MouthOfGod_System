@@ -46,7 +46,7 @@ MTG の文字起こしから、議事録・Issue・docs を更新する。**無�
 - **[docs/mtg-context.md](../../../docs/mtg-context.md)**（話し言葉の読み替え、決まっていること、議事録・Issue を作る決まり）。**この決まりを守る**
 - README の「1. コンセプト」「2. ゲームの骨子」「4. 未解決・要確認」と、`docs/scenario-book.md` の場面一覧、`docs/decisions.md`
 - **議題 Issue の本文と、そこからリンクされた Issue（本文と、直近のコメント 10 件）。** その MTG で何を話すはずだったかが、一番の手がかり
-- **議題 Issue の、人のコメント**（`docs/mtg-context.md`「Claude からの質問」の見分け方で、Claude のものを除く）。**人が自分で足した話題で、本文（Claude の下書き）より優先する。** 話題の区切りと対応づけは、まずこれに当てはめる。形式は人によって違う（見出しだけ、箇条書き、文章）。形をそろえずに、中身で読む
+- **議題 Issue の、人のコメント**（`docs/mtg-context.md`「Claude からの質問」の見分け方で、Claude のものを除く）。**一人ずつが自分のことを書いたもの（共有事項・相談事項など）で、本文（Claude の下書き）より優先する。** 「Claude から聞きたいこと」への答えが書かれていることもある。 話題の区切りと対応づけは、まずこれに当てはめる。形式は人によって違う（見出しだけ、箇条書き、文章）。形をそろえずに、中身で読む
 - **`<名前>.activity.md`**（MTG の前日から今までの Issue・PR・コメント・ラベル変更・main のコミット。`run.ps1` が作る。無ければ `python tools/mtg/activity.py <開始時刻(UTC)> <出力先>` で作る）。**全部読む。** さらに、その中の次のものは `gh issue view N --comments` で全文を読む: 議題 Issue、`mtg-decide`・`mtg-share` の Issue、MTG の最中・後にコメントされた Issue
 - 校正した文字起こし
 - [CONTRIBUTING.md「作業の進め方」](../../../CONTRIBUTING.md)（MTG の運用とラベルの意味）
