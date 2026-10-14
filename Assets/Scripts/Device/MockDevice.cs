@@ -24,6 +24,9 @@ namespace MouthOfGod.Device
         [Tooltip("決定操作。Inspector でバインドを変えられる。暫定: Quest 右 A ボタン / Enter / ゲームパッド Start。実機の「ハードのボタン 1 つ」の代わり")]
         [SerializeField] InputAction confirmAction = new InputAction("Confirm", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
 
+        [Tooltip("噛む・食感・決定を Console に出す（受け取る側がまだ無くても、動いているか分かるように）")]
+        [SerializeField] bool logEvents = true;
+
         MockDeviceLogic _logic;
 
         [Tooltip("デバイスの内容量（0〜100 %）。先端に表示する。Inspector で動かして試せる")]
@@ -37,6 +40,9 @@ namespace MouthOfGod.Device
         }
 
         public TextureId Current => _logic != null ? _logic.Current : TextureId.None;
+
+        /// <summary>噛んでいる間（噛む操作を押している間）。見た目（MockDeviceModel）が読む。</summary>
+        public bool IsBiting => _logic != null && _logic.IsBiting;
 
         public event Action<TextureId> TextureChanged;
         public event Action<TextureId> Confirmed;
@@ -105,6 +111,12 @@ namespace MouthOfGod.Device
             _logic.TextureChanged += id => TextureChanged?.Invoke(id);
             _logic.Confirmed += id => Confirmed?.Invoke(id);
             _logic.Bitten += () => Bitten?.Invoke();
+            if (logEvents)
+            {
+                _logic.Bitten += () => Debug.Log("[MockDevice] Bitten", this);
+                _logic.TextureChanged += id => Debug.Log($"[MockDevice] TextureChanged: {id}", this);
+                _logic.Confirmed += id => Debug.Log($"[MockDevice] Confirmed: {(id.IsEmpty ? "(噛む前)" : id.ToString())}", this);
+            }
         }
 
         void OnEnable()

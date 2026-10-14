@@ -28,6 +28,8 @@ namespace MouthOfGod.Device
 
         MockDevice _device;
         bool _holding;
+        string _confirmedText;
+        float _confirmedUntil;
 
         void Reset() => AddFallbackBindings();
 
@@ -44,8 +46,24 @@ namespace MouthOfGod.Device
             if (label == null) BuildModel();
         }
 
-        void OnEnable() => graspAction.Enable();
-        void OnDisable() => graspAction.Disable();
+        void OnEnable()
+        {
+            graspAction.Enable();
+            _device.Confirmed += OnConfirmed;
+        }
+
+        void OnDisable()
+        {
+            graspAction.Disable();
+            _device.Confirmed -= OnConfirmed;
+        }
+
+        // 決定したら、1 秒だけ先端に出す。
+        void OnConfirmed(MouthOfGod.Core.TextureId texture)
+        {
+            _confirmedText = "OK: " + (texture.IsEmpty ? "-" : texture.ToString());
+            _confirmedUntil = Time.time + 1f;
+        }
 
         /// <summary>棒と先端の表示を、子として作る。Prefab を作るメニュー（エディタ）からも呼ぶ。</summary>
         internal void BuildModel()
@@ -85,7 +103,10 @@ namespace MouthOfGod.Device
             _holding = handAnchor != null && graspAction.ReadValue<float>() >= graspThreshold;
             if (_holding) transform.SetPositionAndRotation(handAnchor.position, handAnchor.rotation);
 
-            label.text = $"{Mathf.RoundToInt(_device.ContentPercent)}%";
+            // 先端: 1 行目に食感（噛んでいる間は *）か決定、2 行目に内容量。
+            var current = _device.Current.IsEmpty ? "-" : _device.Current.ToString();
+            var top = Time.time < _confirmedUntil ? _confirmedText : (_device.IsBiting ? "* " + current : current);
+            label.text = $"{top}\n{Mathf.RoundToInt(_device.ContentPercent)}%";
             var cam = Camera.main;
             if (cam != null) label.transform.rotation = Quaternion.LookRotation(label.transform.position - cam.transform.position);
         }
