@@ -1,7 +1,9 @@
 {
     "name": "MouthOfGod.Village",
     "rootNamespace": "MouthOfGod.Village",
-    "references": [],
+    "references": [
+        "MouthOfGod.Core"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
