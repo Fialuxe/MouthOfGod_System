@@ -6,8 +6,8 @@ using UnityEngine.InputSystem;
 namespace MouthOfGod.Device
 {
     /// <summary>
-    /// デバイスなしで動かす IDevice。キーボードで「噛む・決定する」を代わりにする。
-    /// 噛み始め（Space を押した）で Bitten、噛んでいる間は一定間隔で TextureChanged、Enter で Confirmed。
+    /// デバイスなしで動かす IDevice。コントローラ（ゲームパッド）またはキーボードで「噛む・決定する」を代わりにする。
+    /// 噛み始め（A ボタン / Space を押した）で Bitten、噛んでいる間は一定間隔で TextureChanged、Start / Enter で Confirmed。
     /// 自動では生成しない。シーンに置くのは Bootstrap（#34）か手動。
     /// </summary>
     public sealed class MockDevice : MonoBehaviour, IDevice
@@ -41,15 +41,19 @@ namespace MouthOfGod.Device
         void Update()
         {
             var keyboard = Keyboard.current;
-            if (keyboard == null) return;
+            var pad = Gamepad.current;
+            if (keyboard == null && pad == null) return;
 
             _logic.Tick(Time.deltaTime);
 
-            var bite = keyboard[biteKey];
-            if (bite.wasPressedThisFrame) _logic.BeginBite();
-            if (bite.wasReleasedThisFrame) _logic.EndBite();
+            var bite = keyboard?[biteKey];
+            bool pressed = (bite?.wasPressedThisFrame ?? false) || (pad?.buttonSouth.wasPressedThisFrame ?? false);
+            bool released = (bite?.wasReleasedThisFrame ?? false) || (pad?.buttonSouth.wasReleasedThisFrame ?? false);
+            if (pressed) _logic.BeginBite();
+            if (released) _logic.EndBite();
 
-            if (keyboard[confirmKey].wasPressedThisFrame) _logic.Confirm();
+            if ((keyboard?[confirmKey].wasPressedThisFrame ?? false) || (pad?.startButton.wasPressedThisFrame ?? false))
+                _logic.Confirm();
         }
     }
 }
