@@ -7,7 +7,7 @@
 | フォルダ | 役割 | 担当 |
 |---|---|---|
 | `Core/` | 全体で共有する小さな基盤（ID の型 `TextureId` `FoodId` `FieldId` `CueId`、イベントのデータ、`IDevice`）。他のフォルダに依存しない | |
-| `Device/` | 触感デバイス・Arduino との通信 | |
+| `Device/` | 触感デバイス・Arduino との通信。いまは、キーボードで動く `MockDevice`（`IDevice` の擬似実装） | |
 | `Tracking/` | VR・位置取得 | |
 | `Tutorial/` | チュートリアル 1〜4 の進行 | |
 | `Game/` | 本編の進行、スコア、判定 | |
