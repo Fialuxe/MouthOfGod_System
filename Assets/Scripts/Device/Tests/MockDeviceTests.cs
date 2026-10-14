@@ -6,12 +6,12 @@ namespace MouthOfGod.Device.Tests
 {
     public class MockDeviceTests
     {
-        // 起きたことを順に記録する（"bitten" / "confirmed" / 食感 ID）
+        // 起きたことを順に記録する（"bitten" / "confirmed:食感 ID" / 食感 ID）
         static MockDeviceLogic Make(float interval, string[] ids, List<string> log)
         {
             var logic = new MockDeviceLogic(ids, interval);
             logic.Bitten += () => log.Add("bitten");
-            logic.Confirmed += () => log.Add("confirmed");
+            logic.Confirmed += id => log.Add("confirmed:" + id.Value);
             logic.TextureChanged += id => log.Add(id.Value);
             return logic;
         }
@@ -110,7 +110,24 @@ namespace MouthOfGod.Device.Tests
             logic.BeginBite();
             logic.Confirm();
 
-            CollectionAssert.AreEqual(new[] { "confirmed", "bitten", "a", "confirmed" }, log);
+            CollectionAssert.AreEqual(new[] { "confirmed:", "bitten", "a", "confirmed:a" }, log);
+        }
+
+        [Test]
+        public void Confirm_AfterRelease_CarriesLastTexture()
+        {
+            var log = new List<string>();
+            var logic = Make(1f, new[] { "a", "b" }, log);
+
+            Assert.IsTrue(logic.Current.IsEmpty);
+            logic.BeginBite();
+            logic.Tick(1f);
+            logic.EndBite();
+            Assert.AreEqual(new TextureId("b"), logic.Current);
+
+            log.Clear();
+            logic.Confirm();
+            CollectionAssert.AreEqual(new[] { "confirmed:b" }, log);
         }
 
         [Test]

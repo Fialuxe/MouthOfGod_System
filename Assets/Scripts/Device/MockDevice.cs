@@ -36,8 +36,10 @@ namespace MouthOfGod.Device
             set => contentPercent = Mathf.Clamp(value, 0f, 100f);
         }
 
+        public TextureId Current => _logic != null ? _logic.Current : TextureId.None;
+
         public event Action<TextureId> TextureChanged;
-        public event Action Confirmed;
+        public event Action<TextureId> Confirmed;
         public event Action Bitten;
 
         void Reset() => AddFallbackBindings();
@@ -67,20 +69,33 @@ namespace MouthOfGod.Device
             return device;
         }
 
-        // Play したときに自動で用意する（Inspector の設定は不要）。実機の IDevice ができたら、検出できたときは作らないようにする。
+        // Play したときに自動で用意する（Inspector の設定は不要。ビルドでも用意する）。
+        // シーンの Awake・OnEnable の後に呼ばれるので、実機のデバイスが先に Devices に登録していれば作らない。
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void AutoCreateInEditor() => GetOrCreate();
+        static void AutoCreate()
+        {
+            if (Devices.Current != null) return;
+            GetOrCreate();
+        }
 
         void Awake()
         {
             _logic = new MockDeviceLogic(textureIds, switchIntervalSeconds);
             _logic.TextureChanged += id => TextureChanged?.Invoke(id);
-            _logic.Confirmed += () => Confirmed?.Invoke();
+            _logic.Confirmed += id => Confirmed?.Invoke(id);
             _logic.Bitten += () => Bitten?.Invoke();
         }
 
         void OnEnable()
         {
+            // 使う側は Devices から受け取る。別のデバイスがすでに登録されていれば、この Mock は使わない。
+            if (!Devices.Register(this))
+            {
+                Debug.LogWarning("[MockDevice] 別のデバイスが登録済みなので、この MockDevice は使いません。", this);
+                enabled = false;
+                return;
+            }
+
             biteAction.started += OnBiteStarted;
             biteAction.canceled += OnBiteCanceled;
             confirmAction.performed += OnConfirm;
@@ -90,6 +105,7 @@ namespace MouthOfGod.Device
 
         void OnDisable()
         {
+            Devices.Unregister(this);
             biteAction.started -= OnBiteStarted;
             biteAction.canceled -= OnBiteCanceled;
             confirmAction.performed -= OnConfirm;
