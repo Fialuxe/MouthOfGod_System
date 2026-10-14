@@ -5,6 +5,8 @@ description: PM → Engineer → Reviewer のサブエージェントで、open 
 
 # dev-loop
 
+> この仕組みを直す前に、[仕組みの前提](../../../docs/automation-premise.md) を読む（補助線であって決まりではない。人の負荷を増やさない）。
+
 人に聞かず、最後まで進める。**1 回の実行で PR は 1 件まで。マージ・Issue のクローズ・ラベル/担当の変更はしない。**
 
 ## 手順
