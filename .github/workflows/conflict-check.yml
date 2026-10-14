@@ -1,0 +1,40 @@
+# open の PR が、ベースとコンフリクトしていないかを調べる。コンフリクトが生まれうるとき（main が進んだ・PR が更新された）だけ動く。
+# 新しくぶつかった PR があるときだけ、Claude のルーティン（merge-check スキル）を呼び、原因と解消の案を PR にコメントさせる。
+# 調べるのは git だけ（LLM を使わない）。PR は止めない。
+name: Conflict check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+# 続けて動いたとき、同じ PR を二度報告しないように、1 つずつ順に動かす
+concurrency:
+  group: conflict-check
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tests
+        run: python .github/scripts/test_check_conflicts.py
+      - name: Find new conflicts and call the routine
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONFLICT_ROUTINE_URL: ${{ secrets.CONFLICT_ROUTINE_URL }}
+          CONFLICT_ROUTINE_TOKEN: ${{ secrets.CONFLICT_ROUTINE_TOKEN }}
+        run: python .github/scripts/check_conflicts.py
