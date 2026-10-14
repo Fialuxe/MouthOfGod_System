@@ -48,4 +48,4 @@ Inspector で変えられる値:
 - 噛み始めで、最初の食感をすぐ通知する。
 - 食感 ID の空欄は通知しない。切替間隔は 0.05 秒未満にならない。
 
-手順（デバイスなしで試す方法）は [docs/device-mock.md](../../../docs/device-mock.md)。`MockDeviceModel` は棒の見た目と先端のパーセンテージ、握ると手に付く動き（見た目だけ）。
+手順（デバイスなしで試す方法）は [docs/device-mock.md](../../../docs/device-mock.md)。`MockDeviceModel` は棒の見た目と先端の内容量（%）、握ると手に付く動き（見た目だけ）。

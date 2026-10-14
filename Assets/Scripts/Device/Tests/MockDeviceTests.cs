@@ -169,29 +169,5 @@ namespace MouthOfGod.Device.Tests
 
             Assert.IsEmpty(log);
         }
-
-        [Test]
-        public void FillPercent_IsZero_WhenNotBiting_AndGrowsToHundred()
-        {
-            var logic = Make(1f, new[] { "a", "b" }, new List<string>());
-            Assert.AreEqual(0f, logic.FillPercent);
-
-            logic.BeginBite();
-            Assert.AreEqual(50f, logic.FillPercent, 0.001f);
-
-            logic.Tick(1f);
-            Assert.AreEqual(100f, logic.FillPercent, 0.001f);
-
-            logic.EndBite();
-            Assert.AreEqual(0f, logic.FillPercent);
-        }
-
-        [Test]
-        public void FillPercent_IsZero_WhenNoTextures()
-        {
-            var logic = Make(1f, null, new List<string>());
-            logic.BeginBite();
-            Assert.AreEqual(0f, logic.FillPercent);
-        }
     }
 }

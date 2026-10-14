@@ -21,13 +21,20 @@ namespace MouthOfGod.Device
         [Tooltip("噛む操作（押している間が噛んでいる間）。Inspector でバインドを変えられる。暫定: Quest 右トリガー / Space / ゲームパッド A")]
         [SerializeField] InputAction biteAction = new InputAction("Bite", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
 
-        [Tooltip("決定操作。Inspector でバインドを変えられる。暫定: Quest 右 A ボタン / Enter / ゲームパッド Start")]
+        [Tooltip("決定操作。Inspector でバインドを変えられる。暫定: Quest 右 A ボタン / Enter / ゲームパッド Start。実機の「ハードのボタン 1 つ」の代わり")]
         [SerializeField] InputAction confirmAction = new InputAction("Confirm", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
 
         MockDeviceLogic _logic;
 
-        /// <summary>先端に出す内容のパーセンテージ（0〜100）。見た目（MockDeviceModel）が読む。暫定の定義。</summary>
-        public float FillPercent => _logic?.FillPercent ?? 0f;
+        [Tooltip("デバイスの内容量（0〜100 %）。先端に表示する。Inspector で動かして試せる")]
+        [SerializeField, Range(0f, 100f)] float contentPercent;
+
+        /// <summary>デバイスの内容量（0〜100 %）。見た目（MockDeviceModel）が読む。</summary>
+        public float ContentPercent
+        {
+            get => contentPercent;
+            set => contentPercent = Mathf.Clamp(value, 0f, 100f);
+        }
 
         public event Action<TextureId> TextureChanged;
         public event Action Confirmed;

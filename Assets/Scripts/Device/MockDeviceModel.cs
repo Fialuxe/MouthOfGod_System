@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 namespace MouthOfGod.Device
 {
     /// <summary>
-    /// MockDevice の雑な見た目。細長い棒で、先端に内容のパーセンテージを出す。
+    /// MockDevice の雑な見た目。細長い棒で、先端に内容量（%）を出す。
     /// 手（Quest のハンドトラッキング）を握ると、手に付いて保持される。離すとその場に残る。
     /// 見た目だけで、IDevice のイベントには関わらない。
     /// </summary>
@@ -76,7 +76,7 @@ namespace MouthOfGod.Device
             _holding = handAnchor != null && graspAction.ReadValue<float>() >= graspThreshold;
             if (_holding) transform.SetPositionAndRotation(handAnchor.position, handAnchor.rotation);
 
-            _label.text = $"{Mathf.RoundToInt(_device.FillPercent)}%";
+            _label.text = $"{Mathf.RoundToInt(_device.ContentPercent)}%";
             var cam = Camera.main;
             if (cam != null) _label.transform.rotation = Quaternion.LookRotation(_label.transform.position - cam.transform.position);
         }
