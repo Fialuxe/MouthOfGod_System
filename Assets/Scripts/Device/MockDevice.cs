@@ -53,19 +53,40 @@ namespace MouthOfGod.Device
             confirmAction.AddBinding("<Gamepad>/startButton");
         }
 
-        /// <summary>シーン内の MockDevice を返す。無ければスクリプトで作る（既定の操作割り当て付き）。</summary>
+        /// <summary>Prefab の置き場所（Resources から読む）。メニュー「MouthOfGod/Device/Create MockDevice Prefab」で作る。</summary>
+        internal const string PrefabResourcePath = "Prefabs/Device/MockDevice";
+
+        /// <summary>
+        /// シーン内の MockDevice を返す。無ければ、Prefab があれば Prefab から、無ければスクリプトで作る（既定の操作割り当て付き）。
+        /// Prefab にしておくと、Inspector で変えた設定（操作の割り当て・間隔・食感 ID）が残る。
+        /// </summary>
         public static MockDevice GetOrCreate()
         {
             var existing = FindFirstObjectByType<MockDevice>();
             if (existing != null) return existing;
 
+            var prefab = Resources.Load<MockDevice>(PrefabResourcePath);
+            if (prefab != null)
+            {
+                var instance = Instantiate(prefab);
+                instance.name = prefab.name;
+                return instance;
+            }
+
+            var device = CreateInactive();
+            device.gameObject.SetActive(true);
+            return device;
+        }
+
+        /// <summary>既定の操作割り当てを付けた MockDevice を、非アクティブで作る。Prefab を作るメニューからも使う。</summary>
+        internal static MockDevice CreateInactive()
+        {
             // 非アクティブで作り、バインドを足してから有効化する（先に有効化すると足したバインドが反映されない）。
             var go = new GameObject("MockDevice");
             go.SetActive(false);
             var device = go.AddComponent<MockDevice>();
             device.AddFallbackBindings();
             go.AddComponent<MockDeviceModel>().AddFallbackBindings();
-            go.SetActive(true);
             return device;
         }
 

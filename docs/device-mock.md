@@ -31,7 +31,8 @@
 ## 変えたいとき
 - `MockDevice` の Inspector で、噛む・決定の操作（Input Action のバインド）、切替間隔、食感 ID を変える。
 - `MockDeviceModel` の Inspector で、握る操作、握りの強さ、手の位置（空なら `RightHandAnchor` を探す）を変える。
-- 自動で作られる `MockDevice` に設定を残したいときは、シーンに手で置く。`MockDevice.GetOrCreate()` は、あれば置いたものを使う。
+- 設定を残したいときは、メニュー **MouthOfGod > Device > Create MockDevice Prefab** で Prefab（`Assets/Resources/Prefabs/Device/MockDevice.prefab`）を作り、その Inspector で変えてコミットする。Play すると、Mock はこの Prefab から作られる（既にあれば上書きしない）。
+- シーンに `MockDevice` を手で置いた場合は、置いたものが使われる（Prefab より優先）。
 - 食感 ID の既定は `placeholder-a/b/c`。実際の ID は #31 / #54 で決まる。
 
 ## まだ確かめていないこと
