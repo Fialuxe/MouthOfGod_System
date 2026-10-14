@@ -14,7 +14,7 @@ Meta Quest のコントローラ（ゲームパッド・キーボードも可）
 |---|---|
 | `MockDevice`（`MonoBehaviour`、`IDevice`） | キー入力を `Bitten` / `TextureChanged(TextureId)` / `Confirmed` に変える |
 
-`IDevice` の中身は `Core/` を参照。`MockDevice` は自動では生成しない。シーンへ置くのは Bootstrap（#34）か、手で置く。
+`IDevice` の中身は `Core/` を参照。`MockDevice.GetOrCreate()` でスクリプトから作れる（既定の操作割り当て付き）。エディタで Play すると自動で用意する。実機ビルドでは自動生成しない（本番の組み立ては Bootstrap #34）。
 
 Inspector で変えられる値:
 

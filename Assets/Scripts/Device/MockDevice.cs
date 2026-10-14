@@ -8,7 +8,7 @@ namespace MouthOfGod.Device
     /// <summary>
     /// デバイスなしで動かす IDevice。Meta Quest のコントローラ（ゲームパッド・キーボードも可）で「噛む・決定する」を代わりにする。
     /// 噛み始めで Bitten、噛んでいる間は一定間隔で TextureChanged、決定操作で Confirmed。操作の割り当ては Inspector（InputAction）で変えられる。
-    /// 自動では生成しない。シーンに置くのは Bootstrap（#34）か手動。
+    /// スクリプトで作れる（GetOrCreate）。エディタで Play すると自動で用意する。実機ビルドでは自動生成しない。
     /// </summary>
     public sealed class MockDevice : MonoBehaviour, IDevice
     {
@@ -30,14 +30,37 @@ namespace MouthOfGod.Device
         public event Action Confirmed;
         public event Action Bitten;
 
-        void Reset()
+        void Reset() => AddFallbackBindings();
+
+        // Quest 以外（キーボード・ゲームパッド）でも試せるようにする。
+        void AddFallbackBindings()
         {
-            // 新規にアタッチしたときの既定バインド（Quest 以外でも試せるようにキーボード・ゲームパッドも足す）。
             biteAction.AddBinding("<Keyboard>/space");
             biteAction.AddBinding("<Gamepad>/buttonSouth");
             confirmAction.AddBinding("<Keyboard>/enter");
             confirmAction.AddBinding("<Gamepad>/startButton");
         }
+
+        /// <summary>シーン内の MockDevice を返す。無ければスクリプトで作る（既定の操作割り当て付き）。</summary>
+        public static MockDevice GetOrCreate()
+        {
+            var existing = FindFirstObjectByType<MockDevice>();
+            if (existing != null) return existing;
+
+            // 非アクティブで作り、バインドを足してから有効化する（先に有効化すると足したバインドが反映されない）。
+            var go = new GameObject("MockDevice");
+            go.SetActive(false);
+            var device = go.AddComponent<MockDevice>();
+            device.AddFallbackBindings();
+            go.SetActive(true);
+            return device;
+        }
+
+#if UNITY_EDITOR
+        // エディタで Play したときだけ、デバイスなしで動かせるように自動で用意する。実機ビルドでは作らない。
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void AutoCreateInEditor() => GetOrCreate();
+#endif
 
         void Awake()
         {
