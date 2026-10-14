@@ -12,7 +12,7 @@ description: PM → Engineer → Reviewer のサブエージェントで、open 
 2. **ブランチ**: `origin/main` から `claude/issue-<N>-<短い英語>` を切る。
 3. **実装**: `engineer` を呼ぶ（PM の指示を丸ごと渡す）。
 4. **レビュー**: `reviewer` を呼ぶ（Issue 番号だけを渡す。engineer の説明は渡さない）。「要修正」なら engineer に指摘を渡して直させ、もう一度 reviewer。**2 往復して「承認」にならなければ、直らない指摘を PR の本文に書き、`needs-human` の扱いで PR を作る**（ドラフトにする）。
-5. **PR**: `.github/pull_request_template.md` の形で作る。`Closes #N`（その Issue を終わらせる PR のとき）、変更内容、動作確認（走らせたテストの結果、未確認のこと）。本文の最後に、reviewer の最終判断を 1 行。Issue に 1 行コメントで PR へのリンクを書く。
+5. **PR**: `.github/pull_request_template.md` の形で作る。`Closes #N`（その Issue を終わらせる PR のとき）、変更内容、動作確認（走らせたテストの結果、未確認のこと）。本文には「判断した点」（engineer が推測で決めたこと）と「人が決める点」（reviewer が挙げたもの）の節も入れる。最後に、reviewer の最終判断を 1 行。Issue に 1 行コメントで PR へのリンクを書く。
 6. **報告**: 選んだ Issue、PR の番号、レビューの往復数、未確認のことを 5 行以内で出力する。
 
 ## 止まる条件（PR を作らずに報告して終わる）
