@@ -9,7 +9,7 @@
 | 型 | 役割 |
 |---|---|
 | `TextureId` / `FoodId` / `FieldId` / `CueId` | 文字列を包んだ ID（`readonly struct`）。`enum` にしないための型。`null` と空文字は、どちらも空 ID（`None`、`IsEmpty`）。大文字小文字は区別する。型が違えば、同じ文字列でも別物 |
-| `TextureChanged` / `Confirmed` / `Spawned` / `Delivered` / `RequestIssued` / `CueRequested` | イベントが運ぶデータ（`readonly struct`）。値を持つだけ |
+| `Spawned` / `Delivered` / `RequestIssued` / `CueRequested` | 機能をまたぐイベントが運ぶデータ（`readonly struct`）。値を持つだけ。デバイスの入力は `IDevice` のイベントで、ここには置かない |
 | `IDevice` | 触感デバイスの入力（`TextureChanged`、`Confirmed`、`Bitten`）。実装は Device 側 |
 
 型とイベントの流れは [docs/architecture.md](../../../docs/architecture.md) §3。

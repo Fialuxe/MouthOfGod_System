@@ -3,22 +3,7 @@ using UnityEngine;
 namespace MouthOfGod.Core
 {
     // 機能をまたぐイベントのデータ。値を運ぶだけで、ロジックは持たない（docs/architecture.md §3）。
-
-    /// <summary>食感が変わった。</summary>
-    public readonly struct TextureChanged
-    {
-        public readonly TextureId Texture;
-
-        public TextureChanged(TextureId texture)
-        {
-            Texture = texture;
-        }
-    }
-
-    /// <summary>食感が確定した。</summary>
-    public readonly struct Confirmed
-    {
-    }
+    // デバイスの入力（食感が変わった・決定した・噛んだ）は、ここではなく IDevice のイベント。
 
     /// <summary>食べ物が生まれた。</summary>
     public readonly struct Spawned

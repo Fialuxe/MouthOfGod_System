@@ -87,8 +87,6 @@ namespace MouthOfGod.Core.Tests
             var food = new FoodId("apple");
             var field = new FieldId("village");
 
-            Assert.AreEqual(new TextureId("soft"), new TextureChanged(new TextureId("soft")).Texture);
-
             var spawned = new Spawned(food, new Vector3(1f, 2f, 3f));
             Assert.AreEqual(food, spawned.Food);
             Assert.AreEqual(new Vector3(1f, 2f, 3f), spawned.Position);
