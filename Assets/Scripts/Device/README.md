@@ -14,7 +14,7 @@ Meta Quest のコントローラ（ゲームパッド・キーボードも可）
 |---|---|
 | `MockDevice`（`MonoBehaviour`、`IDevice`） | キー入力を `Bitten` / `TextureChanged(TextureId)` / `Confirmed(TextureId)` に変える。有効になると `Devices` に登録する |
 
-`IDevice` の中身と、使う側の受け取り方（`Devices.WhenReady`）は `Core/README.md` を参照。`MockDevice.GetOrCreate()` でスクリプトから作れる（既定の操作割り当て付き）。Play すると自動で用意する（ビルドでも）。ただし、実機のデバイスがすでに `Devices` に登録されていれば作らない。そのため実機（#47）は、通信がつながる前でも `Awake` か `OnEnable` で `Devices.Register` する（`Start` や接続後だと、Mock が先に登録される）。自動で作った Mock は、シーンが変わっても残る。
+`IDevice` の中身と、使う側の受け取り方（`Devices.WhenReady`）は `Core/README.md` を参照。`MockDevice.GetOrCreate()` でスクリプトから作れる。シーンに置いたもの → Prefab（`Assets/Resources/Prefabs/Device/MockDevice.prefab`）→ 既定の操作割り当てで作る、の順に使う。Play すると自動で用意する（ビルドでも）。ただし、実機のデバイスがすでに `Devices` に登録されていれば作らない。 そのため実機（#47）は、通信がつながる前でも `Awake` か `OnEnable` で `Devices.Register` する（`Start` や接続後だと、Mock が先に登録される）。自動で作った Mock は、シーンが変わっても残る。
 
 Inspector で変えられる値:
 
@@ -41,9 +41,12 @@ Inspector で変えられる値:
 - `MockDevice.cs`: キー入力を読む `MonoBehaviour`（新 Input System の `InputAction`（Quest は `<XRController>{RightHand}`）のみ）。
 - `MockDeviceLogic.cs`: 入力・Unity に依存しない中身（経過時間 → 食感の切替、決定）。テスト対象。
 - `Tests/`: EditMode のテスト（`MouthOfGod.Device.Tests`）。
+- `Editor/MockDevicePrefabGenerator.cs`: メニュー「MouthOfGod/Device/Create MockDevice Prefab」。既定の設定で Prefab を作る（既にあれば上書きしない）。
 
 ## 決めたこと（要確認）
 
 - 割り当て（Quest 右トリガー・右 A ボタンなど）、切替間隔（1.5 秒）は暫定。
 - 噛み始めで、最初の食感をすぐ通知する。
 - 食感 ID の空欄は通知しない。切替間隔は 0.05 秒未満にならない。
+
+手順（デバイスなしで試す方法）は [docs/device-mock.md](../../../docs/device-mock.md)。`MockDeviceModel` は棒の見た目と先端の内容量（%）、握ると手に付く動き（見た目だけ）。

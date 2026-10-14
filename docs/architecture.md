@@ -157,7 +157,7 @@ ScriptableObject や Prefab の `.asset` / `.prefab` は、GUID と参照を含�
 2. 噛んでいる間: 一定間隔で `TextureChanged(TextureId)`（噛み始めの直後に最初の食感も出る）
 3. ボタンで決定: `Confirmed(TextureId)`。決定したときの食感を運ぶ（キャンセルはない）
 
-`MockDevice`（`Device/`）では、Quest 右コントローラのトリガー（キーボードなら Space）を押し続けると噛み、右 A ボタン（Enter）で決定する（暫定。操作の割り当て・間隔・食感 ID は `Device/README.md` と Inspector）。
+`MockDevice`（`Device/`）では、Quest 右コントローラのトリガー（キーボードなら Space）を押し続けると噛み、右 A ボタン（Enter）で決定する（暫定。操作の割り当て・間隔・食感 ID は `Device/README.md` と Inspector）。手順は [device-mock.md](device-mock.md)。
 
 ## 6. 避けること（アンチパターン）
 

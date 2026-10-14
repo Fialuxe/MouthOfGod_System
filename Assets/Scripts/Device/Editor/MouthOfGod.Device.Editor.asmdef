@@ -1,0 +1,18 @@
+{
+    "name": "MouthOfGod.Device.Editor",
+    "rootNamespace": "MouthOfGod.Device.Editor",
+    "references": [
+        "MouthOfGod.Device"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

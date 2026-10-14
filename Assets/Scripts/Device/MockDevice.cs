@@ -21,12 +21,28 @@ namespace MouthOfGod.Device
         [Tooltip("噛む操作（押している間が噛んでいる間）。Inspector でバインドを変えられる。暫定: Quest 右トリガー / Space / ゲームパッド A")]
         [SerializeField] InputAction biteAction = new InputAction("Bite", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
 
-        [Tooltip("決定操作。Inspector でバインドを変えられる。暫定: Quest 右 A ボタン / Enter / ゲームパッド Start")]
+        [Tooltip("決定操作。Inspector でバインドを変えられる。暫定: Quest 右 A ボタン / Enter / ゲームパッド Start。実機の「ハードのボタン 1 つ」の代わり")]
         [SerializeField] InputAction confirmAction = new InputAction("Confirm", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
+
+        [Tooltip("噛む・食感・決定を Console に出す（受け取る側がまだ無くても、動いているか分かるように）")]
+        [SerializeField] bool logEvents = true;
 
         MockDeviceLogic _logic;
 
+        [Tooltip("デバイスの内容量（0〜100 %）。先端に表示する。Inspector で動かして試せる")]
+        [SerializeField, Range(0f, 100f)] float contentPercent;
+
+        /// <summary>デバイスの内容量（0〜100 %）。見た目（MockDeviceModel）が読む。</summary>
+        public float ContentPercent
+        {
+            get => contentPercent;
+            set => contentPercent = Mathf.Clamp(value, 0f, 100f);
+        }
+
         public TextureId Current => _logic != null ? _logic.Current : TextureId.None;
+
+        /// <summary>噛んでいる間（噛む操作を押している間）。見た目（MockDeviceModel）が読む。</summary>
+        public bool IsBiting => _logic != null && _logic.IsBiting;
 
         public event Action<TextureId> TextureChanged;
         public event Action<TextureId> Confirmed;
@@ -52,19 +68,42 @@ namespace MouthOfGod.Device
             action.AddBinding(path);
         }
 
-        /// <summary>シーン内の MockDevice を返す。無ければスクリプトで作る（既定の操作割り当て付き）。</summary>
+        /// <summary>Prefab の置き場所（Resources から読む）。メニュー「MouthOfGod/Device/Create MockDevice Prefab」で作る。</summary>
+        internal const string PrefabResourcePath = "Prefabs/Device/MockDevice";
+
+        /// <summary>
+        /// シーン内の MockDevice を返す。無ければ、Prefab があれば Prefab から、無ければスクリプトで作る（既定の操作割り当て付き）。
+        /// Prefab にしておくと、Inspector で変えた設定（操作の割り当て・間隔・食感 ID）が残る。
+        /// </summary>
         public static MockDevice GetOrCreate()
         {
             var existing = FindFirstObjectByType<MockDevice>();
             if (existing != null) return existing;
 
+            var prefab = Resources.Load<MockDevice>(PrefabResourcePath);
+            if (prefab != null)
+            {
+                var instance = Instantiate(prefab);
+                instance.name = prefab.name;
+                DontDestroyOnLoad(instance.gameObject); // 自動で作ったものは、シーンが変わっても残す（AutoCreate は最初の 1 回しか走らない）
+                return instance;
+            }
+
+            var device = CreateInactive();
+            device.gameObject.SetActive(true);
+            DontDestroyOnLoad(device.gameObject);
+            return device;
+        }
+
+        /// <summary>既定の操作割り当てを付けた MockDevice を、非アクティブで作る。Prefab を作るメニューからも使う。</summary>
+        internal static MockDevice CreateInactive()
+        {
             // 非アクティブで作り、バインドを足してから有効化する（先に有効化すると足したバインドが反映されない）。
             var go = new GameObject("MockDevice");
             go.SetActive(false);
             var device = go.AddComponent<MockDevice>();
             device.AddFallbackBindings();
-            go.SetActive(true);
-            DontDestroyOnLoad(go); // 自動で作ったものは、シーンが変わっても残す（AutoCreate は最初の 1 回しか走らない）
+            go.AddComponent<MockDeviceModel>().AddFallbackBindings();
             return device;
         }
 
@@ -83,6 +122,12 @@ namespace MouthOfGod.Device
             _logic.TextureChanged += id => TextureChanged?.Invoke(id);
             _logic.Confirmed += id => Confirmed?.Invoke(id);
             _logic.Bitten += () => Bitten?.Invoke();
+            if (logEvents)
+            {
+                _logic.Bitten += () => Debug.Log("[MockDevice] Bitten", this);
+                _logic.TextureChanged += id => Debug.Log($"[MockDevice] TextureChanged: {id}", this);
+                _logic.Confirmed += id => Debug.Log($"[MockDevice] Confirmed: {(id.IsEmpty ? "(噛む前)" : id.ToString())}", this);
+            }
         }
 
         void OnEnable()
