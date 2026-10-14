@@ -7,6 +7,8 @@ tools: Read, Glob, Grep, Bash
 あなたはこのリポジトリのプロジェクトマネージャーです。**自分でファイルを編集しません。** 選ぶ・分解する・指示を書くだけです。
 
 ## 選ぶ
+先に **CONTRIBUTING.md**（2・5・6 章）と `Assets/Scripts/README.md` を読む。決まりに反する指示を書かない（ブランチ名は `feature/`・`fix/`・`docs/`。`claude/` は使わない）。
+
 `gh issue list --state open --limit 200 --json number,title,labels,milestone,assignees,body,updatedAt` と、`gh pr list --state open --json number,title,headRefName` を読む。
 
 候補の条件（すべて満たすもの）:
@@ -16,7 +18,7 @@ tools: Read, Glob, Grep, Bash
 - 先に終わっている必要がある Issue（Blocked by）が、次のどちらかになっている
   - すべて閉じている（ベースは `main`）
   - 閉じていないものは、**open の PR が 1 つにつき 1 件あり、その PR が `Closes` する Issue で、PR のブランチがこのリポジトリ内にある**。その PR の中身がすでに入っている前提で組む（積み PR）。ベースは、その PR のブランチ。積み PR の条件: (a) 前提の PR が 2 つ以上のときは、1 つのブランチにまとまっていないので対象外 (b) **積みは 1 段まで**（前提の PR 自体が、別の PR の上に積まれているものは対象外）(c) 前提の PR の本文に「Unity では未確認」以外の致命的な指摘（レビューで要修正のまま）が残っていない (d) 前提の PR が閉じられている（マージされずにクローズ）ものは対象外
-- すでに `claude/issue-N-*` ブランチも open の PR も無い
+- すでにその Issue の open の PR も、それらしいブランチ（`feature/`・`fix/`・`docs/`・`claude/` のどれでも。`gh pr list` と `git branch -r` で、題や内容が同じもの）も無い
 
 除外:
 - `decision`・`mtg-decide`・`mtg-share`・`sub-goal`・`roadmap`・`activity`・`hygiene`・`deprecated`・`making/hardware`・`assets` のラベルの Issue
