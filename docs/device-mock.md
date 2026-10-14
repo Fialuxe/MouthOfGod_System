@@ -8,7 +8,7 @@
 
 ## 手順
 1. [vr-setup.md](vr-setup.md) のとおり Quest Link で Play できる状態にする。
-2. Play する。`MockDevice` は自動で作られる（シーンに置く必要も、Inspector の設定もない）。
+2. Play する。`MockDevice` は自動で作られる（シーンに置く必要も、Inspector の設定もない。実機のデバイスが登録されていれば作られない）。
 3. 試す。
 
 | やること | Quest（ハンドトラッキング） | Quest コントローラ | キーボード |
@@ -19,8 +19,14 @@
 
 - 棒の先端に、デバイスの内容量（0〜100 %）が出る。`MockDevice` の `Content Percent`（Inspector のスライダー、またはコードの `ContentPercent`）で動かす。内容量を誰がどう変えるか（ゲームからの指令など）は未定なので、Mock は値を出すだけ。
 - 握っている間、棒は手に付いてくる。離すとその場に残る。
-- 噛み始めで `Bitten`、噛んでいる間は一定間隔（既定 1.5 秒）で `TextureChanged`、決定で `Confirmed` が出る。キャンセルはない。
+- 噛み始めで `Bitten`、噛んでいる間は一定間隔（既定 1.5 秒）で `TextureChanged`、決定で `Confirmed`（そのときの食感つき）が出る。キャンセルはない。
 - 決定は、デバイスに付くハードのボタン 1 つ。手の動きでは決定しない。Mock では、そのボタンの代わりに右 A ボタン / Enter を使う。握るのは、棒を手に持つ見た目のためだけ。
+
+## 自分のコードで受け取る
+`Devices.WhenReady` で `IDevice` を受け取る（Device の asmdef は参照しない）。Mock でも実機でも、同じコードで動く。例は [Core/README.md](../Assets/Scripts/Core/README.md) の「デバイスの入力を受け取る」。
+
+- `Confirmed` は、決定したときの食感（`TextureId`）を運ぶ。噛む前の決定なら空の ID。
+- いまの食感は `Current`。
 
 ## 変えたいとき
 - `MockDevice` の Inspector で、噛む・決定の操作（Input Action のバインド）、切替間隔、食感 ID を変える。
