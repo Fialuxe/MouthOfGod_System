@@ -20,11 +20,13 @@ namespace MouthOfGod.Device
         [Tooltip("握る操作（float）。Inspector でバインドを変えられる。暫定: OpenXR Hand Interaction の右手 graspValue / Quest 右グリップ")]
         [SerializeField] InputAction graspAction = new InputAction("Grasp", InputActionType.Value, "<HandInteraction>{RightHand}/graspValue");
 
-        [Tooltip("棒の長さ（m）")]
+        [Tooltip("棒の長さ（m）。見た目を作るときに使う")]
         [SerializeField] float length = 0.2f;
 
+        [Tooltip("先端の内容量（%）の表示。Prefab に入っていればそれを使う。空なら Play 時に見た目を作る")]
+        [SerializeField] TextMesh label;
+
         MockDevice _device;
-        TextMesh _label;
         bool _holding;
 
         void Reset() => AddFallbackBindings();
@@ -39,17 +41,20 @@ namespace MouthOfGod.Device
         void Awake()
         {
             _device = GetComponent<MockDevice>();
-            BuildModel();
+            if (label == null) BuildModel();
         }
 
         void OnEnable() => graspAction.Enable();
         void OnDisable() => graspAction.Disable();
 
-        void BuildModel()
+        /// <summary>棒と先端の表示を、子として作る。Prefab を作るメニュー（エディタ）からも呼ぶ。</summary>
+        internal void BuildModel()
         {
             var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             body.name = "MockDeviceBody";
-            Destroy(body.GetComponent<Collider>());
+            var collider = body.GetComponent<Collider>();
+            if (Application.isPlaying) Destroy(collider);
+            else DestroyImmediate(collider);
             body.transform.SetParent(transform, false);
             body.transform.localRotation = Quaternion.Euler(90f, 0f, 0f); // 前（z）向きに寝かせる
             body.transform.localScale = new Vector3(0.02f, length * 0.5f, 0.02f);
@@ -58,11 +63,15 @@ namespace MouthOfGod.Device
             var labelGo = new GameObject("MockDeviceLabel");
             labelGo.transform.SetParent(transform, false);
             labelGo.transform.localPosition = new Vector3(0f, 0.03f, length);
-            _label = labelGo.AddComponent<TextMesh>();
-            _label.anchor = TextAnchor.LowerCenter;
-            _label.characterSize = 0.01f;
-            _label.fontSize = 48;
-            _label.text = "0%";
+            label = labelGo.AddComponent<TextMesh>();
+            // フォントを指定しないと、TextMesh は何も描かない。
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            label.font = font;
+            labelGo.GetComponent<MeshRenderer>().sharedMaterial = font.material;
+            label.anchor = TextAnchor.LowerCenter;
+            label.characterSize = 0.01f;
+            label.fontSize = 48;
+            label.text = "0%";
         }
 
         void Update()
@@ -76,9 +85,9 @@ namespace MouthOfGod.Device
             _holding = handAnchor != null && graspAction.ReadValue<float>() >= graspThreshold;
             if (_holding) transform.SetPositionAndRotation(handAnchor.position, handAnchor.rotation);
 
-            _label.text = $"{Mathf.RoundToInt(_device.ContentPercent)}%";
+            label.text = $"{Mathf.RoundToInt(_device.ContentPercent)}%";
             var cam = Camera.main;
-            if (cam != null) _label.transform.rotation = Quaternion.LookRotation(_label.transform.position - cam.transform.position);
+            if (cam != null) label.transform.rotation = Quaternion.LookRotation(label.transform.position - cam.transform.position);
         }
     }
 }

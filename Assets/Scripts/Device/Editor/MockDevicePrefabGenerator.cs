@@ -29,6 +29,7 @@ namespace MouthOfGod.Device.Editor
             // エディタでは Awake・OnEnable が走らないので、有効にしてから保存する（Prefab の根を非アクティブにしない）。
             var device = MockDevice.CreateInactive();
             var go = device.gameObject;
+            go.GetComponent<MockDeviceModel>().BuildModel(); // 見た目（棒と先端の %）も Prefab に入れる
             go.SetActive(true);
             try
             {
