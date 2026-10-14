@@ -4,100 +4,118 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 村のフィールドを Play 時にコードで組み立てる。置き物は Resources/Prefabs/Village/ の Prefab を名前で読む
-    /// （Prefab は VillagePrefabGenerator が素材から作る）。配置は <see cref="VillageLayout"/>。
-    /// 足りない状態 / 届いた後の状態を <see cref="SetDelivered"/> で切り替える。
+    /// 村のフィールドの置き物を、Play 時にコードで組み立てる。
+    /// シーン（Main.unity）の「Village」オブジェクト（立方体の地面）に付けると、その子として並べる。
+    /// 置き物は Resources/Prefabs/Village/ の Prefab を名前で読む（Prefab は VillagePrefabGenerator が素材から作る）。
+    /// 配置は <see cref="VillageLayout"/>。足りない状態 / 届いた後の状態は <see cref="SetDelivered"/> で切り替える。
     /// </summary>
     public sealed class VillageBuilder : MonoBehaviour
     {
         const string PrefabFolder = "Prefabs/Village/";
+        const string VillageObjectName = "Village";
+        static readonly int DeliveredTrigger = Animator.StringToHash("Delivered");
 
-        [Tooltip("素材（メートル）をミニチュアに縮める倍率。暫定")]
-        [SerializeField] float miniatureScale = 0.05f;
+        [Tooltip("置き物を並べる面の高さ（親のローカル）。Cube の上面は 0.5")]
+        [SerializeField] float surfaceLocalY = 0.5f;
 
-        readonly Dictionary<string, FieldView> _fields = new Dictionary<string, FieldView>();
+        readonly List<(VillageItem Item, GameObject Instance)> _items = new List<(VillageItem, GameObject)>();
+        VillageField _field;
+        bool _delivered;
 
-        sealed class FieldView
-        {
-            public Renderer Ground;
-            public VillageField Definition;
-            public List<(VillageItem Item, GameObject Instance)> Items = new List<(VillageItem, GameObject)>();
-        }
-
-        /// <summary>シーン内の VillageBuilder を返す。無ければ作る（Play するだけで村ができる）。</summary>
+        /// <summary>
+        /// シーンの VillageBuilder を返す。無ければ、シーンの「Village」オブジェクトに付ける。
+        /// 「Village」も無ければ（サンドボックスなど）、立方体の地面を作ってそこに付ける。
+        /// </summary>
         public static VillageBuilder GetOrCreate()
         {
             var existing = FindFirstObjectByType<VillageBuilder>();
             if (existing != null) return existing;
-            return new GameObject("Village").AddComponent<VillageBuilder>();
+
+            var village = GameObject.Find(VillageObjectName); // この機能自身のオブジェクト
+            if (village == null)
+            {
+                village = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                village.name = VillageObjectName;
+                village.transform.localScale = new Vector3(0.54f, 0.2f, 0.54f);
+            }
+            return village.AddComponent<VillageBuilder>();
         }
 
-        void Awake() => Build(VillageLayout.CreateDefault());
+        void Awake()
+        {
+            _field = VillageLayout.CreateDefault().Find(f => f.Id == VillageLayout.Village);
+            Build();
+        }
 
-        /// <summary>そのフィールドを、届いた後の状態（true）か、足りない状態（false）にする。</summary>
+        /// <summary>村を、届いた後の状態（true）か、足りない状態（false）にする。</summary>
         public void SetDelivered(string fieldId, bool delivered)
         {
-            if (!_fields.TryGetValue(fieldId, out var view))
+            if (fieldId != VillageLayout.Village)
             {
                 Debug.LogWarning($"[Village] 知らないフィールド: {fieldId}");
                 return;
             }
-            Apply(view, delivered);
-        }
+            if (delivered == _delivered) return;
+            _delivered = delivered;
 
-        void Build(List<VillageField> fields)
-        {
-            foreach (var field in fields)
+            foreach (var (item, instance) in _items)
             {
-                var root = new GameObject(field.Id).transform;
-                root.SetParent(transform, false);
-                root.localPosition = new Vector3(field.CenterX, 0f, field.CenterZ) * miniatureScale;
-
-                var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                ground.name = "Ground";
-                Destroy(ground.GetComponent<Collider>());
-                ground.transform.SetParent(root, false);
-                ground.transform.localScale = new Vector3(field.Size, 0.2f, field.Size) * miniatureScale;
-                ground.transform.localPosition = new Vector3(0f, -0.1f * miniatureScale, 0f);
-
-                var view = new FieldView { Ground = ground.GetComponent<Renderer>(), Definition = field };
-                foreach (var item in field.Items)
-                    view.Items.Add((item, CreateItem(item, root, field.Id)));
-
-                _fields[field.Id] = view;
-                Apply(view, delivered: false); // 始まりは、全フィールドが足りない状態
+                var visible = VillageLayout.IsVisible(item, delivered);
+                instance.SetActive(visible);
+                PlayAnimation(instance, delivered);
             }
         }
 
-        GameObject CreateItem(VillageItem item, Transform parent, string fieldId)
+        void Build()
+        {
+            foreach (var item in _field.Items)
+            {
+                var instance = CreateItem(item);
+                _items.Add((item, instance));
+                instance.SetActive(VillageLayout.IsVisible(item, false)); // 始まりは足りない状態
+            }
+        }
+
+        GameObject CreateItem(VillageItem item)
         {
             GameObject go;
             var prefab = Resources.Load<GameObject>(PrefabFolder + item.Prefab);
             if (prefab != null)
             {
-                go = Instantiate(prefab, parent);
+                go = Instantiate(prefab, transform);
             }
             else
             {
-                Debug.LogWarning($"[Village] Prefab が無いので仮の箱を置く: {PrefabFolder}{item.Prefab}（{fieldId}）");
+                Debug.LogWarning($"[Village] Prefab が無いので仮の箱を置く: {PrefabFolder}{item.Prefab}");
                 go = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 Destroy(go.GetComponent<Collider>());
-                go.transform.SetParent(parent, false);
+                go.transform.SetParent(transform, false);
             }
-
             go.name = item.Prefab;
-            go.transform.localPosition = new Vector3(item.X, 0f, item.Z) * miniatureScale;
+
+            // 親（Village）は (0.54, 0.2, 0.54) のように縦横が違う倍率で潰れている。
+            // 置き物がゆがまないよう、親の倍率を打ち消して、ワールドでの大きさを決める。
+            var lossy = transform.lossyScale;
+            var worldScale = item.Scale * lossy.x / _field.Size; // 地面の一辺が Size メートルに当たる
+            go.transform.localPosition = new Vector3(item.X / _field.Size, surfaceLocalY, item.Z / _field.Size);
             go.transform.localRotation = Quaternion.Euler(0f, item.YawDegrees, 0f);
-            go.transform.localScale = Vector3.one * (item.Scale * miniatureScale);
+            go.transform.localScale = new Vector3(worldScale / lossy.x, worldScale / lossy.y, worldScale / lossy.z);
             return go;
         }
 
-        static void Apply(FieldView view, bool delivered)
+        // 村人は、足りない間は Idle のまま。届いた後に Victory を 1 回やって Idle に戻る（Animator の Delivered トリガー）。
+        static void PlayAnimation(GameObject instance, bool delivered)
         {
-            var c = delivered ? view.Definition.DeliveredGround : view.Definition.LackingGround;
-            view.Ground.material.color = new Color(c.R, c.G, c.B);
-            foreach (var (item, instance) in view.Items)
-                instance.SetActive(VillageLayout.IsVisible(item, delivered));
+            if (!instance.activeInHierarchy) return;
+            var animator = instance.GetComponentInChildren<Animator>();
+            if (animator == null || animator.runtimeAnimatorController == null) return;
+
+            if (delivered) animator.SetTrigger(DeliveredTrigger);
+            else
+            {
+                animator.ResetTrigger(DeliveredTrigger);
+                animator.Play("Idle", 0, 0f);
+            }
         }
     }
 }

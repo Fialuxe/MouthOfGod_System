@@ -28,10 +28,11 @@ namespace MouthOfGod.Village
         public string Id;
         /// <summary>村全体の中での、フィールドの中心（メートル。ミニチュアに縮める前）。</summary>
         public float CenterX, CenterZ;
-        /// <summary>地面の一辺（メートル）。</summary>
+        /// <summary>
+        /// 置き物の座標を測るときの、フィールドの一辺（メートル）。シーンの Village（立方体の地面）の一辺が、これに当たる。
+        /// 置き物の位置・大きさは、シーンの地面の大きさに合わせて縮められる。
+        /// </summary>
         public float Size = 10f;
-        public (float R, float G, float B) LackingGround;
-        public (float R, float G, float B) DeliveredGround;
         public List<VillageItem> Items = new List<VillageItem>();
     }
 
@@ -50,7 +51,6 @@ namespace MouthOfGod.Village
                 new VillageField
                 {
                     Id = Village, CenterX = 0f, CenterZ = 0f,
-                    LackingGround = (0.45f, 0.36f, 0.24f), DeliveredGround = (0.40f, 0.62f, 0.28f),
                     Items =
                     {
                         Item("House_Sample", ShowWhen.Always, -3f, 1f),
