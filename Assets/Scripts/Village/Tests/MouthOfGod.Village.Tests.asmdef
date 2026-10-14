@@ -3,6 +3,7 @@
     "rootNamespace": "MouthOfGod.Village.Tests",
     "references": [
         "MouthOfGod.Village",
+        "MouthOfGod.Village.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
