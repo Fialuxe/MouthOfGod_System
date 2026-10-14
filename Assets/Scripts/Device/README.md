@@ -14,7 +14,7 @@ Meta Quest のコントローラ（ゲームパッド・キーボードも可）
 |---|---|
 | `MockDevice`（`MonoBehaviour`、`IDevice`） | キー入力を `Bitten` / `TextureChanged(TextureId)` / `Confirmed(TextureId)` に変える。有効になると `Devices` に登録する |
 
-`IDevice` の中身と、使う側の受け取り方（`Devices.WhenReady`）は `Core/README.md` を参照。`MockDevice.GetOrCreate()` でスクリプトから作れる（既定の操作割り当て付き）。Play すると自動で用意する（ビルドでも）。ただし、実機のデバイスがすでに `Devices` に登録されていれば作らない。
+`IDevice` の中身と、使う側の受け取り方（`Devices.WhenReady`）は `Core/README.md` を参照。`MockDevice.GetOrCreate()` でスクリプトから作れる（既定の操作割り当て付き）。Play すると自動で用意する（ビルドでも）。ただし、実機のデバイスがすでに `Devices` に登録されていれば作らない。そのため実機（#47）は、通信がつながる前でも `Awake` か `OnEnable` で `Devices.Register` する（`Start` や接続後だと、Mock が先に登録される）。自動で作った Mock は、シーンが変わっても残る。
 
 Inspector で変えられる値:
 
