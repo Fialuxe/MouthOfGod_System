@@ -11,7 +11,7 @@
 | `Tracking/` | VR・位置取得 | |
 | `Tutorial/` | チュートリアル 1〜4 の進行 | |
 | `Game/` | 本編の進行、スコア、判定 | |
-| `Village/` | ミニチュアの村・フィールド・村人 | |
+| `Village/` | ミニチュアの村・フィールド・村人。フィールドが段階的に戻る部品（`FieldStages`・`StageVisibility`・`VillagerMood`）と、村のフィールドの `Village.prefab` | |
 | `UI/` | 画面表示 | |
 
 フォルダを増やしたら、この表に 1 行足す。
