@@ -12,10 +12,10 @@ namespace MouthOfGod.Device
     /// </summary>
     public sealed class MockDevice : MonoBehaviour, IDevice
     {
-        [Tooltip("噛んでいる間に順に切り替わる食感 ID。既定はプレースホルダー。実際の ID に差し替える")]
+        [Tooltip("噛んでいる間に順に切り替わる食感 ID。既定はプレースホルダー。実際の ID に差し替える。Play 中に変えても反映されない")]
         [SerializeField] string[] textureIds = { "placeholder-a", "placeholder-b", "placeholder-c" };
 
-        [Tooltip("食感が切り替わる間隔（秒）。暫定")]
+        [Tooltip("食感が切り替わる間隔（秒）。暫定。Play 中に変えても反映されない")]
         [SerializeField] float switchIntervalSeconds = 1.5f;
 
         [Tooltip("噛む操作（押している間が噛んでいる間）。Inspector でバインドを変えられる。暫定: Quest 右トリガー / Space / ゲームパッド A")]
@@ -51,12 +51,21 @@ namespace MouthOfGod.Device
         void Reset() => AddFallbackBindings();
 
         // Quest 以外（キーボード・ゲームパッド）でも試せるようにする。
+        // エディタでは AddComponent のときに Reset からも呼ばれるので、同じ割り当てを二重に足さない。
         void AddFallbackBindings()
         {
-            biteAction.AddBinding("<Keyboard>/space");
-            biteAction.AddBinding("<Gamepad>/buttonSouth");
-            confirmAction.AddBinding("<Keyboard>/enter");
-            confirmAction.AddBinding("<Gamepad>/startButton");
+            AddBindingOnce(biteAction, "<Keyboard>/space");
+            AddBindingOnce(biteAction, "<Gamepad>/buttonSouth");
+            AddBindingOnce(confirmAction, "<Keyboard>/enter");
+            AddBindingOnce(confirmAction, "<Gamepad>/startButton");
+        }
+
+        /// <summary>同じパスの割り当てが無いときだけ足す。</summary>
+        internal static void AddBindingOnce(InputAction action, string path)
+        {
+            foreach (var binding in action.bindings)
+                if (binding.path == path) return;
+            action.AddBinding(path);
         }
 
         /// <summary>Prefab の置き場所（Resources から読む）。メニュー「MouthOfGod/Device/Create MockDevice Prefab」で作る。</summary>
@@ -76,11 +85,13 @@ namespace MouthOfGod.Device
             {
                 var instance = Instantiate(prefab);
                 instance.name = prefab.name;
+                DontDestroyOnLoad(instance.gameObject); // 自動で作ったものは、シーンが変わっても残す（AutoCreate は最初の 1 回しか走らない）
                 return instance;
             }
 
             var device = CreateInactive();
             device.gameObject.SetActive(true);
+            DontDestroyOnLoad(device.gameObject);
             return device;
         }
 

@@ -28,6 +28,7 @@ namespace MouthOfGod.Device
 
         MockDevice _device;
         bool _holding;
+        float _nextHandSearch;
         string _confirmedText;
         float _confirmedUntil;
 
@@ -36,8 +37,9 @@ namespace MouthOfGod.Device
         // 手が使えない環境でも確認できるようにする。
         internal void AddFallbackBindings()
         {
-            graspAction.AddBinding("<XRController>{RightHand}/grip");
-            graspAction.AddBinding("<Keyboard>/g"); // 手が使えないときの確認用
+            // エディタでは AddComponent のときに Reset からも呼ばれるので、同じ割り当てを二重に足さない。
+            MockDevice.AddBindingOnce(graspAction, "<XRController>{RightHand}/grip");
+            MockDevice.AddBindingOnce(graspAction, "<Keyboard>/g"); // 手が使えないときの確認用
         }
 
         void Awake()
@@ -94,8 +96,17 @@ namespace MouthOfGod.Device
 
         void Update()
         {
-            if (handAnchor == null)
+            // 別のデバイスが登録されて、この Mock が使われていないなら、棒を出さない。
+            if (!_device.enabled)
             {
+                gameObject.SetActive(false);
+                return;
+            }
+
+            // 手が見つかるまで、1 秒おきに探す（毎フレーム探さない）。
+            if (handAnchor == null && Time.time >= _nextHandSearch)
+            {
+                _nextHandSearch = Time.time + 1f;
                 var found = GameObject.Find("RightHandAnchor");
                 if (found != null) handAnchor = found.transform;
             }

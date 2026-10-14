@@ -186,5 +186,20 @@ namespace MouthOfGod.Device.Tests
 
             Assert.IsEmpty(log);
         }
+
+        [Test]
+        public void BeginBite_ClearsPreviousTexture_WhenFirstIdIsEmpty()
+        {
+            var log = new List<string>();
+            var logic = Make(1f, new[] { "", "b" }, log);
+
+            logic.BeginBite();
+            logic.Tick(1f);
+            logic.EndBite();
+            Assert.AreEqual(new TextureId("b"), logic.Current);
+
+            logic.BeginBite();
+            Assert.IsTrue(logic.Current.IsEmpty);
+        }
     }
 }

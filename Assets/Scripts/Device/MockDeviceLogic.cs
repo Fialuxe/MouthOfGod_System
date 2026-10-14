@@ -39,6 +39,7 @@ namespace MouthOfGod.Device
             IsBiting = true;
             _index = 0;
             _elapsed = 0f;
+            Current = TextureId.None; // 最初の食感が空欄でも、前の噛みの食感を残さない
             Bitten?.Invoke();
             EmitCurrent();
         }
