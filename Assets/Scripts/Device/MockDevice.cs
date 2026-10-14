@@ -26,6 +26,9 @@ namespace MouthOfGod.Device
 
         MockDeviceLogic _logic;
 
+        /// <summary>先端に出す内容のパーセンテージ（0〜100）。見た目（MockDeviceModel）が読む。暫定の定義。</summary>
+        public float FillPercent => _logic?.FillPercent ?? 0f;
+
         public event Action<TextureId> TextureChanged;
         public event Action Confirmed;
         public event Action Bitten;
@@ -52,6 +55,7 @@ namespace MouthOfGod.Device
             go.SetActive(false);
             var device = go.AddComponent<MockDevice>();
             device.AddFallbackBindings();
+            go.AddComponent<MockDeviceModel>().AddFallbackBindings();
             go.SetActive(true);
             return device;
         }

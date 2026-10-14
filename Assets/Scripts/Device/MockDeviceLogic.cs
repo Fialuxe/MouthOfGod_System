@@ -29,6 +29,10 @@ namespace MouthOfGod.Device
 
         internal bool IsBiting { get; private set; }
 
+        /// <summary>デバイス先端に出す内容の割合（0〜100）。噛んでいる間は、現在の食感が何番目か（最後で 100）。噛んでいなければ 0。</summary>
+        internal float FillPercent =>
+            !IsBiting || _textureIds.Length == 0 ? 0f : 100f * (_index + 1) / _textureIds.Length;
+
         /// <summary>噛み始め。Bitten のあと、最初の食感をすぐ通知する。噛んでいる間の呼び出しは無視する。</summary>
         internal void BeginBite()
         {
