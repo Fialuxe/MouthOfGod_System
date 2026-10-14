@@ -29,6 +29,6 @@ namespace MouthOfGod.Village
     {
         [SerializeField] Request[] _requests = new Request[0];
 
-        public IReadOnlyList<Request> Requests => _requests ?? new Request[0];
+        public IReadOnlyList<Request> Requests => _requests ?? Array.Empty<Request>();
     }
 }

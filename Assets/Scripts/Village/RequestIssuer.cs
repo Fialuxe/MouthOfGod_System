@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MouthOfGod.Village
 {
-    /// <summary>村人の要求を出す。Unity 非依存の通常クラス。出した要求は Issued で知らせる。</summary>
+    /// <summary>村人の要求を出す。シーンや MonoBehaviour に依存しない通常クラス。出した要求は Issued で知らせる。</summary>
     public class RequestIssuer
     {
         readonly RequestSet _set;

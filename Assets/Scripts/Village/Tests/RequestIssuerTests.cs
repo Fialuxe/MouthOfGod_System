@@ -81,6 +81,47 @@ namespace MouthOfGod.Village.Tests
         }
 
         [Test]
+        public void Issue_SameRequestTwice_RaisesIssuedTwice()
+        {
+            var issuer = new RequestIssuer(null);
+            var got = new List<RequestIssued>();
+            issuer.Issued += got.Add;
+            var request = new Request(new FoodId("test-food"), new FieldId("test-field"));
+
+            issuer.Issue(request);
+            issuer.Issue(request);
+
+            Assert.AreEqual(2, got.Count);
+        }
+
+        [Test]
+        public void IssueNext_EmptyIdInSet_WarnsAndMovesOn()
+        {
+            var set = CreateSet(
+                new Request(FoodId.None, new FieldId("test-field-1")),
+                new Request(new FoodId("test-food-2"), new FieldId("test-field-2")));
+            try
+            {
+                var issuer = new RequestIssuer(set);
+                var got = new List<RequestIssued>();
+                issuer.Issued += got.Add;
+
+                LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("RequestIssuer"));
+                Assert.IsTrue(issuer.IssueNext());
+                Assert.AreEqual(0, got.Count);
+
+                Assert.IsTrue(issuer.IssueNext());
+                Assert.AreEqual(1, got.Count);
+                Assert.AreEqual(new FoodId("test-food-2"), got[0].Food);
+                Assert.IsFalse(issuer.IssueNext());
+            }
+            finally
+            {
+                Object.DestroyImmediate(set);
+            }
+        }
+
+        [Test]
         public void IssueNext_NullOrEmptySet_ReturnsFalse()
         {
             Assert.IsFalse(new RequestIssuer(null).IssueNext());
