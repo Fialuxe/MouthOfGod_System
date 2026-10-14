@@ -1,0 +1,17 @@
+{
+    "name": "MouthOfGod.Device",
+    "rootNamespace": "MouthOfGod.Device",
+    "references": [
+        "MouthOfGod.Core",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

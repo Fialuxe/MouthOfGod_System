@@ -86,13 +86,14 @@ Village(DeliveryZone) --Delivered(Accepted?)--> Village(FieldView: 村が変わ�
 - Tutorial は Device を直接見ない（`MockDevice` に差し替えても動く）。
 - Tutorial から村や UI への指示（「この場所を光らせる」など）は、Tutorial が Core の `CueRequested(CueId)` を発行し、Village や UI が購読する（依存の向きを保つため）。
 - 機能の中は C# の `event`。機能をまたぐものは、Core の interface とイベントを Bootstrap が起動時に渡す。ScriptableObject のイベントチャンネルは、必要になるまで採用しない。
+- 例外: `IDevice` は、Core の `Devices` から受け取る（`Devices.WhenReady`）。デバイスは全体で 1 台で、Bootstrap を待たずに、どのシーンでも使えるようにするため。どのデバイス（Mock か実機か）を登録するかは Device 側が決める。`Devices` のような全体の置き場は、デバイス以外には増やさない。
 
 ### 型とイベント（案。名前は仮）
 
 | 用途 | 型・イベント | 置き場所 |
 |---|---|---|
 | 食感 | `TextureId`（論理 ID。物理量は Device の内側で ID に変換する） | Core |
-| 入力 | `IDevice`: `TextureChanged`、`Confirmed`、`Bitten` | Core（interface）／ Device（実装） |
+| 入力 | `IDevice`: `Current`、`TextureChanged`、`Confirmed`（決定したときの食感を運ぶ）、`Bitten` | Core（interface）／ Device（実装） |
 | 食べ物 | `FoodId`、`FoodCatalog.Resolve(TextureId)` → `FoodId`、`FoodSpawner.Spawned` | Food |
 | 届け先 | `FieldId`、`Field.Accepts(FoodId)`、`DeliveryZone.Delivered(DeliveryResult)` | Village |
 | 要求 | `Request`（`FoodId`、`FieldId`）、`RequestIssued` | Village |
@@ -147,6 +148,16 @@ ScriptableObject や Prefab の `.asset` / `.prefab` は、GUID と参照を含�
 
 - 層を分ける: **トランスポート**（シリアルの読み書き・別スレッド）→ **プロトコル**（コマンドの組み立てと解釈）→ **ファサード**（ゲームから呼ぶ API）。
 - ゲームは `interface IDevice` だけを見る。実機の実装と、**キーボードなどで動く擬似実装（Mock）**を用意し、デバイスなしで開発・動作確認できるようにする（#7、#46）。
+
+### 入力の流れと、デバイスなしで試すキー操作
+
+噛み始め → 食感が時間で切り替わる → ボタンで決定、の順に `IDevice` のイベントが出る。
+
+1. 噛み始め: `Bitten`
+2. 噛んでいる間: 一定間隔で `TextureChanged(TextureId)`（噛み始めの直後に最初の食感も出る）
+3. ボタンで決定: `Confirmed(TextureId)`。決定したときの食感を運ぶ（キャンセルはない）
+
+`MockDevice`（`Device/`）では、Quest 右コントローラのトリガー（キーボードなら Space）を押し続けると噛み、右 A ボタン（Enter）で決定する（暫定。操作の割り当て・間隔・食感 ID は `Device/README.md` と Inspector）。手順は [device-mock.md](device-mock.md)。
 
 ## 6. 避けること（アンチパターン）
 

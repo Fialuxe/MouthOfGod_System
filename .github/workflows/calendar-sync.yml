@@ -1,0 +1,48 @@
+# チームの Google カレンダー（IVRC2026）の、これから 3 週間の予定を、非公開リポジトリ（MouthOfGod_transcripts）の calendar/upcoming.md に書く。
+# 水曜の議題（mtg-agenda）が読み、公開の議題には日付と予定の名前だけを書く。
+# 予定はチームだけのもの。公開リポジトリには書かない。ログには件数だけを出す。
+# 必要な Secrets: IVRC_CALENDAR_ICS（iCal 形式の非公開 URL）、TRANSCRIPTS_PAT（無ければ、何もせず終わる）。
+name: Calendar sync
+
+on:
+  schedule:
+    - cron: "17 21 * * *"   # 毎日 6:17（日本時間）
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/scripts/sync_calendar.py"
+      - ".github/scripts/test_sync_calendar.py"
+      - ".github/workflows/calendar-sync.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: calendar-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      HAS_SECRETS: ${{ secrets.IVRC_CALENDAR_ICS != '' && secrets.TRANSCRIPTS_PAT != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q icalendar==7.3.0 recurring-ical-events==3.8.2
+      - name: Tests
+        run: python .github/scripts/test_sync_calendar.py
+      - name: Check out the private repo
+        if: github.event_name != 'pull_request' && env.HAS_SECRETS == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: Fialuxe/MouthOfGod_transcripts
+          token: ${{ secrets.TRANSCRIPTS_PAT }}
+          path: private
+      - name: Write upcoming events to the private repo
+        if: github.event_name != 'pull_request' && env.HAS_SECRETS == 'true'
+        env:
+          IVRC_CALENDAR_ICS: ${{ secrets.IVRC_CALENDAR_ICS }}
+        run: python .github/scripts/sync_calendar.py --private-clone private

@@ -6,6 +6,8 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 
 ```
 水曜    ルーティン (mtg-agenda)   金曜 MTG の議題 Issue を作る
+MTG 前  余裕があれば各自          議題 Issue に、話したいことをひとことコメント
+金曜    MTG                       議題を上から話して、その場で決める。録音する
 金曜    録音 → inbox に置く → run.ps1 を実行して帰る
           ├ transcribe.ps1  音量の正規化 → faster-whisper (large-v3) で文字起こし
           ├ clean.py        幻覚・繰り返しの除去、corrections.tsv の置換
@@ -167,6 +169,18 @@ Windows の見張り（`watch.ps1`）は、`processing/` に録音がある間�
 - `~\Github\MouthOfGod_transcripts\config\corrections.local.tsv`（任意）: 人名の聞き間違いの置換表（`誤<タブ>正`）。`clean.py` が使う。非公開リポジトリには入る（公開リポジトリには入らない）
 - 行頭の `?`（`clean.txt`）: Whisper 自身が自信を持てなかった行。Claude の校正で重点的に直される。自信を持った誤認識（例: 「時給」→「地球」）は `?` が付かないので、校正は全体を読む
 - `tools/mtg/clean.py`: 「ご視聴ありがとうございました」「音楽」などの幻覚と、同じ行の繰り返しを取り除く（Whisper は無音や雑音の区間で、学習データの字幕を作り出す）
+
+## チームのカレンダー（IVRC2026）を議題に使う
+
+GitHub Actions「Calendar sync」（`.github/workflows/calendar-sync.yml`）が、毎朝 6 時台に、チームの Google カレンダーの、これから 3 週間の予定を、非公開リポジトリの `calendar/upcoming.md` に書く。水曜の議題が読み、「お知らせ」に日付と予定の名前だけを書く（議題 Issue は公開なので、名前・理由・場所は書かない）。
+
+**初回の設定**（カレンダーの持ち主が 1 回だけ）:
+1. Google カレンダーの「設定と共有」→ IVRC2026 →「カレンダーの統合」の「**iCal 形式の非公開 URL**」をコピーする。**この URL を知っている人は誰でも予定を読める。** チャット・Issue・コミットに貼らない
+2. このリポジトリの Settings → Secrets and variables → Actions に、`IVRC_CALENDAR_ICS` として入れる
+3. claude.ai のルーティン「MTG の議題」に、リポジトリ `Fialuxe/MouthOfGod_transcripts` を足す
+4. Actions の「Calendar sync」→ Run workflow で一度動かし、非公開リポジトリに `calendar/upcoming.md` ができることを確かめる
+
+URL が漏れたら、同じ画面の「リセット」で URL を作り直し、Secrets を入れ替える。
 
 ## 水曜のルーティン
 
