@@ -135,7 +135,7 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
   - `mtg-decide`: その場で決めたいもの。Issue に「決めてほしいこと」を番号付きで書いておく
   - 一覧: [mtg-share](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3Amtg-share)・[mtg-decide](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3Amtg-decide)
 - **議題 Issue**（MTG 1 回につき 1 つ。題は「次の MTG の議題と議事録」、ラベルは `mtg-share`）:
-  - 本文は Claude が水曜に下書きする（今日決めること、Claude からの質問、前回のアクション。根拠は折りたたみの中）
+  - 「共有すること」と「決めること（締切の近い順）」を並べる。本文は Claude が水曜に下書きする（共有すること: 前回のアクション・見てほしいもの・お知らせ。決めること: Issue・Claude からの質問。根拠は折りたたみの中）
   - **話したいことは、議題 Issue にコメントで書く**（1 話題 1 コメント、形式は自由）。Issue のないこと（マージした PR、決まりの変更、お知らせ）も、ここに書けば共有できる。MTG では、本文とコメントを流し見しながら話す
   - **Claude からの質問**には、MTG で「Q1 は A」のように答えるか、元のコメントに返信する。答えは Claude が元の Issue に書き戻し、次の実行で使う。答えなければ、質問に書かれた「決めなければ」で進むか、止まったまま次の議題に残る（形は [docs/mtg-context.md](docs/mtg-context.md#claude-からの質問)）
   - **作業の PR には `Refs #N`（終わるなら `Closes #N`）を書く**。書かないと、Claude は進み具合を「記録なし」としか判定できない
