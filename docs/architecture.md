@@ -92,7 +92,7 @@ Village(DeliveryZone) --Delivered(Accepted?)--> Village(FieldView: 村が変わ�
 | 用途 | 型・イベント | 置き場所 |
 |---|---|---|
 | 食感 | `TextureId`（論理 ID。物理量は Device の内側で ID に変換する） | Core |
-| 入力 | `IDevice`: `TextureChanged`、`Confirmed`、`Bitten` | Core（interface）／ Device（実装） |
+| 入力 | `IDevice`: `Current`、`TextureChanged`、`Confirmed`（決定したときの食感を運ぶ）、`Bitten` | Core（interface）／ Device（実装） |
 | 食べ物 | `FoodId`、`FoodCatalog.Resolve(TextureId)` → `FoodId`、`FoodSpawner.Spawned` | Food |
 | 届け先 | `FieldId`、`Field.Accepts(FoodId)`、`DeliveryZone.Delivered(DeliveryResult)` | Village |
 | 要求 | `Request`（`FoodId`、`FieldId`）、`RequestIssued` | Village |
