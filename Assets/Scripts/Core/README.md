@@ -60,8 +60,11 @@ public sealed class FoodSpawner : MonoBehaviour
 }
 ```
 
+- `WhenReady` には、ラムダではなくメソッド（上の `Attach`）を渡す。ラムダは `CancelWhenReady` で取り消せない。
 - いまの食感だけ読みたいときは `Devices.Current?.Current`（デバイスがまだ無ければ null）。
-- デバイスは 1 台の前提。2 台目の `Register` は受け付けない（`false` を返す）。
+- デバイスは 1 台の前提。2 台目の `Register` は受け付けない（警告を出して `false` を返す）。登録は起動時に 1 回の前提で、途中の差し替えは、すでに受け取った側に知らせない。
+- `Devices` もイベントも、メインスレッドから使う。
+- イベントの順番と意味（`Current` を更新してから `TextureChanged` を出す、など）は `IDevice.cs` のコメント。
 
 ## 決めたこと
 
