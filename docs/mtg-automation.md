@@ -6,6 +6,8 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 
 ```
 水曜    ルーティン (mtg-agenda)   金曜 MTG の議題 Issue を作る
+MTG 前  各自（書けたら）        議題 Issue に、話したいことをひとことコメント
+金曜    MTG                       議題を上から話して、その場で決める。録音する
 金曜    録音 → inbox に置く → run.ps1 を実行して帰る
           ├ transcribe.ps1  音量の正規化 → faster-whisper (large-v3) で文字起こし
           ├ clean.py        幻覚・繰り返しの除去、corrections.tsv の置換
