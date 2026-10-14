@@ -8,7 +8,7 @@ namespace MouthOfGod.Device
     /// <summary>
     /// デバイスなしで動かす IDevice。Meta Quest のコントローラ（ゲームパッド・キーボードも可）で「噛む・決定する」を代わりにする。
     /// 噛み始めで Bitten、噛んでいる間は一定間隔で TextureChanged、決定操作で Confirmed。操作の割り当ては Inspector（InputAction）で変えられる。
-    /// スクリプトで作れる（GetOrCreate）。エディタで Play すると自動で用意する。実機ビルドでは自動生成しない。
+    /// スクリプトで作れる（GetOrCreate）。Play すると自動で用意する。
     /// </summary>
     public sealed class MockDevice : MonoBehaviour, IDevice
     {
@@ -56,11 +56,9 @@ namespace MouthOfGod.Device
             return device;
         }
 
-#if UNITY_EDITOR
-        // エディタで Play したときだけ、デバイスなしで動かせるように自動で用意する。実機ビルドでは作らない。
+        // Play したときに自動で用意する（Inspector の設定は不要）。実機の IDevice ができたら、検出できたときは作らないようにする。
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void AutoCreateInEditor() => GetOrCreate();
-#endif
 
         void Awake()
         {
