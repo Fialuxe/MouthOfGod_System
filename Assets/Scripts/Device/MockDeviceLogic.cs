@@ -24,10 +24,13 @@ namespace MouthOfGod.Device
         }
 
         internal event Action<TextureId> TextureChanged;
-        internal event Action Confirmed;
+        internal event Action<TextureId> Confirmed;
         internal event Action Bitten;
 
         internal bool IsBiting { get; private set; }
+
+        /// <summary>いまの食感。噛むのをやめても残る（離してから決定できるように）。まだ噛んでいなければ None。</summary>
+        internal TextureId Current { get; private set; }
 
         /// <summary>噛み始め。Bitten のあと、最初の食感をすぐ通知する。噛んでいる間の呼び出しは無視する。</summary>
         internal void BeginBite()
@@ -59,10 +62,10 @@ namespace MouthOfGod.Device
             }
         }
 
-        /// <summary>決定。噛んでいるかどうかに関係なく Confirmed を出す（ボタン操作なので）。</summary>
+        /// <summary>決定。噛んでいるかどうかに関係なく、いまの食感を付けて Confirmed を出す（ボタン操作なので）。</summary>
         internal void Confirm()
         {
-            Confirmed?.Invoke();
+            Confirmed?.Invoke(Current);
         }
 
         void EmitCurrent()
@@ -70,6 +73,7 @@ namespace MouthOfGod.Device
             if (_textureIds.Length == 0) return;
             var id = new TextureId(_textureIds[_index]);
             if (id.IsEmpty) return; // 空欄の要素は通知しない
+            Current = id;
             TextureChanged?.Invoke(id);
         }
     }
