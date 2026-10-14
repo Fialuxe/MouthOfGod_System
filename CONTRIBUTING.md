@@ -135,7 +135,7 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 | 1. 議題の下書き | 水曜 | Claude（自動） | 議題 Issue を作る（共有すること・決めること・Claude から聞きたいこと） |
 | 2. 各自のコメント | MTG の前 | 書く余裕がある人 | 話したいことを、議題 Issue にひとことコメント。無くてもよい。**前もって決めておく必要はない** |
 | 3. MTG | 金曜 | 全員 | 議題を補助線に話す（全部を進めなくてよい）。決めることは、その場で話して決める。Claude から聞きたいことにも、口で答える。**録音する** |
-| 4. 文字起こし | MTG の後 | 録音を置く人 → 自動 | 録音を `mtg-inbox` に置くと、文字起こしが始まる |
+| 4. 文字起こし | MTG の後 | 録音を置く人 → 自動 | 録音を [`mtg-inbox`](https://drive.google.com/drive/folders/1PBN9Ckx2SGr4Tx_-3p87E8MYO3VkB2Xi?usp=drive_link) に置くと、数時間以内に文字起こしが始まる（置き方は [録音の置き方](docs/templates/mtg-recording.md)。議題 Issue にも毎回入る） |
 | 5. 反映 | 自動 | Claude | 議事録を議題 Issue にコメントし、`docs/minutes/` の PR を作る |
 | 6. Issue の更新 | 自動 | Claude | 決めたことを各 Issue に書く、ラベルを外す、Claude の質問の答えを書き戻す、終わった Issue を閉じる |
 
