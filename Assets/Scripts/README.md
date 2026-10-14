@@ -6,7 +6,7 @@
 
 | フォルダ | 役割 | 担当 |
 |---|---|---|
-| `Core/` | 全体で共有する小さな基盤（ID の型 `TextureId` `FoodId` `FieldId` `CueId`、イベントのデータ、`IDevice`）。他のフォルダに依存しない | |
+| `Core/` | 全体で共有する小さな基盤（ID の型 `TextureId` `FoodId` `FieldId` `CueId`、イベントのデータ、`IDevice` と受け取り口の `Devices`）。他のフォルダに依存しない | |
 | `Device/` | 触感デバイス・Arduino との通信 | |
 | `Tracking/` | VR・位置取得 | |
 | `Tutorial/` | チュートリアル 1〜4 の進行 | |

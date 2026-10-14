@@ -86,6 +86,7 @@ Village(DeliveryZone) --Delivered(Accepted?)--> Village(FieldView: 村が変わ�
 - Tutorial は Device を直接見ない（`MockDevice` に差し替えても動く）。
 - Tutorial から村や UI への指示（「この場所を光らせる」など）は、Tutorial が Core の `CueRequested(CueId)` を発行し、Village や UI が購読する（依存の向きを保つため）。
 - 機能の中は C# の `event`。機能をまたぐものは、Core の interface とイベントを Bootstrap が起動時に渡す。ScriptableObject のイベントチャンネルは、必要になるまで採用しない。
+- 例外: `IDevice` は、Core の `Devices` から受け取る（`Devices.WhenReady`）。デバイスは全体で 1 台で、Bootstrap を待たずに、どのシーンでも使えるようにするため。どのデバイス（Mock か実機か）を登録するかは Device 側が決める。`Devices` のような全体の置き場は、デバイス以外には増やさない。
 
 ### 型とイベント（案。名前は仮）
 
