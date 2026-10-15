@@ -19,6 +19,7 @@ namespace MouthOfGod.Village.Tests
         {
             _root = new GameObject("TestField");
             _field = _root.AddComponent<FieldStages>();
+            _field.FieldId = "village";
             _farmer = NewChild("Farmer", _root.transform).AddComponent<VillagerMood>();
             _elder = NewChild("Elder", _root.transform).AddComponent<VillagerMood>();
             _withered = NewChild("Withered", _root.transform);
@@ -149,6 +150,7 @@ namespace MouthOfGod.Village.Tests
             between.transform.SetSiblingIndex(1);
             between.Food = "test-turnip";
             var field = new GameObject("Other").AddComponent<FieldStages>();
+            field.FieldId = "village";
             _sprout.transform.parent.SetParent(field.transform); // 新しいフィールドは、いまの並びを読む
             var issued = new List<RequestIssued>();
             field.Issued += issued.Add;
@@ -176,6 +178,24 @@ namespace MouthOfGod.Village.Tests
             Assert.AreEqual(1, issued.Count);
             Assert.AreEqual(new FoodId("test-carrot"), issued[0].Food);
             Assert.IsTrue(_field.IsOpen);
+        }
+
+        [Test]
+        public void OpenWithFood_OpensThatStep_RegardlessOfOrder()
+        {
+            var issued = new List<RequestIssued>();
+            _field.Issued += issued.Add;
+
+            Assert.IsFalse(_field.Open(new FoodId("test-fish")));
+            Assert.IsTrue(_field.Open(new FoodId("test-pumpkin")));
+            Assert.IsFalse(_field.Open(new FoodId("test-carrot")), "出ている間は出せない");
+
+            Assert.AreEqual(1, issued.Count);
+            Assert.AreEqual(new FoodId("test-pumpkin"), issued[0].Food);
+            Assert.AreEqual(_elder.transform, issued[0].Anchor);
+            Assert.IsTrue(_field.Resolve(new FoodId("test-pumpkin")));
+            Assert.IsTrue(_field.IsDone(_crops));
+            Assert.IsFalse(_field.IsDone(_sprout));
         }
 
         [Test]

@@ -99,6 +99,20 @@ namespace MouthOfGod.Village.Tests
         }
 
         [Test]
+        public void TryOpenWithFood_OpensTheFirstNotDoneStepWantingIt()
+        {
+            var progress = new StepProgress(new[] { Carrot, Pumpkin, Pumpkin });
+            progress.Complete(1);
+
+            Assert.IsTrue(progress.TryOpen(Pumpkin, out var index));
+            Assert.AreEqual(2, index);
+            Assert.IsFalse(progress.TryOpen(Carrot, out _), "出ている間は出せない");
+            progress.Close();
+            Assert.IsFalse(progress.TryOpen(new FoodId("test-fish"), out _));
+            Assert.IsFalse(progress.TryOpen(FoodId.None, out _));
+        }
+
+        [Test]
         public void EmptyWant_IsSkippedWhenOpening()
         {
             var progress = new StepProgress(new[] { FoodId.None, Pumpkin });

@@ -123,7 +123,7 @@ Village                 ← FieldStages（フィールドに 1 つ。ID は vill
                       ┌─ Game（本編）: 最初の 30 秒は 1 つずつ、あとは同時に最大 2 つ。20 秒で Expire
   いつ・どこに出すか ─┤
                       └─ Tutorial（T3・T4）: 「海に出す」をステップのデータで指定
-              │ IFieldRequests.Open() / Expire() / CanOpen    （Core。Bootstrap がフィールドの数だけ渡す）
+              │ IFieldRequests.Open() / Expire() / CanOpen    （Core。フィールドは Fields に自分で登録し、ここから受け取る）
               ▼
   フィールド（いつもは FieldStages。独自の作りでもよい）
               │ RequestIssued(Food, Field, Anchor)   → UI: 吹き出しを Anchor の上に出す
@@ -156,10 +156,11 @@ Village                 ← FieldStages（フィールドに 1 つ。ID は vill
 | `Field` | 誰でも | このフィールドの ID | — |
 | `IsOpen` | 誰でも | 欲しい物が出ているか | — |
 | `CanOpen` | Game・Tutorial | 次を出せるか（出ているものが無く、まだ欲しい物が残っている。`Food` が空のステップは数えない） | — |
-| `Open()` | Game・Tutorial | 次の欲しい物を出す | 出せたら true で、`Issued` が 1 回。出ている・残りが無いなら false で、イベントは出ない |
+| `Open()` | Game | 次の欲しい物を出す（並び順で、まだ済んでいない最初のもの） | 出せたら true で、`Issued` が 1 回。出ている・残りが無いなら false で、イベントは出ない |
+| `Open(food)` | Tutorial | その物を欲しがる、まだ済んでいないステップを出す（並び順によらない。台本で物が決まっているとき） | 同上。その物を欲しがるステップが無いなら false |
 | `Resolve(food)` | DeliveryZone | 物がこのフィールドに届いた | 出ている物と同じなら true で、見た目が変わってから `Closed`（`Resolved = true`）。違う物・出ていないなら false で、何も変わらない |
 | `Expire()` | Game（待ち時間切れ） | 出ている欲しい物を、届かないまま終える | 出ていれば `Closed`（`Resolved = false`）。出ていなければ何もしない |
-| `Restart()` | Bootstrap（体験の終わり） | はじめに戻す | 見た目を戻してから、出ていれば `Closed`（`Resolved = false`） |
+| `Restart()` | 体験の終わり（次の人へ）を受け持つ所 | はじめに戻す | 見た目を戻してから、出ていれば `Closed`（`Resolved = false`） |
 | `Issued` | UI・Game・Tutorial が聞く | 欲しい物が出た | `RequestIssued` |
 | `Closed` | UI・Game・Tutorial が聞く | 欲しい物が終わった | `RequestClosed` |
 
@@ -189,6 +190,32 @@ Village の中と、フィールドの担当のスクリプトから使います
 - `Hide When Done` に入れた物と、ステップの子の出し入れは `FieldStages` が受け持つ。ほかのスクリプトから `SetActive` しない（次に見た目を写し直すときに戻される）。
 - 新しいフィールドでは、`FieldStages` の `Field Id` を自分のフィールドの ID にする（既定は `village`）。
 
+### `Fields`（Core の置き場）
+
+| メンバー | すること |
+|---|---|
+| `Register(field)` | フィールドが、有効になったとき（`OnEnable`）に自分を登録する。ID が空・同じ ID がもうあるなら、登録せず警告して false |
+| `Unregister(field)` | 無効になったとき（`OnDisable`）に外す。`FieldStages` は、出ていた欲しい物を終えてから（`Closed`）外す |
+| `All` | いま登録されているフィールド |
+| `Added` / `Removed` | 登録された・外れた。使う側は `All` を見てから `Added` を購読し、`OnDisable` で購読を外す |
+| `Find(id)` | その ID のフィールド。無ければ null |
+
+Play のたびに空になる（前の Play の登録や購読は残らない）。テストでは、`IFieldRequests` の偽物を登録して使う。
+
+### ID の決め方
+
+| ID | 決め方 | 例 |
+|---|---|---|
+| フィールド（`FieldId`） | 4 つだけ: `village` / `mountain` / `sea` / `grassland`。`FieldStages` の初期値は空なので、自分のフィールドの ID を入れる | `sea` |
+| 合図（`CueId`。光らせる場所・足あとの印など） | 各担当が自由に作るので、**フィールド名から始める** | `sea.footprint`、`village.glow` |
+| 食べ物（`FoodId`） | 食べ物のデータ（`FoodDefinition`）の名前をそのまま使う。前に何も付けない | `fish` |
+
+### 抜けの知らせ
+
+Play の始めに、次のものは Console に警告が出る（Play は止めない。テストでも止めない）。
+- フィールド ID が空、または他のフィールドと同じ（`Fields`）
+- ステップが 1 つも無い、欲しい物（`Food`）が空のステップ、助かる人（`Helped`）が空のステップ（`FieldStages`）
+
 ### 独自の実装で守ること
 
 `IFieldRequests` を自分で実装するときも、上の「共通の前提」と表の約束を守る。特に、同時に 1 つ、`Issued` と `Closed` が交互、状態を変えてから `Closed`、の 3 つ。守れば、本編・チュートリアル・吹き出しは中身を知らずに動く。
@@ -213,9 +240,8 @@ Village の中と、フィールドの担当のスクリプトから使います
 | チュートリアル（Tutorial、#60・#50） | ステップのデータに「どのフィールド（`FieldId`）に出すか」を書き、`Open` を呼ぶ。`Closed` で次へ | Tutorial のコードとデータ | 同上 |
 | 吹き出し（UI、#59） | `Issued` で `Anchor` の上に出し、`Closed` で消す（`Resolved` で喜ぶ・がっかりを分ける） | UI のコード・Prefab | 同上 |
 | 届いたかを決める所（DeliveryZone） | 物がそのフィールドに落ちたら、そのフィールドの `IFieldRequests.Resolve(food)`。戻り値を `Delivered` の `Accepted` に使う | DeliveryZone のコード | — |
-| 組み立て（Bootstrap、#34） | シーンの `IFieldRequests` を全部集め、Game・Tutorial・UI に渡す。体験の終わりに各フィールドを `Restart()` | Bootstrap のコード | — |
 
-- Game・Tutorial・UI・DeliveryZone・Bootstrap は、`FieldStages` を直接使わない（Bootstrap も集めるときに `IFieldRequests` として扱う）。Village のクラスを直接参照しない（asmdef で禁止。[architecture.md](architecture.md) §2）。見るのは Core の `IFieldRequests`・`RequestIssued`・`RequestClosed` だけ。
+- Game・Tutorial・UI・DeliveryZone は、フィールドを `Fields`（Core の置き場）から `IFieldRequests` として受け取り、`FieldStages` を直接使わない。Village のクラスを直接参照しない（asmdef で禁止。[architecture.md](architecture.md) §2）。見るのは Core の `IFieldRequests`・`RequestIssued`・`RequestClosed` だけ。
 - `IFieldRequests` の形（メンバーと意味）を変えるときは、使う側すべてに効くので、別の PR にする。
 
 ## 4 人が別々の作りにしても、合わせられるか
@@ -226,13 +252,21 @@ Village の中と、フィールドの担当のスクリプトから使います
 |---|---|---|
 | 見た目の演出だけ（魚が船の上で跳ねる、動物が歩き回る） | ステップの子の物に自分のスクリプトを付ける。済んで出たとき（`OnEnable`）に動き出す。または `FieldStages.StepDone` を受ける | なし |
 | 音・光 | `FieldStep` の `On Done` に Inspector でつなぐ | なし |
-| フィールドの仕組みごと（ステップでは表せない、独自の進み方） | 自分の MonoBehaviour で `IFieldRequests` を実装する（Core だけを参照）。`FieldStages` は使わなくてよい | なし。Bootstrap が `IFieldRequests` として集めるので、本編・チュートリアル・吹き出しはそのまま使える |
+| フィールドの仕組みごと（ステップでは表せない、独自の進み方） | 自分の MonoBehaviour で `IFieldRequests` を実装する（Core だけを参照）。`FieldStages` は使わなくてよい | なし。有効になったら `Fields.Register(this)` するだけで、本編・チュートリアル・吹き出しはそのまま使える |
 
 本編の出し方（Game）も、`IFieldRequests` しか見ないので、フィールドの作りが変わっても直さなくてよい。
 
+## チュートリアルと本編
+
+チュートリアル（T3・T4）と本編は別の場面ですが、**同じフィールドを使い続けます**。
+- T4 で海に魚を届けると、海の「魚を欲しがるステップ」が済んだまま、本編が始まる（チュートリアルでやったことが、本編の村に残る）。本編はそれ以外の、まだ済んでいないステップを並び順に出す。
+- チュートリアルは、台本で物が決まっているので `Open(food)` で出す（海の担当がステップを並べ替えても、魚のステップがあれば壊れない）。本編は `Open()` で並び順に出す。
+- フィールドがはじめに戻るのは、体験の終わり（次の人へ）だけ。チュートリアルと本編の間では戻さない。
+
 ## 足りないもの（この仕組みの外で作る）
 
-- 吹き出し（#59）、届いたかを決める所（DeliveryZone）、組み立て（#34）、本編の出し方（#81）。
+- 吹き出し（#59）、届いたかを決める所（DeliveryZone、#63）、本編の出し方（#81）。
+- 後から足す（今の約束を変えずに足せる）: 「いまの場面」（チュートリアル中は本編が出さない）と「体験者がいまいるフィールド」（届け先）の置き場、欲しくない物が届いたときの村人の反応（T2 で少し喜ぶ、T3 で首をかしげる、本編で首を振る）、体験の終わりに各フィールドを `Restart` する所。
 - 待ちきれなかったときの村人の反応（がっかり）。今の `VillagerMood` は「済んだか」しか見ない。`RequestClosed(Resolved = false)` を見て反応させるのは、そのとき足す。
 - 欲しい物の ID（村の carrot・pumpkin・sheep・pig）は仮。食べ物の ID は、食感と食べ物の対応（#31）で決まる。
 

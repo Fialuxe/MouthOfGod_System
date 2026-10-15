@@ -66,13 +66,13 @@ UI          表示。Core のイベントを購読                           Cor
  ↑
 Tutorial    ステップの進行（データ駆動）                          Core のみ。Game とは互いに依存しない
 Game        本編（時間・スコア）                                  Core のみ
- ↑
-Bootstrap   起動時の組み立て。全機能を参照できる唯一の場所
 ```
+
+全機能を参照する組み立て役（Bootstrap）は置かない（2026-10-15。[決めたことの記録](decisions.md)）。
 
 - 横の機能どうし（Device ↔ Food ↔ Village ↔ UI）は**相互参照を禁止**し、asmdef で強制する。
 - 参照できるのは「下の層だけ」。Tutorial が Device や Village のクラスを直接叩かない。
-- 機能どうしを結びつけるのは Bootstrap だけ。Inspector での手配線に頼らない（CONTRIBUTING「最終的に Inspector／Editor の操作が要らないシステムにする」）。
+- 機能どうしは、Core の置き場でつながる。**機能をまたいで使う「もの」（デバイス・フィールドなど）は、Core の置き場に自分で登録し、使う側はそこから受け取る。** やりとりの中身は、その「もの」の interface とイベントで行う。置き場は「もの」にだけ作り、知らせ 1 つ 1 つには作らない。いまある置き場は `Devices` と `Fields`（一覧は Core の README）。 Inspector での手配線に頼らない（CONTRIBUTING「最終的に Inspector／Editor の操作が要らないシステムにする」）。
 
 ## 3. 流れはイベントの連鎖にする
 
@@ -87,8 +87,9 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 - Tutorial は Device を直接見ない（`MockDevice` に差し替えても動く）。
 - 欲しい物は、フィールドが「何が欲しいか・届いたら何が変わるか」を持ち、「いつ・どこに出すか」は Game（本編）と Tutorial が決める。分担と流れは [requests.md](requests.md)。
 - Tutorial から村や UI への指示（「この場所を光らせる」など）は、Tutorial が Core の `CueRequested(CueId)` を発行し、Village や UI が購読する（依存の向きを保つため）。
-- 機能の中は C# の `event`。機能をまたぐものは、Core の interface とイベントを Bootstrap が起動時に渡す。ScriptableObject のイベントチャンネルは、必要になるまで採用しない。
-- 例外: `IDevice` は、Core の `Devices` から受け取る（`Devices.WhenReady`）。デバイスは全体で 1 台で、Bootstrap を待たずに、どのシーンでも使えるようにするため。どのデバイス（Mock か実機か）を登録するかは Device 側が決める。`Devices` のような全体の置き場は、デバイス以外には増やさない。
+- 機能の中は C# の `event`。機能をまたぐものは、Core の interface とイベントで、相手は Core の置き場から受け取る。ScriptableObject のイベントチャンネルや、知らせの通り道（イベントバス）は採用しない（流れが追えなくなり、返事や順番の約束を守らせにくい）。
+- `IDevice` は `Devices` から（`Devices.WhenReady`。どのデバイスを登録するかは Device 側が決める）、フィールドは `Fields` から（`Fields.All`・`Fields.Added`）受け取る。どのシーンでも、置くだけでつながる。
+- 置き場を足してよいのは、機能をまたいで使う「もの」が増えたときだけ。候補は「体験者がいまいるフィールド」「いまの場面（チュートリアル・本編・エンディング）」で、使う側を作るときに足す。置き場は static なので、Play のたびに空にする（`Reset`、`RuntimeInitializeOnLoadMethod`）。
 
 ### 型とイベント（案。名前は仮）
 
@@ -98,7 +99,7 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 | 入力 | `IDevice`: `Current`、`TextureChanged`、`Confirmed`（決定したときの食感を運ぶ）、`Bitten` | Core（interface）／ Device（実装） |
 | 食べ物 | `FoodId`、`FoodCatalog.Resolve(TextureId)` → `FoodId`、`FoodSpawner.Spawned` | Food |
 | 届け先 | `FieldId`、`Field.Accepts(FoodId)`、`DeliveryZone.Delivered(DeliveryResult)` | Village |
-| 欲しい物（要求） | `IFieldRequests`（`Open`・`Resolve`・`Expire`・`Restart`）、`RequestIssued`（`Anchor` 付き）、`RequestClosed` | Core（interface・イベント）／ Village（`FieldStages`・`FieldStep`） |
+| 欲しい物（要求） | `Fields`（置き場）、`IFieldRequests`（`Open`・`Resolve`・`Expire`・`Restart`）、`RequestIssued`（`Anchor` 付き）、`RequestClosed` | Core（interface・イベント）／ Village（`FieldStages`・`FieldStep`） |
 | 進行 | `TutorialRunner`、`StepEntered`、`StepCompleted`、`CueRequested` | Tutorial ／ Core |
 
 - 食感・食べ物を `enum` で Core に直書きしない。追加のたびに全機能が再コンパイルされ、素材担当が触れなくなる。ID は文字列にする（決定。CONTRIBUTING「型の名前とデータの置き場所」）。
@@ -107,7 +108,7 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 
 チュートリアル 1〜4 は、互いを知らない（T3 のコードに「T2 では」と書かない）。それでも、「T2 で覚えた食感の対応」「どこまで進んだか」のようなデータは、次のチュートリアルや、抜き差しのあとの続き（#144）に引き継ぐ必要がある。そこで、**引き継ぐものを、名前の付いた「記録」にして、Core の小さな interface 越しに読み書きする。**
 
-- Core に `IProgress`（記録の読み書き。例: `Has(ProgressKey)`、`Set(ProgressKey)`）と、記録の名前 `ProgressKey`（文字列を包んだ型）を置く。実装は Bootstrap が渡す（保存の仕方は実装の中に閉じる）。
+- Core に `IProgress`（記録の読み書き。例: `Has(ProgressKey)`、`Set(ProgressKey)`）と、記録の名前 `ProgressKey`（文字列を包んだ型）を置く。実装は、Core の置き場に登録し、使う側はそこから受け取る（`Devices` と同じ形。保存の仕方は実装の中に閉じる）。
 - 各 `TutorialStep` のデータに、「始めるのに必要な記録」と「終わったら残す記録」を書く。T3 は、T2 のことではなく、**記録の名前だけ**を見る（例: `texture-mapping-learned`）。T2 を直しても、記録の名前を変えなければ、T3 は壊れない。
 - 記録は「事実の名前」にする（`t2-done` のように、特定のチュートリアルを指す名前は避ける）。値を持たせるのは必要になってから。
 - **記録の名前は、1 か所の一覧に書く**（`docs/progress-keys.md`、記録を足す PR で一緒に足す）。一覧にない名前を、コードやデータに書かない。名前が人によってずれると、見えない結合になる。PR のレビューでは、足した記録の名前が一覧と合っているか、特定のチュートリアルを指していないかを見る。
@@ -165,7 +166,7 @@ ScriptableObject や Prefab の `.asset` / `.prefab` は、GUID と参照を含�
 
 | 避けること | なぜ困るか | 代わりに |
 |---|---|---|
-| `GameManager` / `GameFlow` が Device・Village・UI・各チュートリアルを全部持つ | 全員がそのファイルを編集するので順番待ちになる。1 か所の変更が全体を壊す | 機能ごとに分け、イベントでつなぐ。組み立ては Bootstrap |
+| `GameManager` / `GameFlow`（や、全部をつなぐ Bootstrap）が Device・Village・UI・各チュートリアルを全部持つ | 全員がそのファイルを編集するので順番待ちになる。1 か所の変更が全体を壊す | 機能ごとに分け、イベントでつなぐ。相手は Core の置き場から受け取る |
 | チュートリアルごとの処理を、共通クラスの `switch` や `if` で分ける | チュートリアルを足す・直すたびに共通ファイルを編集し、互いを壊しやすい | `TutorialRunner` は共通、中身はチュートリアルごとのデータ |
 | 全部のデータを 1 つのアセットに入れる | マージできないので、同時に編集できない | 1 件 1 アセット |
 | 対応表などの「目次」を、手で編集するリストにする | 何かを足すたびに全員が同じファイルを触る | 1 件ずつのアセットを集めて作る |
@@ -174,8 +175,8 @@ ScriptableObject や Prefab の `.asset` / `.prefab` は、GUID と参照を含�
 | Device がゲームの状態（旧 `UserChoice`）を持つ | 通信とゲームの都合が絡み、Mock に差し替えられない | Device は入力を ID とイベントにするだけ |
 | Tutorial が Village の Field などを直接叩く | 依存の向きが崩れ、片方だけ直せなくなる | Core のイベント（`CueRequested` など）経由 |
 | 食感・食べ物を `enum` で Core に直書き | 追加のたびに全体が再コンパイル。素材担当が触れない | 文字列 ID か ScriptableObject |
-| `static` なシングルトンの乱用、`FindObjectOfType` / `GameObject.Find` | どこから使われているか追えない。テストで差し替えられない | Bootstrap から渡す |
-| 機能をまたぐ `[SerializeField]` の手配線 | Play の前に手作業が要る。付け忘れで動かない | Bootstrap がコードで組み立てる |
+| `static` なシングルトンの乱用、`FindObjectOfType` / `GameObject.Find` | どこから使われているか追えない。テストで差し替えられない | Core の置き場（`Devices`・`Fields`）から受け取る。置き場は Core の README の一覧にあるものだけ |
+| 機能をまたぐ `[SerializeField]` の手配線 | Play の前に手作業が要る。付け忘れで動かない | 自分で Core の置き場に登録し、使う側はそこから受け取る |
 | 定数（ポート名、しきい値）をコードに埋め込む | 調整のたびにコードを直す | ScriptableObject か設定から渡す |
 
 ## 7. レビューのときのチェック項目
@@ -193,5 +194,5 @@ ScriptableObject や Prefab の `.asset` / `.prefab` は、GUID と参照を含�
 
 ## 関連
 - #29 全体設計（この文書のもと。未確定事項）
-- #6 実行用シーンとフォルダ構成、#20 村のレイアウトとフィールド、#34 Bootstrap（起動とシーンの読み込み）、#43 Scene Fusion の作業ルール
+- #6 実行用シーンとフォルダ構成、#20 村のレイアウトとフィールド、#34 Bootstrap（起動とシーンの読み込み。組み立て役は置かないことにした）、#43 Scene Fusion の作業ルール
 - #18 デバイス連携の設計、#46 デバイスの仕組みと Mock、#47 実機のデバイスとつなぐ

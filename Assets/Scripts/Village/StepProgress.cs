@@ -67,6 +67,20 @@ namespace MouthOfGod.Village
             return true;
         }
 
+        /// <summary>その物を欲しがる、まだ済んでいない最初のステップを出す。出ているものがある・無いなら false（index は -1）。</summary>
+        public bool TryOpen(FoodId food, out int index)
+        {
+            index = -1;
+            if (IsOpen || food.IsEmpty) return false;
+            for (var i = 0; i < _wants.Length; i++)
+            {
+                if (_done[i] || _wants[i] != food) continue;
+                index = OpenIndex = i;
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>届いた物が出ている欲しい物と同じなら、そのステップを済ませて閉じる（true）。違う物・出ていないときは false（index は -1）。</summary>
         public bool TryResolve(FoodId delivered, out int index)
         {

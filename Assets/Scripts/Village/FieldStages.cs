@@ -8,13 +8,13 @@ namespace MouthOfGod.Village
     /// <summary>
     /// フィールド（山・海・草原・村）の戻り方と欲しい物。フィールドの一番上の物に 1 つ付ける。
     /// 戻り方は、下にある <see cref="FieldStep"/> を Hierarchy の並び順に使う（番号は持たない）。
-    /// 欲しい物を出す（<see cref="Open"/>）のは、本編（Game）とチュートリアル（Tutorial）が <see cref="IFieldRequests"/> 越しに呼ぶ。
-    /// いつ出すかは、ここでは決めない（docs/requests.md）。
+    /// 有効になると Core の <see cref="Fields"/> に自分を登録する。本編（Game）とチュートリアル（Tutorial）は、そこから <see cref="IFieldRequests"/> として受け取り、
+    /// 欲しい物を出す（<see cref="Open()"/>）。いつ出すかは、ここでは決めない（docs/requests.md）。
     /// </summary>
     public sealed class FieldStages : MonoBehaviour, IFieldRequests
     {
-        [Tooltip("フィールドの ID（docs/fields.md）。village / mountain / sea / grassland")]
-        [SerializeField] string fieldId = "village";
+        [Tooltip("フィールドの ID（docs/fields.md）。village / mountain / sea / grassland のどれか。空のままだと、本編などにつながらない（Play の始めに警告）")]
+        [SerializeField] string fieldId = "";
 
         FieldStep[] _steps;
         StepProgress _progress;
@@ -30,7 +30,20 @@ namespace MouthOfGod.Village
         /// <summary>はじめ（全部まだ）に戻したとき。</summary>
         public event Action Restarted;
 
-        public string FieldId => fieldId;
+        /// <summary>フィールドの ID。有効な間に変えると、Fields に登録し直す（空・重なりの確かめもやり直す）。</summary>
+        public string FieldId
+        {
+            get => fieldId;
+            set
+            {
+                if (fieldId == value) return;
+                // 登録は Play 中だけ（OnEnable と同じ）。編集中・EditMode のテストでは掲示板に触らない
+                var registered = Application.isPlaying && isActiveAndEnabled;
+                if (registered) Fields.Unregister(this);
+                fieldId = value;
+                if (registered) Fields.Register(this);
+            }
+        }
         public FieldId Field => new FieldId(fieldId);
         public IReadOnlyList<FieldStep> Steps => StepsInOrder;
         public int DoneCount => Progress.DoneCount;
@@ -56,13 +69,49 @@ namespace MouthOfGod.Village
             }
         }
 
-        // その時点の進み具合を見た目に写す（ふつうは、全部のステップがまだの見た目）。
-        void Start() => Apply(celebrate: false);
+        // 掲示板への登録。ID が空・重なっているときは、Fields が警告を出す。
+        void OnEnable() => Fields.Register(this);
+
+        // 出ていた欲しい物は終えてから外す（使う側が Removed で購読を外しても、吹き出しが残らないように）。
+        void OnDisable()
+        {
+            Expire();
+            Fields.Unregister(this);
+        }
+
+        // その時点の進み具合を見た目に写す（ふつうは、全部のステップがまだの見た目）。抜けがあれば警告する（止めない）。
+        void Start()
+        {
+            WarnIfIncomplete();
+            Apply(celebrate: false);
+        }
+
+        void WarnIfIncomplete()
+        {
+            if (StepsInOrder.Length == 0) Debug.LogWarning($"[FieldStages] {name}: ステップ（FieldStep）が 1 つもありません。", this);
+            foreach (var step in StepsInOrder)
+            {
+                if (string.IsNullOrEmpty(step.Food)) Debug.LogWarning($"[FieldStages] {name}/{step.name}: 欲しい物（Food）が空です（このステップは出ません）。", step);
+                if (step.Helped.Count == 0 || step.Helped[0] == null) Debug.LogWarning($"[FieldStages] {name}/{step.name}: 助かる人（Helped）が空です（吹き出しはステップの場所に出ます）。", step);
+            }
+        }
 
         /// <summary>次の欲しい物を出す（Issued）。出ているものがある・全部済んだなら false。</summary>
         public bool Open()
         {
             if (_closing || !Progress.TryOpen(out var index)) return false;
+            return Issue(index);
+        }
+
+        /// <summary>その物を欲しがる、まだ済んでいないステップを出す（並び順によらない。チュートリアル用）。出せなければ false。</summary>
+        public bool Open(FoodId food)
+        {
+            if (_closing || !Progress.TryOpen(food, out var index)) return false;
+            return Issue(index);
+        }
+
+        bool Issue(int index)
+        {
             var food = Progress.Current;
             Debug.Log($"[FieldStages] {fieldId} wants {food} ({StepsInOrder[index].name})");
             Issued?.Invoke(new RequestIssued(food, Field, StepsInOrder[index].Anchor));
