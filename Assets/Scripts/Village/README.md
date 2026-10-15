@@ -2,24 +2,23 @@
 
 ミニチュアの村のフィールドと、フィールドが段階的に戻る仕組み。いまは「村」のフィールドだけ（草原・海・山は別に作る。定義は [docs/fields.md](../../../docs/fields.md)）。
 
-> 状態: Unity では一部だけ確認（配置・段階の切り替え・悩む印）。部品に分けた後の形（Village.prefab）は未確認。配置の数字・倍率は仮。
+> 状態: Unity では一部だけ確認（配置・悩む印、Bake とテスト）。ステップに分けた後の Play での見た目は未確認。配置の数字・倍率は仮。
 
 ## 部品（4 つのフィールドで共通に使う）
-段階の仕組みは村専用ではない。山・海・草原の担当も、自分のフィールドに同じ部品を付ければ使える（コードは要らない）。
+戻り方の仕組みは村専用ではない。山・海・草原の担当も、自分のフィールドに同じ部品を付ければ使える（コードは要らない）。作り方・確かめ方・分担は [docs/requests.md](../../../docs/requests.md)。
 
 | 部品 | 付ける所 | 役割 |
 |---|---|---|
-| `FieldStages` | フィールドの一番上 | いまの段階（0 = 飢饉 〜 `maxStage`）を持つ。`Advance()`（1 段階進める）・`SetStage(n)`。変わると子の部品に知らせ、C# の `StageChanged` と、Inspector でつなぐ `onStageChanged`（UnityEvent。音・光など）を出す。**Play 中に Inspector の Stage を動かすと、その段階に切り替わる**（確認用） |
-| `StageVisibility` | 置き物 1 つ 1 つ（手で置いた物にも） | 何段目から何段目まで見えるか（`untilStage` が -1 なら最後まで） |
-| `VillagerMood` | 村人（村人の Prefab に入っている） | 何段目で元気になるか。悩んでいる間は頭の上の印を出し、ゆっくり立つ ⇄ ときどきうなだれる、を人ごとにばらばらの間隔でくり返す。段階が上がると、元気な人が喜ぶ |
+| `FieldStages` | フィールドの一番上 | 下の `FieldStep` を **Hierarchy の並び順**に使う（番号は持たない）。欲しい物を出す `Open()`・届いた `Resolve(food)`・待ちきれなかった `Expire()`・はじめに戻す `Restart()`。Core の `IFieldRequests` の実装で、いつ出すかは Game・Tutorial が決める。開発中は右クリックメニュー（Open Next Want・Deliver Wanted Food・Complete Next Step・Restart）で確かめる |
+| `FieldStep` | `Steps` の下の、ステップごとの空のオブジェクト | 戻り方の 1 段。欲しい物（`Food`）、困りごとが解ける人（`Helped`。1 人目の頭の上に吹き出し）、済むと消える物（`Hide When Done`）。**このオブジェクトの子が、済むと出る物**。音・光は `On Done` につなぐ |
+| `VillagerMood` | 村人（村人の Prefab に入っている） | 悩んでいる間は頭の上の印を出し、ゆっくり立つ ⇄ ときどきうなだれる、を人ごとにばらばらの間隔でくり返す。名前のあるステップがすべて済むと元気になる。ステップが済むたびに、元気な人が喜ぶ |
 | `SurfaceAnchor` | フィールドの Prefab の一番上 | シーンの台（縦が潰れた立方体）の上面に乗せ、親の倍率を打ち消す。Prefab の中は 1 = 1 m のまま。編集中のシーンでも効く |
 
-段階のふるまいの決まり（`Stages`）は Unity に依存しないので、テストしている。
+ステップの進み具合の決まり（`StepProgress`）は Unity に依存しないので、テストしている。
 
 ### ほかの機能とのつなぎ方
-- 「届いたら 1 段階進める」は、Core の `Delivered`（#30 / PR #227）を受ける所が `FieldStages.Advance()` を呼ぶ。Bootstrap（#34）がつなぐ。Game や Tutorial は Village を直接呼ばない（[docs/architecture.md](../../../docs/architecture.md)）。
-- 何回届けたら 1 段階進むか、どのフィールドが戻るかは、本編（#16 など）で決める。
-- 段階が変わったときの音・光は、`FieldStages` の `onStageChanged` に Inspector からつなぐ。
+- 届いたかを決める所（DeliveryZone）が、Core の `IFieldRequests.Resolve(food)` を呼ぶ。出ている欲しい物と同じなら、そのステップが済む。Game や Tutorial は Village を直接呼ばず、Core の `IFieldRequests` を Bootstrap（#34）から受け取る。
+- フィールドごとの独自の演出は、ステップの子の物に付けたスクリプト（出たときの `OnEnable`）か、`FieldStages.StepDone` から足す。共通の部品は直さない。
 
 ## シーンとのつながり
 `Assets/Scenes/Main.unity` の `MinitureBase > Content > Village` は、立方体の地面（スケール 0.54, 0.2, 0.54。親の倍率をかけた見かけの大きさも縦に潰れている）。
@@ -32,8 +31,8 @@
 1. Unity のメニュー **MouthOfGod > Village > Generate Prefabs** で、置き物・村人の Prefab を作る（下の「Prefab を作る」）。
 2. **MouthOfGod > Village > Bake Draft Village Prefab** で、下書きの配置から `Assets/Resources/Prefabs/Village/Village.prefab` を作る。
 3. サンドボックスのシーンで、`Village`（地面）の子に `Village.prefab` を置く。
-4. Play して、`Village.prefab` の `FieldStages` の **Stage** を 0〜4 で動かして確かめる。
-5. 配置を直すときは、**`Village.prefab` を開いて手で動かす**。段階で出入りさせたい物には `StageVisibility` を付ける。
+4. Play して、`Village.prefab` の `FieldStages` の右クリックメニュー（Open Next Want → Deliver Wanted Food、または Complete Next Step）で確かめる。
+5. 配置を直すときは、**`Village.prefab` を開いて手で動かす**。ステップで出したい物は、そのステップ（`Steps` の下）の子に入れる。消したい物は、そのステップの `Hide When Done` に入れる。
 
 ## 下書き（`Editor/Draft/`）
 `Editor/Draft/VillageLayout.cs` は、村の配置をコードで書いた最初の下書き。`Editor/Draft/VillageBaker.cs` が、ここから `Village.prefab` を作る（Bake）。
@@ -41,16 +40,16 @@
 - もう一度 Bake すると、Prefab を手で直した分は消える（上書きの前に確かめるダイアログが出る）。
 - Editor の中なので、展示のビルドには入らない。
 
-## 段階
-| 段階 | 見た目 | 元気になる村人 |
+## ステップ
+| ステップ（`Steps` の下の並び） | 見た目 | 元気になる村人 |
 |---|---|---|
-| 0 飢饉 | 畑に枯れた茎、木は茶色、家畜はいない。村人は全員うなだれ、頭の上に暗い縦線 | — |
-| 1 | 畑に芽が出る | 畑の 2 人（`Worker_Male` `Worker_Female`） |
-| 2 | 作物（にんじん・かぶ・かぼちゃ）が実り、木が緑に戻る | 井戸の人（`Casual_Female`） |
-| 3 | 羊が戻る | 羊の番の長老（`OldClassy_Male`） |
-| 4 | 豚も戻る | 戸口の人（`Casual_Male`）。全員が元気 |
+| はじめ（飢饉） | 畑に枯れた茎、木は茶色、家畜はいない。村人は全員うなだれ、頭の上に暗い縦線 | — |
+| 1 Sprout（欲しい物 〔carrot〕） | 畑に芽が出る | 畑の 2 人（`Worker_Male` `Worker_Female`） |
+| 2 Crops（〔pumpkin〕） | 作物（にんじん・かぶ・かぼちゃ）が実り、木が緑に戻る | 井戸の人（`Casual_Female`） |
+| 3 Sheep（〔sheep〕） | 羊が戻る | 羊の番の長老（`OldClassy_Male`） |
+| 4 Pig（〔pig〕） | 豚も戻る | 戸口の人（`Casual_Male`）。全員が元気 |
 
-段階が上がるたびに、元気な村人が `Victory` を 1 回やって喜ぶ。何がいつ戻るかは、`Village.prefab` の中の `StageVisibility` と `VillagerMood` で決める（下書きでは `FromStage` `UntilStage` `CalmFromStage`）。
+ステップが済むたびに、元気な村人が `Victory` を 1 回やって喜ぶ。何がいつ戻るかは、`Village.prefab` の `Steps` の下の並びと、各 `FieldStep` で決める（下書きでは `AppearsAt` `GoneAt` `HelpedAt` と `VillageLayout.Steps`）。〔 〕の欲しい物の ID は仮（#52・#54）。
 
 ## アニメーション（村人）
 段階を踏んで決めた。
@@ -63,7 +62,7 @@
 3. **実装**: 生成メニューが `Villager.controller` を作り、村人の Prefab に付ける。
    - 状態: `Idle` ⇄ `Worried`（`Worried` の bool）、`Worried` ⇄ `Slump`（`Slump` の bool。`Defeat`）、`Idle` → `Victory`（`Delivered` のトリガー）→ `Idle`。
    - 村人の Prefab には、`VillagerMood` と、頭の骨の子に悩んでいる印 `WorryMark`（暗い縦線 3 本）が入っている。
-   - `VillagerMood` が `Worried` `Slump` と印を切り替え、段階が上がったら `Delivered` を引く。
+   - `VillagerMood` が `Worried` `Slump` と印を切り替え、ステップが済んだら `Delivered` を引く。
 - **未確認**: 実際の動きの見た目（`Defeat` が最後にうなだれたままで止まるか、立ち上がってしまうか。印の位置と大きさ）は Unity で見ていない。
 
 ## Prefab を作る（最初の 1 回）
@@ -73,7 +72,7 @@
 Prefab が無い物は、仮の箱で置く（警告が出る）。この手順は開発中の補助で、Prefab をコミットしたら不要。
 
 ## 置き物（素材の探し方は [docs/quaternius-assets.md](../../../docs/quaternius-assets.md)）
-| 置き物 | 素材 | 出る段階 |
+| 置き物 | 素材 | 出るステップ |
 |---|---|---|
 | `House_Sample`（4 軒。道か広場に正面を向ける） | 既存の Prefab（Medieval Village MegaKit の組み立て例）。家の素材はこれだけ | 常に |
 | `Well` `Windmill` `Barn` `Fence` `ChickenCoop` | Farm Buildings | 常に |

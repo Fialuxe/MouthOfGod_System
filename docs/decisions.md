@@ -6,6 +6,19 @@
 
 ---
 
+## 2026-10-15 フィールドの戻り方は Hierarchy の並びで持ち、欲しい物を出す時は Game・Tutorial が決める（案）
+
+**決めたこと**: フィールドの戻り方は、`Steps` の下に並べた `FieldStep`（欲しい物・困りごとが解ける人・消す物。子は済むと出る物）で持つ。順番は Hierarchy の並び順で、番号は持たない。いつ・どのフィールドに欲しい物を出すかは、Core の `IFieldRequests` 越しに、本編は Game、チュートリアルは Tutorial が決める。詳しくは [requests.md](requests.md)。
+
+**理由**: 山・海・草原・村を別々の人が同時に作り、それでも 4 つが調和して動くようにするため。フィールドの担当は自分の Prefab だけを触り、時間や他のフィールドを考えない。出す順番と間隔は 1 か所で決めるので、ばらばらに動かない。段階を途中に挟む・並べ替えるのが Hierarchy の操作だけで済む。合わせ目は `IFieldRequests` 1 つなので、フィールドを独自の作りにしても本編にそのままつながる。
+
+**採用しなかった案**
+- 全体で 1 つの `RequestSet`（要求の並び）と、順に出す `RequestIssuer`（PR #251 の最初の形）: 4 人が同じアセットを触る。本編の「同時に最大 2 つ・20 秒で消える」を表せない。どの村人の上に出すか分からない。
+- 段階を番号で持つ（#237 の `StageVisibility` の from〜until と `VillagerMood` の `calmFromStage`）: 途中に段階を挟むと後ろの番号を全部ずらす必要があり、ずらし忘れても気づけない。
+- フィールドの中の順番を自由にする: 今は最初の未済のステップを出す。済んだかはステップごとに持つので、要ると分かったら `StepProgress.NextIndex` を変えるだけで済む。
+
+---
+
 ## 2026-10-13 フィールドは山・海・草原・村の 4 つにする（雪原は山に含める）
 
 **決めたこと**: 本編のフィールドは山・海・草原・村。雪原は独立させず、山エリアに含める。定義は [fields.md](fields.md)。
@@ -29,7 +42,7 @@
 - 密結合の防ぎ方 → 全機能に asmdef を強制するのは重い。まず、直接参照を PR の警告で知らせる軽い検査を入れた。
 
 **どうなったか**
-- 型は `Food`（`FoodDefinition` `FoodId` `FoodCatalog`）、`FieldId` `FieldDefinition`、`RequestSet`、`TutorialStep`、`TextureId`。ID は文字列。データは `Assets/Resources/Data/<種類>/`、1 件 = 1 アセット。→ [CONTRIBUTING「型の名前とデータの置き場所」](../CONTRIBUTING.md#型の名前とデータの置き場所)
+- 型は `Food`（`FoodDefinition` `FoodId` `FoodCatalog`）、`FieldId` `FieldDefinition`、`RequestSet`（2026-10-15 にやめた。上の記録）、`TutorialStep`、`TextureId`。ID は文字列。データは `Assets/Resources/Data/<種類>/`、1 件 = 1 アセット。→ [CONTRIBUTING「型の名前とデータの置き場所」](../CONTRIBUTING.md#型の名前とデータの置き場所)
 - 実行用の共有シーンは `Assets/Scenes/Main.unity` の 1 つ。個人の確認用は `Assets/Scenes/Sandbox/`。
 - 引き継ぎは `IProgress` の案（**案のまま。実装するときに確定する**）。記録の名前は [progress-keys.md](progress-keys.md) の 1 か所に書く。
 - 機能が他の機能を直接参照すると、PR に警告が出る（`.github/scripts/check_coupling.py`、止めはしない）。

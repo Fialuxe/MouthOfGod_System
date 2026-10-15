@@ -78,12 +78,14 @@ Bootstrap   起動時の組み立て。全機能を参照できる唯一の場�
 
 ```
 Device   --TextureChanged / Confirmed-->  Food(FoodSpawner)  --Spawned-->  UI / Tutorial
-Village  --RequestIssued-->               UI(吹き出し) / Tutorial
+Game / Tutorial --IFieldRequests.Open()--> Village(FieldStages)  --RequestIssued-->  UI(吹き出し)
 プレイヤーが、生まれた物を DeliveryZone へ運ぶ
 Village(DeliveryZone) --Delivered(Accepted?)--> Village(FieldView: 村が変わる) / Tutorial / Game(スコア)
+Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / Tutorial / Game
 ```
 
 - Tutorial は Device を直接見ない（`MockDevice` に差し替えても動く）。
+- 欲しい物は、フィールドが「何が欲しいか・届いたら何が変わるか」を持ち、「いつ・どこに出すか」は Game（本編）と Tutorial が決める。分担と流れは [requests.md](requests.md)。
 - Tutorial から村や UI への指示（「この場所を光らせる」など）は、Tutorial が Core の `CueRequested(CueId)` を発行し、Village や UI が購読する（依存の向きを保つため）。
 - 機能の中は C# の `event`。機能をまたぐものは、Core の interface とイベントを Bootstrap が起動時に渡す。ScriptableObject のイベントチャンネルは、必要になるまで採用しない。
 - 例外: `IDevice` は、Core の `Devices` から受け取る（`Devices.WhenReady`）。デバイスは全体で 1 台で、Bootstrap を待たずに、どのシーンでも使えるようにするため。どのデバイス（Mock か実機か）を登録するかは Device 側が決める。`Devices` のような全体の置き場は、デバイス以外には増やさない。
@@ -96,7 +98,7 @@ Village(DeliveryZone) --Delivered(Accepted?)--> Village(FieldView: 村が変わ�
 | 入力 | `IDevice`: `Current`、`TextureChanged`、`Confirmed`（決定したときの食感を運ぶ）、`Bitten` | Core（interface）／ Device（実装） |
 | 食べ物 | `FoodId`、`FoodCatalog.Resolve(TextureId)` → `FoodId`、`FoodSpawner.Spawned` | Food |
 | 届け先 | `FieldId`、`Field.Accepts(FoodId)`、`DeliveryZone.Delivered(DeliveryResult)` | Village |
-| 要求 | `Request`（`FoodId`、`FieldId`）、`RequestIssued` | Village |
+| 欲しい物（要求） | `IFieldRequests`（`Open`・`Resolve`・`Expire`・`Restart`）、`RequestIssued`（`Anchor` 付き）、`RequestClosed` | Core（interface・イベント）／ Village（`FieldStages`・`FieldStep`） |
 | 進行 | `TutorialRunner`、`StepEntered`、`StepCompleted`、`CueRequested` | Tutorial ／ Core |
 
 - 食感・食べ物を `enum` で Core に直書きしない。追加のたびに全機能が再コンパイルされ、素材担当が触れなくなる。ID は文字列にする（決定。CONTRIBUTING「型の名前とデータの置き場所」）。
@@ -118,7 +120,7 @@ Village(DeliveryZone) --Delivered(Accepted?)--> Village(FieldView: 村が変わ�
 |---|---|---|
 | 素材（Art） | モデル、テクスチャ、アニメーション、SE、Particle | 素材担当 |
 | Prefab | 食べ物・生物、フィールド、村人の見た目と Collider | 素材担当 ＋ シーン担当 |
-| データ（ScriptableObject） | `FoodCatalog`、`FoodDefinition`、`FieldDefinition`、`RequestSet`、`TutorialStep` | 企画・シーン担当（実装は読むだけ） |
+| データ（ScriptableObject） | `FoodCatalog`、`FoodDefinition`、`FieldDefinition`、`TutorialStep`（欲しい物はフィールドの Prefab の `FieldStep` に持つ） | 企画・シーン担当（実装は読むだけ） |
 | シーン | 村・フィールドの配置、AprilTag の位置 | シーン担当（Scene Fusion） |
 | コード | カタログの参照、完了条件の評価、判定、Device 通信、起動時の組み立て | 実装担当 |
 

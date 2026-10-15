@@ -25,41 +25,39 @@ namespace MouthOfGod.Village.Tests
         }
 
         [Test]
-        public void Stages_IsVisible_IncludesBothEnds_AndUntilEndMeansToTheLast()
+        public void IsVisible_AppearsAtAndGoneAt()
         {
-            Assert.IsFalse(Stages.IsVisible(1, 2, 0));
-            Assert.IsTrue(Stages.IsVisible(1, 2, 1));
-            Assert.IsTrue(Stages.IsVisible(1, 2, 2));
-            Assert.IsFalse(Stages.IsVisible(1, 2, 3));
-            Assert.IsTrue(Stages.IsVisible(0, Stages.UntilEnd, 0));
-            Assert.IsTrue(Stages.IsVisible(0, Stages.UntilEnd, 99));
+            var sprout = new VillageItem { AppearsAt = 1, GoneAt = 2 };
+
+            Assert.IsFalse(VillageLayout.IsVisible(sprout, 0));
+            Assert.IsTrue(VillageLayout.IsVisible(sprout, 1));
+            Assert.IsFalse(VillageLayout.IsVisible(sprout, 2));
+            Assert.IsTrue(VillageLayout.IsVisible(new VillageItem(), 99));
         }
 
         [Test]
-        public void Stages_IsWorried_UntilCalmStage()
-        {
-            Assert.IsTrue(Stages.IsWorried(2, 1));
-            Assert.IsFalse(Stages.IsWorried(2, 2));
-        }
-
-        [Test]
-        public void Stages_Clamp_KeepsWithinZeroToMax()
-        {
-            Assert.AreEqual(0, Stages.Clamp(-1, 4));
-            Assert.AreEqual(4, Stages.Clamp(9, 4));
-            Assert.AreEqual(2, Stages.Clamp(2, 4));
-        }
-
-        [Test]
-        public void Default_SomethingChangesAtEveryStage()
+        public void Default_SomethingChangesAtEveryStep()
         {
             var items = VillageLayout.CreateDefault()[0].Items;
 
-            for (var stage = 1; stage <= VillageLayout.MaxStage; stage++)
+            for (var done = 1; done <= VillageLayout.Steps.Count; done++)
             {
-                var changed = items.Any(i => VillageLayout.IsVisible(i, stage) != VillageLayout.IsVisible(i, stage - 1)
-                                             || VillageLayout.IsWorried(i, stage) != VillageLayout.IsWorried(i, stage - 1));
-                Assert.IsTrue(changed, $"段階 {stage} で何も変わらない");
+                var changed = items.Any(i => VillageLayout.IsVisible(i, done) != VillageLayout.IsVisible(i, done - 1)
+                                             || VillageLayout.IsWorried(i, done) != VillageLayout.IsWorried(i, done - 1));
+                Assert.IsTrue(changed, $"ステップ {done} で何も変わらない");
+            }
+        }
+
+        [Test]
+        public void Default_EveryStepHasAWant_AndStepNumbersAreInRange()
+        {
+            Assert.IsTrue(VillageLayout.Steps.All(s => !string.IsNullOrEmpty(s.Food)));
+            var count = VillageLayout.Steps.Count;
+            foreach (var item in VillageLayout.CreateDefault()[0].Items)
+            {
+                Assert.That(item.AppearsAt, Is.InRange(0, count), item.Prefab);
+                Assert.That(item.GoneAt, Is.InRange(0, count), item.Prefab);
+                Assert.That(item.HelpedAt, Is.InRange(-1, count), item.Prefab);
             }
         }
 
@@ -70,7 +68,7 @@ namespace MouthOfGod.Village.Tests
 
             Assert.IsNotEmpty(villagers);
             Assert.IsTrue(villagers.All(v => VillageLayout.IsWorried(v, 0)));
-            Assert.IsTrue(villagers.All(v => !VillageLayout.IsWorried(v, VillageLayout.MaxStage)));
+            Assert.IsTrue(villagers.All(v => !VillageLayout.IsWorried(v, VillageLayout.Steps.Count)));
         }
 
         [Test]

@@ -100,6 +100,12 @@ namespace MouthOfGod.Core.Tests
             var request = new RequestIssued(food, field);
             Assert.AreEqual(food, request.Food);
             Assert.AreEqual(field, request.Field);
+            Assert.IsNull(request.Anchor);
+
+            var closed = new RequestClosed(food, field, true);
+            Assert.AreEqual(food, closed.Food);
+            Assert.AreEqual(field, closed.Field);
+            Assert.IsTrue(closed.Resolved);
 
             Assert.AreEqual(new CueId("c"), new CueRequested(new CueId("c")).Cue);
         }

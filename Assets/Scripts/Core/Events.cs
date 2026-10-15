@@ -33,16 +33,35 @@ namespace MouthOfGod.Core
         }
     }
 
-    /// <summary>村が、ある食べ物をあるフィールドへ届けるよう要求した。</summary>
+    /// <summary>フィールドの困っている人が、欲しい物を出した（吹き出しを出す合図）。1 つのフィールドに、同時に出ているのは 1 つだけ。</summary>
     public readonly struct RequestIssued
     {
         public readonly FoodId Food;
         public readonly FieldId Field;
 
-        public RequestIssued(FoodId food, FieldId field)
+        /// <summary>吹き出しを出す場所（困っている人の頭の上など）。ミニチュアと一緒に動くので、位置ではなく Transform で渡す。無ければ null。</summary>
+        public readonly Transform Anchor;
+
+        public RequestIssued(FoodId food, FieldId field, Transform anchor = null)
         {
             Food = food;
             Field = field;
+            Anchor = anchor;
+        }
+    }
+
+    /// <summary>出ていた欲しい物が終わった（吹き出しを消す合図）。Resolved は、届いて解決したか（false なら、待ちきれなかった・やり直した）。</summary>
+    public readonly struct RequestClosed
+    {
+        public readonly FoodId Food;
+        public readonly FieldId Field;
+        public readonly bool Resolved;
+
+        public RequestClosed(FoodId food, FieldId field, bool resolved)
+        {
+            Food = food;
+            Field = field;
+            Resolved = resolved;
         }
     }
 
