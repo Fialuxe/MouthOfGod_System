@@ -80,7 +80,7 @@ Bootstrap   起動時の組み立て。全機能を参照できる唯一の場�
 Device   --TextureChanged / Confirmed-->  Food(FoodSpawner)  --Spawned-->  UI / Tutorial
 Game / Tutorial --IFieldRequests.Open()--> Village(FieldStages)  --RequestIssued-->  UI(吹き出し)
 プレイヤーが、生まれた物を DeliveryZone へ運ぶ
-Village(DeliveryZone) --Delivered(Accepted?)--> Village(FieldView: 村が変わる) / Tutorial / Game(スコア)
+DeliveryZone --IFieldRequests.Resolve(food)--> Village(FieldStages: 村が変わる)。DeliveryZone は Delivered(Accepted?) を出す --> Tutorial / Game(スコア)
 Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / Tutorial / Game
 ```
 

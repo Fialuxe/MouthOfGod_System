@@ -18,11 +18,13 @@ namespace MouthOfGod.Village
 
         FieldStep[] _steps;
         StepProgress _progress;
+        // 見た目を写し直してから Closed を出すまでの間。ここで Open されると Issued が Closed より先に出るので、出させない。
+        bool _closing;
 
         public event Action<RequestIssued> Issued;
         public event Action<RequestClosed> Closed;
 
-        /// <summary>ステップが済んだとき（済んだステップ）。フィールドごとの独自の演出を、ここから足せる。</summary>
+        /// <summary>ステップが済んだとき（済んだステップ）。Closed の後に出る。フィールドごとの独自の演出を、ここから足せる。</summary>
         public event Action<FieldStep> StepDone;
 
         /// <summary>はじめ（全部まだ）に戻したとき。</summary>
@@ -34,7 +36,7 @@ namespace MouthOfGod.Village
         public int DoneCount => Progress.DoneCount;
         public bool IsFullyRecovered => Progress.IsComplete;
         public bool IsOpen => Progress.IsOpen;
-        public bool CanOpen => Progress.CanOpen;
+        public bool CanOpen => !_closing && Progress.CanOpen;
 
         /// <summary>出ている欲しい物（出ていなければ FoodId.None）。</summary>
         public FoodId Current => Progress.Current;
@@ -54,12 +56,13 @@ namespace MouthOfGod.Village
             }
         }
 
+        // その時点の進み具合を見た目に写す（ふつうは、全部のステップがまだの見た目）。
         void Start() => Apply(celebrate: false);
 
         /// <summary>次の欲しい物を出す（Issued）。出ているものがある・全部済んだなら false。</summary>
         public bool Open()
         {
-            if (!Progress.TryOpen(out var index)) return false;
+            if (_closing || !Progress.TryOpen(out var index)) return false;
             var food = Progress.Current;
             Debug.Log($"[FieldStages] {fieldId} wants {food} ({StepsInOrder[index].name})");
             Issued?.Invoke(new RequestIssued(food, Field, StepsInOrder[index].Anchor));
@@ -68,14 +71,14 @@ namespace MouthOfGod.Village
 
         /// <summary>
         /// 物が届いた。出ている欲しい物と同じならステップを済ませ（見た目が変わる）、Closed（Resolved = true）を出して true。違う物・出ていないときは false。
-        /// 届いたかを決める所（DeliveryZone など、Village の中）が呼ぶ。戻り値は Delivered の Accepted に使える。
+        /// 届いたかを決める所（DeliveryZone）が IFieldRequests 越しに呼ぶ。戻り値は Delivered の Accepted に使える。
         /// </summary>
         public bool Resolve(FoodId food)
         {
             if (!Progress.TryResolve(food, out var index)) return false;
             // 見た目を先に変えてから知らせる（Closed を受けてすぐ Open しても、次のステップの欲しい物が出るように）
-            Finish(index);
-            Closed?.Invoke(new RequestClosed(food, Field, resolved: true));
+            ApplyThenClose(food, wasOpen: true, resolved: true, celebrate: true);
+            RaiseStepDone(index);
             return true;
         }
 
@@ -93,14 +96,21 @@ namespace MouthOfGod.Village
             var food = Progress.Current;
             var wasOpen = Progress.IsOpen;
             Progress.Reset();
-            Apply(celebrate: false);
-            if (wasOpen) Closed?.Invoke(new RequestClosed(food, Field, resolved: false));
+            ApplyThenClose(food, wasOpen, resolved: false, celebrate: false);
             Restarted?.Invoke();
         }
 
-        void Finish(int index)
+        // 見た目を写し直し、出ていた欲しい物があれば Closed を出す。その間（出し入れした物の OnEnable など）に Open されないようにする。
+        void ApplyThenClose(FoodId food, bool wasOpen, bool resolved, bool celebrate)
         {
-            Apply(celebrate: true);
+            _closing = wasOpen;
+            try { Apply(celebrate); }
+            finally { _closing = false; }
+            if (wasOpen) Closed?.Invoke(new RequestClosed(food, Field, resolved));
+        }
+
+        void RaiseStepDone(int index)
+        {
             StepsInOrder[index].RaiseDone();
             StepDone?.Invoke(StepsInOrder[index]);
         }
@@ -150,8 +160,8 @@ namespace MouthOfGod.Village
             var food = Progress.Current;
             var wasOpen = Progress.OpenIndex == index;
             Progress.Complete(index);
-            Finish(index);
-            if (wasOpen) Closed?.Invoke(new RequestClosed(food, Field, resolved: true));
+            ApplyThenClose(food, wasOpen, resolved: true, celebrate: true);
+            RaiseStepDone(index);
         }
 
         [ContextMenu("Restart")]

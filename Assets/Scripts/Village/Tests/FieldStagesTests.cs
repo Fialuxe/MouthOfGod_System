@@ -114,6 +114,35 @@ namespace MouthOfGod.Village.Tests
         }
 
         [Test]
+        public void OpenFromStepDone_IssuedAndClosedStillAlternate()
+        {
+            var events = new List<string>();
+            _field.Issued += r => events.Add("Issued " + r.Food);
+            _field.Closed += r => events.Add("Closed " + r.Food);
+            _field.StepDone += _ => events.Add("StepDone");
+            _field.StepDone += _ => _field.Open();
+            _field.Open();
+
+            _field.Resolve(new FoodId("test-carrot"));
+
+            CollectionAssert.AreEqual(
+                new[] { "Issued test-carrot", "Closed test-carrot", "StepDone", "Issued test-pumpkin" }, events);
+        }
+
+        [Test]
+        public void Restart_RaisesClosedThenRestarted()
+        {
+            var events = new List<string>();
+            _field.Open();
+            _field.Closed += _ => events.Add("Closed");
+            _field.Restarted += () => events.Add("Restarted");
+
+            _field.Restart();
+
+            CollectionAssert.AreEqual(new[] { "Closed", "Restarted" }, events);
+        }
+
+        [Test]
         public void InsertingAStep_InHierarchy_ChangesTheOrder_WithoutNumbers()
         {
             var between = NewChild("Between", _sprout.transform.parent).AddComponent<FieldStep>();
