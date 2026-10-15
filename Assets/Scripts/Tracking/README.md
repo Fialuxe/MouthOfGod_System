@@ -10,7 +10,7 @@ VR・位置取得。いまは、パススルーカメラの映像から AprilTag
 |---|---|
 | `AprilTagDetectionService` | シーンに **1 つだけ**存在する（`AprilTagPlace` が必要なときに自動で作るので、手で置かなくてよい）。カメラの RGB フレームを読み、AprilTag を検出して、ワールド座標の姿勢を公開する（`IAprilTagSource`）。カメラの読み出しと検出は重いので、タグごとではなくここで 1 回だけ行う |
 | `AprilTagSettings` | 検出の設定（タグのサイズなど）。`Assets/Resources/AprilTagSettings.asset` に保存する。なければコードの既定値で動く |
-| `AprilTagRecalibrateInput` | タグの位置の取り直しの入力（Quest コントローラーの A / X ボタン、キーボードの R）。サービスが自動で付ける |
+| `AprilTagRecalibrateInput` | タグの位置の取り直しの入力（Quest の左コントローラーの Y ボタンを 2 秒長押し、キーボードの R）。サービスが自動で付ける |
 | `AprilTagPlace` | **タグ 1 枚につき 1 つ**、シーンに置く。指定した ID のタグの位置に、対象の Transform（既定は自分自身）を合わせる |
 | `PoseTracker` | 追従モードの、平滑化と「見つけた／見失った」の判定（Unity のオブジェクトに依存しない） |
 | `PoseCalibrator` | 固定モードの、観測の収集と、外れ値を除いた平均（同上） |
@@ -32,7 +32,7 @@ VR・位置取得。いまは、パススルーカメラの映像から AprilTag
 1. タグごとに GameObject を作り、`AprilTagPlace` を付ける。`Tag Id` を設定する。位置を合わせたいオブジェクトは、その子にする。**これだけでよい**（検出サービスは自動で作られる）。
 2. タグのサイズを `Assets/Resources/AprilTagSettings.asset` の `Tag Size Meters` に入れる（下記）。
 3. Quest Link で Play する（Game ビューを前面にする。`docs/vr-setup.md` を参照）。
-4. タグを動かしたときは、コントローラーの A / X ボタン、またはキーボードの R で、位置を取り直す（固定モードのとき）。
+4. タグを動かしたときは、左コントローラーの Y ボタンを 2 秒長押し（またはキーボードの R）で、位置を取り直す（固定モードのとき）。
 
 ### タグのサイズ（`Tag Size Meters`）
 
