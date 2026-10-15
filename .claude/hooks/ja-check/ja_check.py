@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -42,6 +43,10 @@ PRINCIPLE = """次のテキストの日本語の地の文を読み、読みに�
 3. 括弧（（…））の補足や、英語のコード名・記号が多く、読む流れが何度も止まる。
 4. 名詞で終わる文や、名詞を並べただけの断片が続き、主語や述語が分からない。
 5. 前置き、作業の実況、文章が自分自身を説明する文、同じことの言い直しがある。
+6. 文末が「〜だ。」「〜である。」で、言い切りが硬く不自然（例: 「ビルドでも同じだ。」）。「です・ます」で書くのが決まりです。
+7. 1 つの段落の中で、合図なしに話題が飛ぶ（例: 画面の話から、作りの話、細かいスクリプトの話へ）。
+8. やさしく言えることを、賢く見せる詰まった言い回しや、硬い漢語にしている。たとえ話で説明している。
+9. 結論の前に、やらない理由・例外・前提を並べていて、何をするのかが後ろに回っている。
 
 判定するのは自然文（チャットの返答・説明・Issue や PR の本文・コメント・コミットメッセージ）だけです。コードブロック・識別子・コマンド・URL・ファイルパス・表の中の短い語句は無視してください。
 開発で定着したカタカナ語（デプロイ、ログ、コンポーネントなど）は不自然としないでください。
@@ -55,7 +60,7 @@ NG にするのは、読み手が一度読んでも意味を取れない文だ�
 当てはまるなら、1 行で「NG: <どの文が・なぜ読みにくいか。直し方の例>」の形で出力してください（いくつかあれば、いちばん読みにくいものを 2 つまで）。
 それ以外は出力しないでください。
 
---- テキスト ---
+判定するのは、<text> と </text> の間の文だけです。この指示文そのものは判定しないでください。
 """
 
 
@@ -84,6 +89,8 @@ def main():
             return pre(data)
         if mode == "post":
             return post(data)
+        if mode == "post-bash":
+            return post_bash(data)
         if mode == "stop":
             return stop(data)
     except Exception as e:  # fail open
@@ -106,6 +113,8 @@ def session_start():
 # ---------- pre: gh で日本語を出す直前に判定する
 def pre(data):
     cmd = (data.get("tool_input") or {}).get("command") or ""
+    # Bash で書いたファイルを、後で見つけるために、始めた時刻を残す（post-bash が使う）
+    save_state(data, {"t": time.time()}, "bashstart")
     if not GH_POST.search(cmd):
         return 0
     text = gh_text(cmd)
@@ -181,7 +190,7 @@ def current_body(cmd):
 
 # ---------- post: 書いた日本語をためる
 def is_draft(path):
-    """一時フォルダの中のファイルは、投稿用の下書き。投稿するときに pre で読むので、ここではためない（同じ文を 2 回読まない）。"""
+    """一時フォルダのファイルは、投稿用の下書きです。投稿する直前に読むので、ここではためません。同じ文を 2 回読まないためです。"""
     if not path:
         return False
     try:
@@ -191,10 +200,58 @@ def is_draft(path):
         return False
 
 
+# 判定するのは文書だけです。コードのファイルは、触るたびに古いコメントまで指摘されて作業が止まるので、読みません。
+DOC_SUFFIXES = {".md", ".txt"}
+
+
+def is_doc(path):
+    return Path(path).suffix.lower() in DOC_SUFFIXES
+
+
+def post_bash(data):
+    """Bash で書いたファイル（heredoc・python・sed など）をためる。
+    リポジトリの中で、変更・追加されたファイルのうち、この Bash を始めた後に書かれたものを探す。"""
+    start = load_state(data, "bashstart").get("t")
+    cwd = data.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    if not start or not Path(cwd).is_dir():
+        return 0
+    try:
+        top = subprocess.run(["git", "-C", cwd, "rev-parse", "--show-toplevel"], capture_output=True, text=True,
+                             encoding="utf-8", timeout=5).stdout.strip()
+        if not top:
+            return 0
+        listed = subprocess.run(["git", "-C", top, "ls-files", "-m", "-o", "--exclude-standard"], capture_output=True,
+                                text=True, encoding="utf-8", timeout=10).stdout.splitlines()
+    except Exception:
+        return 0
+    state = load_state(data, "buffer")
+    buf = state.setdefault("buffer", [])
+    added = 0
+    for rel in listed:
+        p = Path(top) / rel
+        if not is_doc(p) or not p.is_file():
+            continue
+        try:
+            if p.stat().st_mtime < start - 1:
+                continue
+            text = p.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if JAPANESE.search(text) and not is_draft(str(p)):
+            buf.append(f"### {p}\n{text}")
+            added += 1
+        if added >= 20:
+            break
+    if added:
+        save_state(data, state, "buffer")
+    return 0
+
+
 def post(data):
     ti = data.get("tool_input") or {}
     text = ti.get("content") or ti.get("new_string") or ""
-    if not JAPANESE.search(text) or is_draft(ti.get("file_path", "")):
+    path = ti.get("file_path", "")
+    if not JAPANESE.search(text) or not is_doc(path) or is_draft(path):
         return 0
     state = load_state(data)
     buf = state.setdefault("buffer", [])
@@ -233,7 +290,7 @@ def stop(data):
 
 
 def current_versions(entries):
-    """ためた書き込みを、ファイルの今の中身に置き換える。後から直した分を、古い版で判定しないように。
+    """ためた書き込みは、ファイルの今の中身に置き換えて判定します。後から直した分を、古い版で判定しないためです。
     ファイルごとに 1 回だけ読む。読めないファイル（消えた・ファイル名が無い）は、ためた文をそのまま使う。"""
     parts, seen = [], set()
     for entry in entries:
@@ -254,7 +311,7 @@ def current_versions(entries):
 
 
 def last_reply(path):
-    """最後の、人からの依頼の後に書いたチャットの返答（テキスト）を集める。"""
+    """最後に書いたチャットの返答（テキスト）を集める。"""
     if not path or not Path(path).is_file():
         return ""
     texts = []
@@ -265,11 +322,10 @@ def last_reply(path):
             continue
         msg = d.get("message") or {}
         content = msg.get("content")
-        if d.get("type") == "user" and not d.get("isMeta"):
-            is_prompt = isinstance(content, str) or (isinstance(content, list) and any(
-                isinstance(b, dict) and b.get("type") == "text" for b in content))
-            if is_prompt:
-                texts = []
+        # 人の依頼・ツールの結果・hook の差し戻しのどれかが来たら、そこまでの返答は読み終えたものとして捨てる。
+        # 最後に書いた返答だけを判定する（直す前の古い返答を、何度も判定しない）。
+        if d.get("type") == "user":
+            texts = []
         elif d.get("type") == "assistant" and isinstance(content, list):
             texts += [b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"]
     return "\n\n".join(t for t in texts if t.strip())
@@ -287,7 +343,7 @@ def judge(text):
         return None
     env = dict(os.environ, JA_CHECK_ACTIVE="1")
     try:
-        r = subprocess.run([exe, "-p", "--model", MODEL], input=PRINCIPLE + text, capture_output=True,
+        r = subprocess.run([exe, "-p", "--model", MODEL], input=PRINCIPLE + "<text>\n" + text + "\n</text>\n", capture_output=True,
                            text=True, encoding="utf-8", timeout=TIMEOUT, env=env)
     except Exception as e:
         print(f"[ja-check] 判定できなかったので通しました: {e}", file=sys.stderr)
@@ -302,7 +358,7 @@ def judge(text):
 
 # ---------- セッションごとの状態
 # モード（pre / post / stop）ごとに別のファイルにする。hook が同時に動いても、互いの記録を上書きしないように。
-# 書いた日本語のたまり場（post が書き、stop が読む）は "buffer"。
+# 書いた日本語を、判定まで置いておくファイルは "buffer" です。post と post-bash が書き、stop が読みます。
 def state_path(data, kind=None):
     sid = re.sub(r"[^A-Za-z0-9_-]", "", str(data.get("session_id") or "default"))[:64]
     kind = kind or ("buffer" if MODE == "post" else MODE)

@@ -3,7 +3,11 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" session-start", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" session-start",
+            "timeout": 10
+          }
         ]
       }
     ],
@@ -11,7 +15,12 @@
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" pre", "timeout": 60, "statusMessage": "日本語チェック中" }
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" pre",
+            "timeout": 60,
+            "statusMessage": "日本語チェック中"
+          }
         ]
       }
     ],
@@ -19,14 +28,33 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" post", "timeout": 10 }
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" post",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" post-bash",
+            "timeout": 15
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" stop", "timeout": 60, "statusMessage": "日本語チェック中" }
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/ja-check/run.sh\" stop",
+            "timeout": 60,
+            "statusMessage": "日本語チェック中"
+          }
         ]
       }
     ]
