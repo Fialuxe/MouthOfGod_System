@@ -75,38 +75,41 @@
 
 ## フィールドの作り方（コードは要らない）
 
-### 例: 草原を作る（5 手順）
+### 例: 村（`Village.prefab` の実際の形）
 
-草原は「鶏 → 豚 → 牛 → 象」の順に戻る、とします（[fields.md](fields.md)。欲しい物の ID は仮）。地形（Terrain）はそのままでよく、**届くと変わる物だけ**を下の形で置きます。
+村は「芽が出る → 作物が実る → 羊が戻る → 豚が戻る」の順に戻ります（欲しい物の ID は仮）。家や井戸など、ずっとある物はそのまま置き、**届くと変わる物だけ**を `Steps` の下に入れています。
 
 ```
-Grassland                    ← 1. 一番上に FieldStages。Field Id に grassland
-├─ Terrain（地形）            ←    地形・柵・小屋など、ずっとある物はそのまま
-├─ Herder（牧畜の人）         ←    困っている人。村人の Prefab（VillagerMood 入り）を置く
-├─ Grass_Withered ×10         ←    はじめだけある物（枯れた草）。普通のオブジェクトで置く
-└─ Steps                      ← 2. 空のオブジェクトを作る
-   ├─ Chicken                 ← 3. 空のオブジェクトに FieldStep。Food: chicken / Helped: Herder / Hide When Done: Grass_Withered ×10
-   │   ├─ Chicken ×3          ← 4. 届くと出る物を子に置く
-   │   └─ Grass_Green ×10
-   ├─ Pig                     ←    FieldStep。Food: pig / Helped: Herder
-   │   └─ Pig ×2
-   ├─ Cow                     ←    FieldStep。Food: cow / Helped: Herder
-   │   └─ Cow ×2
-   └─ Elephant                ←    FieldStep。Food: elephant / Helped: Herder（最後に元気になる）
-       └─ Elephant
+Village                        ← FieldStages（Field Id: village）
+├─ House_Sample ×4・Well・Windmill・Barn・道…   ← ずっとある物
+├─ Worker_Male・Worker_Female（畑の 2 人）       ← 困っている人（VillagerMood 入りの村人の Prefab）
+├─ Casual_Female（井戸の人）・OldClassy_Male（長老）・Casual_Male（戸口の人）
+├─ Crop_Withered ×16（枯れた茎）・Tree_Bare ×6（茶色い木）   ← はじめだけある物
+└─ Steps
+   ├─ 1 Sprout     ← FieldStep: Food carrot / Helped 畑の 2 人 / Hide When Done 枯れた茎 ×16
+   │   └─ Crop_Sprout ×16（芽）
+   ├─ 2 Crops      ← FieldStep: Food pumpkin / Helped 井戸の人 / Hide When Done 茶色い木 ×6・芽 ×16
+   │   └─ Tree ×6（緑の木）・Carrot・Turnip・Pumpkin（作物）
+   ├─ 3 Sheep      ← FieldStep: Food sheep / Helped 長老
+   │   └─ Sheep ×2
+   └─ 4 Pig        ← FieldStep: Food pig / Helped 戸口の人
+       └─ Pig
 ```
 
-1. フィールドの一番上の物に `FieldStages` を付け、**Field Id** に `grassland` を入れる。
+山・海・草原も同じ形で作ります（手順）:
+
+1. フィールドの一番上の物に `FieldStages` を付け、**Field Id** に自分のフィールドの ID（`mountain` / `sea` / `grassland`）を入れる。
 2. その下に `Steps` という空のオブジェクトを作る。
 3. 戻り方の 1 段ごとに、`Steps` の下へ空のオブジェクトを作って `FieldStep` を付け、**Food**（欲しい物）・**Helped**（助かる人）・**Hide When Done**（済むと消える物）を入れる。上から順に戻る。
 4. 届くと出る物を、そのステップの子に置く（作っている間は全部見えていてよい。Play すると、まだの物は消える）。
 5. Play して `FieldStages` の右クリック（Inspector の部品の ⋮）→ **Open Next Want** → **Deliver Wanted Food** をくり返し、上から順に戻るか見る。できたら、一番上の物ごと Prefab にする（`Assets/Resources/Prefabs/<フィールド名>/`）。
 
-よくある迷い:
+よくある迷い（村の例で）:
+- **途中に段階を足したい**（作物と羊の間に「麦が実る」） → `Steps` の下に `Wheat` を作って `FieldStep` を付け、`2 Crops` と `3 Sheep` の間にドラッグする。麦の物はその子に置く。ほかのステップは直さない（名前の数字は目印なので、そろえなくても動く）。
+- **一度出た物を、あとで消したい**（芽は、作物が実ったら消える） → 消したいステップ（`2 Crops`）の Hide When Done に入れる。出たステップ（`1 Sprout`）の子のままでよい。
+- **助かる人を変えたい・増やしたい** → そのステップの Helped に足す。吹き出しは 1 人目の頭の上に出る。名前があるステップが全部済むと、その人は元気になる（畑の 2 人は `1 Sprout` だけなので、芽が出たら元気になる）。
 - **木や草を Terrain の機能で塗った** → 塗った物は、ステップで出し入れできない。変わる物は、普通のオブジェクト（Prefab）として置き直す。ずっとある物は塗ったままでよい。
-- **途中に段階を足したい**（牛と象の間に馬） → `Steps` の下に `Horse` を作り、`Cow` と `Elephant` の間にドラッグする。ほかは直さない。
-- **助かる人を変えたい・増やしたい** → そのステップの Helped に足す。吹き出しは 1 人目の頭の上に出る。名前があるステップが全部済むと、その人は元気になる。
-- **出た物を動かしたい**（象が歩く、鶏がつつく） → 出す物に自分のスクリプトを付ける。出た瞬間（`OnEnable`）から動き出す。共通の部品は直さない。
+- **出た物を動かしたい**（羊が草を食べる、豚が歩く） → 出す物に自分のスクリプトを付ける。出た瞬間（`OnEnable`）から動き出す。共通の部品は直さない。
 
 ### 決まり
 
