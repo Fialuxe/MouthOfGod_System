@@ -284,7 +284,7 @@ def stop(data):
 
 
 def current_versions(entries):
-    """ためた書き込みを、ファイルの今の中身に置き換える。後から直した分を、古い版で判定しないように。
+    """ためた書き込みは、ファイルの今の中身に置き換えて判定します。後から直した分を、古い版で判定しないためです。
     ファイルごとに 1 回だけ読む。読めないファイル（消えた・ファイル名が無い）は、ためた文をそのまま使う。"""
     parts, seen = [], set()
     for entry in entries:
@@ -352,7 +352,7 @@ def judge(text):
 
 # ---------- セッションごとの状態
 # モード（pre / post / stop）ごとに別のファイルにする。hook が同時に動いても、互いの記録を上書きしないように。
-# 書いた日本語のたまり場（post が書き、stop が読む）は "buffer"。
+# 書いた日本語を、判定まで置いておくファイルは "buffer" です。post と post-bash が書き、stop が読みます。
 def state_path(data, kind=None):
     sid = re.sub(r"[^A-Za-z0-9_-]", "", str(data.get("session_id") or "default"))[:64]
     kind = kind or ("buffer" if MODE == "post" else MODE)
