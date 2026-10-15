@@ -255,7 +255,7 @@ def current_versions(entries):
 
 
 def last_reply(path):
-    """最後の、人からの依頼の後に書いたチャットの返答（テキスト）を集める。"""
+    """最後に書いたチャットの返答（テキスト）を集める。"""
     if not path or not Path(path).is_file():
         return ""
     texts = []
@@ -266,11 +266,10 @@ def last_reply(path):
             continue
         msg = d.get("message") or {}
         content = msg.get("content")
-        if d.get("type") == "user" and not d.get("isMeta"):
-            is_prompt = isinstance(content, str) or (isinstance(content, list) and any(
-                isinstance(b, dict) and b.get("type") == "text" for b in content))
-            if is_prompt:
-                texts = []
+        # 人の依頼・ツールの結果・hook の差し戻しのどれかが来たら、そこまでの返答は読み終えたものとして捨てる。
+        # 最後に書いた返答だけを判定する（直す前の古い返答を、何度も判定しない）。
+        if d.get("type") == "user":
+            texts = []
         elif d.get("type") == "assistant" and isinstance(content, list):
             texts += [b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"]
     return "\n\n".join(t for t in texts if t.strip())
