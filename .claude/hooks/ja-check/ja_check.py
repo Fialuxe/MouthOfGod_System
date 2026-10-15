@@ -200,7 +200,12 @@ def is_draft(path):
         return False
 
 
-TEXT_SUFFIXES = {".md", ".txt", ".cs", ".py", ".ps1", ".sh", ".json", ".yml", ".yaml", ".tsv", ".csv"}
+# 判定するのは文書だけです。コードのファイルは、触るたびに古いコメントまで指摘されて作業が止まるので、読みません。
+DOC_SUFFIXES = {".md", ".txt"}
+
+
+def is_doc(path):
+    return Path(path).suffix.lower() in DOC_SUFFIXES
 
 
 def post_bash(data):
@@ -224,7 +229,7 @@ def post_bash(data):
     added = 0
     for rel in listed:
         p = Path(top) / rel
-        if p.suffix.lower() not in TEXT_SUFFIXES or not p.is_file():
+        if not is_doc(p) or not p.is_file():
             continue
         try:
             if p.stat().st_mtime < start - 1:
@@ -245,7 +250,8 @@ def post_bash(data):
 def post(data):
     ti = data.get("tool_input") or {}
     text = ti.get("content") or ti.get("new_string") or ""
-    if not JAPANESE.search(text) or is_draft(ti.get("file_path", "")):
+    path = ti.get("file_path", "")
+    if not JAPANESE.search(text) or not is_doc(path) or is_draft(path):
         return 0
     state = load_state(data)
     buf = state.setdefault("buffer", [])
