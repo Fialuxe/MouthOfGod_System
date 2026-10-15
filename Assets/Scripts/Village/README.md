@@ -49,7 +49,7 @@
 | 3 Sheep（〔sheep〕） | 羊が戻る | 羊の番の長老（`OldClassy_Male`） |
 | 4 Pig（〔pig〕） | 豚も戻る | 戸口の人（`Casual_Male`）。全員が元気 |
 
-ステップが済むたびに、元気な村人が `Victory` を 1 回やって喜ぶ。何がいつ戻るかは、`Village.prefab` の `Steps` の下の並びと、各 `FieldStep` で決める（下書きでは `AppearsAt` `GoneAt` `HelpedAt` と `VillageLayout.Steps`）。〔 〕の欲しい物の ID は仮（#52・#54）。
+ステップが済むたびに、元気な村人が `Victory` を 1 回やって喜ぶ。何がいつ戻るかは、`Village.prefab` の `Steps` の下の並びと、各 `FieldStep` で決める（下書きでは `AppearsAt` `GoneAt` `HelpedAt` と `VillageLayout.Steps`）。〔 〕の欲しい物の ID は仮（#31）。
 
 ## アニメーション（村人）
 段階を踏んで決めた。

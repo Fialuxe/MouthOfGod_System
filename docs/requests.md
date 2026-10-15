@@ -234,7 +234,7 @@ Village の中と、フィールドの担当のスクリプトから使います
 
 - 吹き出し（#59）、届いたかを決める所（DeliveryZone）、組み立て（#34）、本編の出し方（#81）。
 - 待ちきれなかったときの村人の反応（がっかり）。今の `VillagerMood` は「済んだか」しか見ない。`RequestClosed(Resolved = false)` を見て反応させるのは、そのとき足す。
-- 欲しい物の ID（村の carrot・pumpkin・sheep・pig）は仮。食べ物の ID は #52・#54 で決まる。
+- 欲しい物の ID（村の carrot・pumpkin・sheep・pig）は仮。食べ物の ID は、食感と食べ物の対応（#31）で決まる。
 
 ## 採用しなかった案
 

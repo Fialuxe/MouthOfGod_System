@@ -42,7 +42,7 @@ namespace MouthOfGod.Village.Editor.Draft
     public sealed class VillageStep
     {
         public string Name;
-        /// <summary>欲しい物の FoodId（仮。食べ物の ID は #52・#54 で決まる）。</summary>
+        /// <summary>欲しい物の FoodId（仮。食べ物の ID は #31 で決まる）。</summary>
         public string Food;
     }
 
