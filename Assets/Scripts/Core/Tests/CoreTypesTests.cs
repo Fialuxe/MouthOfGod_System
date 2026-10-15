@@ -91,11 +91,12 @@ namespace MouthOfGod.Core.Tests
             Assert.AreEqual(food, spawned.Food);
             Assert.AreEqual(new Vector3(1f, 2f, 3f), spawned.Position);
 
-            var delivered = new Delivered(food, field, true);
+            var delivered = new Delivered(food, field, DeliveryKind.Requested);
             Assert.AreEqual(food, delivered.Food);
             Assert.AreEqual(field, delivered.Field);
-            Assert.IsTrue(delivered.Accepted);
-            Assert.IsFalse(new Delivered(food, field, false).Accepted);
+            Assert.AreEqual(DeliveryKind.Requested, delivered.Kind);
+            Assert.IsTrue(delivered.WasRequested);
+            Assert.IsFalse(new Delivered(food, field, DeliveryKind.Foreign).WasRequested);
 
             var request = new RequestIssued(food, field);
             Assert.AreEqual(food, request.Food);

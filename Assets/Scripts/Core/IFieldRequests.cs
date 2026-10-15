@@ -32,10 +32,12 @@ namespace MouthOfGod.Core
         bool Open(FoodId food);
 
         /// <summary>
-        /// 物がこのフィールドに届いた。出ている欲しい物と同じなら解決し（Closed が Resolved = true で出る）true。違う物・出ていないときは false。
-        /// 届いたかを決める所（DeliveryZone）が呼ぶ。戻り値は Delivered の Accepted に使える。
+        /// 物がこのフィールドに届いた。何が届いても受け取り、何だったかを返す（Received も 1 回出る）。
+        /// 欲しがっていた物（Requested）なら、そのステップが済んで、見た目が変わってから Closed（Resolved = true）が出る。
+        /// それ以外（Own・Foreign）は、フィールドは戻らない。反応（豊作・いびつな世界など）は、Received を受けた側が足す。
+        /// 物が落ちた場所を決める所（DeliveryZone）が呼ぶ。
         /// </summary>
-        bool Resolve(FoodId food);
+        DeliveryKind Receive(FoodId food);
 
         /// <summary>出ている欲しい物を、届かないまま終える（待ちきれなかった。Closed が Resolved = false で出る）。出ていなければ何もしない。</summary>
         void Expire();
@@ -47,5 +49,8 @@ namespace MouthOfGod.Core
 
         /// <summary>欲しい物が終わった。届いて解決した（Resolved = true）か、Expire やリセットで終わった（false）。</summary>
         event Action<RequestClosed> Closed;
+
+        /// <summary>物が届いた（Receive のたびに 1 回）。採点はこれを数える。Requested のときは Closed の後に出る。</summary>
+        event Action<Delivered> Received;
     }
 }

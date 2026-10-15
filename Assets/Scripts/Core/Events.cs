@@ -18,19 +18,35 @@ namespace MouthOfGod.Core
         }
     }
 
-    /// <summary>食べ物が届け先に運ばれた。Accepted は、届け先が受け取ったか。</summary>
+    /// <summary>物がフィールドに届いたとき、そのフィールドにとって何だったか。採点や反応は、これを見て決める。</summary>
+    public enum DeliveryKind
+    {
+        /// <summary>吹き出しで欲しがっていた物。そのステップが済み、フィールドの一部が戻る。</summary>
+        Requested,
+
+        /// <summary>このフィールドの物だが、いま欲しがってはいない（2 本目のにんじん、まだ頼んでいない物）。フィールドは戻らない。</summary>
+        Own,
+
+        /// <summary>このフィールドの物ではない（村に豚）。フィールドは戻らない。</summary>
+        Foreign,
+    }
+
+    /// <summary>物がフィールドに届いた。何が届いても、届いたたびに 1 回出る。Kind で、欲しがっていた物か・このフィールドの物か・よその物かが分かる。</summary>
     public readonly struct Delivered
     {
         public readonly FoodId Food;
         public readonly FieldId Field;
-        public readonly bool Accepted;
+        public readonly DeliveryKind Kind;
 
-        public Delivered(FoodId food, FieldId field, bool accepted)
+        public Delivered(FoodId food, FieldId field, DeliveryKind kind)
         {
             Food = food;
             Field = field;
-            Accepted = accepted;
+            Kind = kind;
         }
+
+        /// <summary>欲しがっていた物だったか（Kind == Requested）。</summary>
+        public bool WasRequested => Kind == DeliveryKind.Requested;
     }
 
     /// <summary>フィールドの困っている人が、欲しい物を出した（吹き出しを出す合図）。1 つのフィールドに、同時に出ているのは 1 つだけ。</summary>

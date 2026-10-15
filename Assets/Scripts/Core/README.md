@@ -9,10 +9,10 @@
 | 型 | 役割 |
 |---|---|
 | `TextureId` / `FoodId` / `FieldId` / `CueId` | 文字列を包んだ ID（`readonly struct`）。`enum` にしないための型。`null` と空文字は、どちらも空 ID（`None`、`IsEmpty`）。大文字小文字は区別する。型が違えば、同じ文字列でも別物 |
-| `Spawned` / `Delivered` / `RequestIssued` / `RequestClosed` / `CueRequested` | 機能をまたぐイベントが運ぶデータ（`readonly struct`）。値を持つだけ。デバイスの入力は `IDevice` のイベントで、ここには置かない |
+| `Spawned` / `Delivered`（`DeliveryKind` 付き）/ `RequestIssued` / `RequestClosed` / `CueRequested` | 機能をまたぐイベントが運ぶデータ（`readonly struct`）。値を持つだけ。デバイスの入力は `IDevice` のイベントで、ここには置かない |
 | `Devices` | 置き場: いま使える `IDevice`（`WhenReady`・`Current`）。デバイスの実装が `Register` する |
 | `Fields` | 置き場: いまシーンにあるフィールド（`All`・`Added`・`Removed`・`Find`）。フィールドが有効になると自分で `Register` する。ID が空・重なりは警告して登録しない |
-| `IFieldRequests` | 1 つのフィールドの欲しい物（`Open`・`Resolve`・`Expire`・`Restart`・`Issued`・`Closed`）。いつもの実装は Village の `FieldStages`（独自の作りでも、これを実装すればつながる）。使う側は `Fields` から受け取る。分担は [docs/requests.md](../../../docs/requests.md) |
+| `IFieldRequests` | 1 つのフィールドの欲しい物（`Open`・`Receive`・`Expire`・`Restart`・`Issued`・`Closed`・`Received`）。いつもの実装は Village の `FieldStages`（独自の作りでも、これを実装すればつながる）。使う側は `Fields` から受け取る。分担は [docs/requests.md](../../../docs/requests.md) |
 | `IDevice` | 触感デバイスの入力。`Current`（いまの食感）、`TextureChanged(TextureId)`、`Confirmed(TextureId)`（決定したときの食感を運ぶ）、`Bitten`。実装は Device 側 |
 
 型とイベントの流れは [docs/architecture.md](../../../docs/architecture.md) §3。
@@ -24,7 +24,7 @@
 ```csharp
 var food = new FoodId("apple");
 var field = new FieldId("village");
-var delivered = new Delivered(food, field, accepted: true);
+var delivered = new Delivered(food, field, DeliveryKind.Requested);
 ```
 
 ### デバイスの入力を受け取る

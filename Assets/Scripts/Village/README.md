@@ -9,7 +9,7 @@
 
 | 部品 | 付ける所 | 役割 |
 |---|---|---|
-| `FieldStages` | フィールドの一番上 | **Field Id に自分のフィールドの ID を入れる**（初期値は空。`village` / `mountain` / `sea` / `grassland`）。有効になると Core の `Fields` に登録される。下の `FieldStep` を **Hierarchy の並び順**に使う（番号は持たない）。欲しい物を出す `Open()`・届いた `Resolve(food)`・待ちきれなかった `Expire()`・はじめに戻す `Restart()`。Core の `IFieldRequests` の実装で、いつ出すかは Game・Tutorial が決める。開発中は右クリックメニュー（Open Next Want・Deliver Wanted Food・Complete Next Step・Restart）で確かめる |
+| `FieldStages` | フィールドの一番上 | **Field Id に自分のフィールドの ID を入れる**（初期値は空。`village` / `mountain` / `sea` / `grassland`）。有効になると Core の `Fields` に登録される。下の `FieldStep` を **Hierarchy の並び順**に使う（番号は持たない）。欲しい物を出す `Open()`・届いた物を受け取る `Receive(food)`（頼まれた物だけ戻る）・待ちきれなかった `Expire()`・はじめに戻す `Restart()`。Core の `IFieldRequests` の実装で、いつ出すかは Game・Tutorial が決める。開発中は右クリックメニュー（Open Next Want・Deliver Wanted Food・Complete Next Step・Restart）で確かめる |
 | `FieldStep` | `Steps` の下の、ステップごとの空のオブジェクト | 戻り方の 1 段。欲しい物（`Food`）、困りごとが解ける人（`Helped`。1 人目の頭の上に吹き出し）、済むと消える物（`Hide When Done`）。**このオブジェクトの子が、済むと出る物**。音・光は `On Done` につなぐ |
 | `VillagerMood` | 村人（村人の Prefab に入っている） | 悩んでいる間は頭の上の印を出し、ゆっくり立つ ⇄ ときどきうなだれる、を人ごとにばらばらの間隔でくり返す。名前のあるステップがすべて済むと元気になる。ステップが済むたびに、元気な人が喜ぶ |
 | `SurfaceAnchor` | フィールドの Prefab の一番上 | シーンの台（縦が潰れた立方体）の上面に乗せ、親の倍率を打ち消す。Prefab の中は 1 = 1 m のまま。編集中のシーンでも効く |
@@ -17,7 +17,7 @@
 ステップの進み具合の決まり（`StepProgress`）は Unity に依存しないので、テストしている。
 
 ### ほかの機能とのつなぎ方
-- 届いたかを決める所（DeliveryZone）が、Core の `IFieldRequests.Resolve(food)` を呼ぶ。出ている欲しい物と同じなら、そのステップが済む。Game や Tutorial は Village を直接呼ばず、Core の `Fields`（置き場）から `IFieldRequests` として受け取る。
+- 物が落ちた場所を決める所（DeliveryZone）が、何が落ちても Core の `IFieldRequests.Receive(food)` を呼ぶ。頼まれた物ならそのステップが済む。頼まれていない物は戻らず、`Received`（`Own`・`Foreign`）の知らせだけ出る（豊作・いびつな世界などの反応は、それを受けて足す）。Game や Tutorial は Village を直接呼ばず、Core の `Fields`（置き場）から `IFieldRequests` として受け取る。
 - フィールドごとの独自の演出は、ステップの子の物に付けたスクリプト（出たときの `OnEnable`）か、`FieldStages.StepDone` から足す。共通の部品は直さない。
 
 ## シーンとのつながり
