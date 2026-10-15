@@ -25,7 +25,7 @@ STATE_DIR = Path(tempfile.gettempdir()) / "ja-check-state"  # リポジトリに
 RULES = HERE / "rules.md"
 MODEL = os.environ.get("JA_CHECK_MODEL", "haiku")
 TIMEOUT = 45
-MAX_PRE_DENIES = 3   # 同じセッションで続けて止める上限
+MAX_PRE_DENIES = 2   # 同じセッションで続けて止める上限
 MAX_STOP_BLOCKS = 2  # 1 回の返答を差し戻す上限
 MAX_CHARS = 8000
 MODE = ""
@@ -47,10 +47,12 @@ PRINCIPLE = """次のテキストの日本語の地の文を読み、読みに�
 開発で定着したカタカナ語（デプロイ、ログ、コンポーネントなど）は不自然としないでください。
 他人の発言や引用と分かる部分は対象外です。議事録の中の、話した人の言葉そのもの（「」で囲んだ発言）も対象外です。
 直し方の例を書くときは、事実・決定・数字・名前・やることを消さない書き方にしてください。
-迷ったら指摘してください（見逃しより過検知を選びます）。
+手順で押すボタン・メニュー・画面の名前（A ボタン、Inspector、Open Next Want など）は、読み手が操作に使うので、多くても問題にしないでください。
+NG にするのは、読み手が一度読んでも意味を取れない文だけです。言い回しの好み（どちらでも意味が通る）では NG にしないでください。
+直し方の例は、意味を変えないでください。誰がしたか・何が対象か・数字を変えたり、ない言葉を作ったりしないでください。
 
 当てはまらなければ、1 行で OK とだけ出力してください。
-当てはまるなら、1 行で「NG: <どの文が・なぜ読みにくいか。直し方の例>」の形で出力してください（いくつかあれば、目立つものを 3 つまで）。
+当てはまるなら、1 行で「NG: <どの文が・なぜ読みにくいか。直し方の例>」の形で出力してください（いくつかあれば、いちばん読みにくいものを 2 つまで）。
 それ以外は出力しないでください。
 
 --- テキスト ---
@@ -178,10 +180,21 @@ def current_body(cmd):
 
 
 # ---------- post: 書いた日本語をためる
+def is_draft(path):
+    """一時フォルダの中のファイルは、投稿用の下書き。投稿するときに pre で読むので、ここではためない（同じ文を 2 回読まない）。"""
+    if not path:
+        return False
+    try:
+        Path(path).resolve().relative_to(Path(tempfile.gettempdir()).resolve())
+        return True
+    except Exception:
+        return False
+
+
 def post(data):
     ti = data.get("tool_input") or {}
     text = ti.get("content") or ti.get("new_string") or ""
-    if not JAPANESE.search(text):
+    if not JAPANESE.search(text) or is_draft(ti.get("file_path", "")):
         return 0
     state = load_state(data)
     buf = state.setdefault("buffer", [])
