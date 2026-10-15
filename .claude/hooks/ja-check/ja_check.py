@@ -29,6 +29,9 @@ TIMEOUT = 45
 MAX_PRE_DENIES = 2   # 同じセッションで続けて止める上限
 MAX_STOP_BLOCKS = 2  # 1 回の返答を差し戻す上限
 MAX_CHARS = 8000
+# 判定のときだけ使う、軽い起動のフラグ。指示文を短いものに替え、ツールを外す。
+SLIM_ARGS = ["--system-prompt", "You judge the readability of Japanese text. Follow the user's instructions exactly and output only the requested line.",
+             "--tools", ""]
 MODE = ""
 
 JAPANESE = re.compile(r"[぀-ヿ一-鿿]")
@@ -342,18 +345,24 @@ def judge(text):
         print("[ja-check] claude が見つからないので、判定せずに通しました。", file=sys.stderr)
         return None
     env = dict(os.environ, JA_CHECK_ACTIVE="1")
-    try:
-        r = subprocess.run([exe, "-p", "--model", MODEL], input=PRINCIPLE + "<text>\n" + text + "\n</text>\n", capture_output=True,
-                           text=True, encoding="utf-8", timeout=TIMEOUT, env=env)
-    except Exception as e:
-        print(f"[ja-check] 判定できなかったので通しました: {e}", file=sys.stderr)
-        return None
-    out = (r.stdout or "").strip().splitlines()
-    for line in out:
-        line = line.strip()
-        if line.startswith("OK") or line.startswith("NG"):
-            return line
-    return None  # 形式が違う返事は、判定できなかったとして通す
+    prompt = PRINCIPLE + "<text>\n" + text + "\n</text>\n"
+    # まず軽く起動する。Claude Code の長い指示文とツールを外すと、入力が約 5 分の 1 になる（約 31,000 → 約 6,700 トークン）。
+    # 軽い起動が使えない版の Claude Code（フラグを知らない）では、いつもの起動でやり直す。判定が黙って止まらないように。
+    for extra in (SLIM_ARGS, []):
+        try:
+            r = subprocess.run([exe, "-p", "--model", MODEL] + extra, input=prompt, capture_output=True,
+                               text=True, encoding="utf-8", timeout=TIMEOUT, env=env)
+        except Exception as e:
+            print(f"[ja-check] 判定できなかったので通しました: {e}", file=sys.stderr)
+            return None
+        for line in (r.stdout or "").strip().splitlines():
+            line = line.strip()
+            if line.startswith("OK") or line.startswith("NG"):
+                return line
+        if r.returncode == 0:
+            return None  # 起動はできたが、形式が違う返事だった。判定できなかったとして通す
+    print("[ja-check] 判定できなかったので通しました（軽い起動も、いつもの起動も失敗）。", file=sys.stderr)
+    return None
 
 
 # ---------- セッションごとの状態
