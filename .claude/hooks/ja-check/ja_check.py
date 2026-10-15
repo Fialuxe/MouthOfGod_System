@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -88,6 +89,8 @@ def main():
             return pre(data)
         if mode == "post":
             return post(data)
+        if mode == "post-bash":
+            return post_bash(data)
         if mode == "stop":
             return stop(data)
     except Exception as e:  # fail open
@@ -110,6 +113,8 @@ def session_start():
 # ---------- pre: gh で日本語を出す直前に判定する
 def pre(data):
     cmd = (data.get("tool_input") or {}).get("command") or ""
+    # Bash で書いたファイルを、後で見つけるために、始めた時刻を残す（post-bash が使う）
+    save_state(data, {"t": time.time()}, "bashstart")
     if not GH_POST.search(cmd):
         return 0
     text = gh_text(cmd)
@@ -193,6 +198,48 @@ def is_draft(path):
         return True
     except Exception:
         return False
+
+
+TEXT_SUFFIXES = {".md", ".txt", ".cs", ".py", ".ps1", ".sh", ".json", ".yml", ".yaml", ".tsv", ".csv"}
+
+
+def post_bash(data):
+    """Bash で書いたファイル（heredoc・python・sed など）をためる。
+    リポジトリの中で、変更・追加されたファイルのうち、この Bash を始めた後に書かれたものを探す。"""
+    start = load_state(data, "bashstart").get("t")
+    cwd = data.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    if not start or not Path(cwd).is_dir():
+        return 0
+    try:
+        top = subprocess.run(["git", "-C", cwd, "rev-parse", "--show-toplevel"], capture_output=True, text=True,
+                             encoding="utf-8", timeout=5).stdout.strip()
+        if not top:
+            return 0
+        listed = subprocess.run(["git", "-C", top, "ls-files", "-m", "-o", "--exclude-standard"], capture_output=True,
+                                text=True, encoding="utf-8", timeout=10).stdout.splitlines()
+    except Exception:
+        return 0
+    state = load_state(data, "buffer")
+    buf = state.setdefault("buffer", [])
+    added = 0
+    for rel in listed:
+        p = Path(top) / rel
+        if p.suffix.lower() not in TEXT_SUFFIXES or not p.is_file():
+            continue
+        try:
+            if p.stat().st_mtime < start - 1:
+                continue
+            text = p.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if JAPANESE.search(text) and not is_draft(str(p)):
+            buf.append(f"### {p}\n{text}")
+            added += 1
+        if added >= 20:
+            break
+    if added:
+        save_state(data, state, "buffer")
+    return 0
 
 
 def post(data):
