@@ -80,7 +80,7 @@ Game        本編（時間・スコア）                                  Core
 Device   --TextureChanged / Confirmed-->  Food(FoodSpawner)  --Spawned-->  UI / Tutorial
 Game / Tutorial --IFieldRequests.Open()--> Village(FieldStages)  --RequestIssued-->  UI(吹き出し)
 プレイヤーが、生まれた物を DeliveryZone へ運ぶ
-DeliveryZone --IFieldRequests.Resolve(food)--> Village(FieldStages: 村が変わる)。DeliveryZone は Delivered(Accepted?) を出す --> Tutorial / Game(スコア)
+DeliveryZone --IFieldRequests.Receive(food)--> Village(FieldStages: 頼まれた物なら村が変わる)  --Delivered(Kind)--> Game(採点) / 反応
 Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / Tutorial / Game
 ```
 
@@ -98,8 +98,8 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 | 食感 | `TextureId`（論理 ID。物理量は Device の内側で ID に変換する） | Core |
 | 入力 | `IDevice`: `Current`、`TextureChanged`、`Confirmed`（決定したときの食感を運ぶ）、`Bitten` | Core（interface）／ Device（実装） |
 | 食べ物 | `FoodId`、`FoodCatalog.Resolve(TextureId)` → `FoodId`、`FoodSpawner.Spawned` | Food |
-| 届け先 | `FieldId`、`Field.Accepts(FoodId)`、`DeliveryZone.Delivered(DeliveryResult)` | Village |
-| 欲しい物（要求） | `Fields`（置き場）、`IFieldRequests`（`Open`・`Resolve`・`Expire`・`Restart`）、`RequestIssued`（`Anchor` 付き）、`RequestClosed` | Core（interface・イベント）／ Village（`FieldStages`・`FieldStep`） |
+| 届け先 | `FieldId`、`IFieldRequests.Receive(FoodId)` → `DeliveryKind`、`Delivered`（`Kind` 付き） | Core ／ Village |
+| 欲しい物（要求） | `Fields`（置き場）、`IFieldRequests`（`Open`・`Receive`・`Expire`・`Restart`）、`RequestIssued`（`Anchor` 付き）、`RequestClosed` | Core（interface・イベント）／ Village（`FieldStages`・`FieldStep`） |
 | 進行 | `TutorialRunner`、`StepEntered`、`StepCompleted`、`CueRequested` | Tutorial ／ Core |
 
 - 食感・食べ物を `enum` で Core に直書きしない。追加のたびに全機能が再コンパイルされ、素材担当が触れなくなる。ID は文字列にする（決定。CONTRIBUTING「型の名前とデータの置き場所」）。

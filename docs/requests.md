@@ -54,11 +54,11 @@
 1. **Play を始める**: `FieldStages.Start` が、その時点の進み具合を見た目に写す（ふつうは、全部のステップがまだの見た目）。ステップの子は消え、`Hide When Done` の物（枯れた茎）は出て、`Helped` の人は悩む。
 2. **出す**: 本編（Game）が、そのフィールドの `CanOpen` を見て `Open()` を呼ぶ。
 3. `FieldStages` が、まだ済んでいない最初のステップを選んで `Issued`（にんじん・村・畑の人の頭）を出す。吹き出し（UI）がそれを聞いて、頭の上に吹き出しを出す。
-4. **届く**: 体験者が村の前でにんじんを生み出す。DeliveryZone が「村に、にんじんが落ちた」と判断して `Resolve(にんじん)` を呼ぶ。
+4. **届く**: 体験者が村の前でにんじんを生み出す。DeliveryZone が「村に、にんじんが落ちた」と判断して `Receive(にんじん)` を呼ぶ。
 5. `FieldStages` がそのステップを「済み」にして、見た目を写し直す。芽が出て、枯れた茎が消え、畑の 2 人が元気になり、元気な人がみんな喜ぶ（`Victory`）。
 6. **終わりを知らせる**: `Closed`（`Resolved = true`）が出る。UI は吹き出しを消し、Game はスコアを足して、すぐ次の `Open()` を呼べる。そのあと、音・光（`On Done`）とフィールドごとの演出（`StepDone`）が動く。
 
-違う物（かぼちゃ）が届いたら、`Resolve` は false を返し、何も変わりません。20 秒たっても届かなければ、Game が `Expire()` を呼び、`Closed`（`Resolved = false`）が出ます。
+頼んでいない物が届いても、フィールドは戻りません。`Receive` は「このフィールドの物だが頼んでいない（`Own`。2 本目のにんじんなど）」か「よその物（`Foreign`。村に豚など）」を返し、`Received` の知らせだけが出ます。そこから先の反応（やたら豊作になる、いびつな世界になる）は、まだ決めていません（下の「頼んでいない物が届いたとき」）。20 秒たっても届かなければ、Game が `Expire()` を呼び、`Closed`（`Resolved = false`）が出ます。
 
 ### なぜ、これで動くと言えるのか
 
@@ -152,6 +152,7 @@ Village                 ← FieldStages（フィールドに 1 つ。ID は vill
 |---|---|
 | Open Next Want | 次のステップの欲しい物を出す（Console に `wants ...`） |
 | Deliver Wanted Food | 出ている欲しい物が届いたことにする（見た目が変わり、村人が喜ぶ） |
+| Deliver Foreign Food (test) | よその物が届いたことにする（見た目は変わらず、Console に `Foreign`） |
 | Complete Next Step | 欲しい物を通さずに、次のステップを済ませる |
 | Restart | はじめに戻す |
 
@@ -167,7 +168,7 @@ Village                 ← FieldStages（フィールドに 1 つ。ID は vill
               │ RequestIssued(Food, Field, Anchor)   → UI: 吹き出しを Anchor の上に出す
               │
   プレイヤーが、そのフィールドの前で物を生み出す（届く）
-              │ IFieldRequests.Resolve(food)         ← 届いたかを決める所（DeliveryZone）
+              │ IFieldRequests.Receive(food)         ← 物が落ちた場所を決める所（DeliveryZone）。何が届いても渡す
               ▼
   ステップが済む: 子が出る・消す物が消える・村人が元気になって喜ぶ
   RequestClosed(Resolved = true)                     → UI: 吹き出しを消す / Game: スコア / Tutorial: 次へ
@@ -196,11 +197,12 @@ Village                 ← FieldStages（フィールドに 1 つ。ID は vill
 | `CanOpen` | Game・Tutorial | 次を出せるか（出ているものが無く、まだ欲しい物が残っている。`Food` が空のステップは数えない） | — |
 | `Open()` | Game | 次の欲しい物を出す（並び順で、まだ済んでいない最初のもの） | 出せたら true で、`Issued` が 1 回。出ている・残りが無いなら false で、イベントは出ない |
 | `Open(food)` | Tutorial | その物を欲しがる、まだ済んでいないステップを出す（並び順によらない。台本で物が決まっているとき） | 同上。その物を欲しがるステップが無いなら false |
-| `Resolve(food)` | DeliveryZone | 物がこのフィールドに届いた | 出ている物と同じなら true で、見た目が変わってから `Closed`（`Resolved = true`）。違う物・出ていないなら false で、何も変わらない |
+| `Receive(food)` | DeliveryZone | 物がこのフィールドに届いた（何が届いても呼ぶ） | 何だったかを返す（下の `DeliveryKind`）。`Requested` なら、そのステップが済み、見た目が変わってから `Closed`（`Resolved = true`）→ `Received` の順に出る。`Own`・`Foreign` なら、フィールドは戻らず `Received` だけ出る |
 | `Expire()` | Game（待ち時間切れ） | 出ている欲しい物を、届かないまま終える | 出ていれば `Closed`（`Resolved = false`）。出ていなければ何もしない |
 | `Restart()` | 体験の終わり（次の人へ）を受け持つ所 | はじめに戻す | 見た目を戻してから、出ていれば `Closed`（`Resolved = false`） |
 | `Issued` | UI・Game・Tutorial が聞く | 欲しい物が出た | `RequestIssued` |
 | `Closed` | UI・Game・Tutorial が聞く | 欲しい物が終わった | `RequestClosed` |
+| `Received` | Game（採点）・反応を作る人が聞く | 物が届いた（`Receive` のたびに 1 回） | `Delivered` |
 
 ### イベントのデータ（Core）
 
@@ -208,6 +210,7 @@ Village                 ← FieldStages（フィールドに 1 つ。ID は vill
 |---|---|
 | `RequestIssued` | `Food`（欲しい物）、`Field`、`Anchor`（吹き出しを出す場所の Transform。ミニチュアと一緒に動くので位置ではなく Transform。無ければ null） |
 | `RequestClosed` | `Food`、`Field`、`Resolved`（true = 届いた、false = 待ちきれなかった・やり直した） |
+| `Delivered` | `Food`、`Field`、`Kind`（`DeliveryKind`: `Requested` = 頼まれた物 / `Own` = このフィールドの物だが頼まれていない（2 本目など）/ `Foreign` = よその物） |
 
 ### `FieldStages`（Village。いつもの実装）だけにあるもの
 
@@ -215,7 +218,8 @@ Village の中と、フィールドの担当のスクリプトから使います
 
 | メンバー | すること |
 |---|---|
-| `StepDone`（event、済んだ `FieldStep`） | ステップが済んだ。見た目が変わり、`Closed` が出た後に出る（`FieldStep` の `On Done` も同じとき）。フィールドごとの演出を足すのに使う |
+| `StepDone`（event、済んだ `FieldStep`） | ステップが済んだ。見た目が変わり、`Closed`・`Received` が出た後に出る（`FieldStep` の `On Done` も同じとき）。フィールドごとの演出を足すのに使う |
+| `Request Order`（Inspector） | 次に頼む順番。`InOrder`（並び順）か `Random`（まだのステップからランダム） |
 | `Restarted`（event） | はじめに戻した。`Closed` の後に出る |
 | `Steps`・`DoneCount`・`IsFullyRecovered`・`IsDone(step)`・`Current` | 読むだけ |
 | 右クリックメニュー（Open Next Want など） | 開発中の確認用。展示では使わない |
@@ -262,8 +266,9 @@ Play の始めに、次のものは Console に警告が出る（Play は止め�
 
 | 決まり | 理由 |
 |---|---|
+| **戻るのは、吹き出しで頼まれた物が届いたときだけ** | 頼んでいない物では戻らない。何を頼むかで、戻り方を決められる |
 | 1 回届く = 1 ステップ | 戻り方が目に見えて分かる |
-| 次に出すのは、まだ済んでいない**最初の**ステップ | 草原の「鶏 → 豚 → 牛 → 象」のように、戻り方の物語を担当が決められる（fields.md） |
+| 次に頼むのは、並び順（`InOrder`）か、まだのステップからランダム（`Random`）。`FieldStages` の **Request Order** で選ぶ | 物語の順に戻したいフィールドは並び順、毎回ちがう体験にしたいフィールドはランダム |
 | 1 つのフィールドに、**同時に出る欲しい物は 1 つ** | 吹き出しが重ならない |
 | 済んだかは、ステップごとに持つ（何番目まで、とは数えない） | 順番を自由にしたくなっても、「次にどれを出すか」（`StepProgress.NextIndex`）の 1 か所を変えるだけで済む |
 
@@ -277,7 +282,8 @@ Play の始めに、次のものは Console に警告が出る（Play は止め�
 | 本編（Game、#81） | いつ・どのフィールドに出すか（同時の数、待ち時間、難しさ）。`CanOpen` を見て `Open`、時間切れで `Expire` | Game のコードとデータ | フィールドの中身。テストでは `IFieldRequests` の偽物を使う |
 | チュートリアル（Tutorial、#60・#50） | ステップのデータに「どのフィールド（`FieldId`）に出すか」を書き、`Open` を呼ぶ。`Closed` で次へ | Tutorial のコードとデータ | 同上 |
 | 吹き出し（UI、#59） | `Issued` で `Anchor` の上に出し、`Closed` で消す（`Resolved` で喜ぶ・がっかりを分ける） | UI のコード・Prefab | 同上 |
-| 届いたかを決める所（DeliveryZone） | 物がそのフィールドに落ちたら、そのフィールドの `IFieldRequests.Resolve(food)`。戻り値を `Delivered` の `Accepted` に使う | DeliveryZone のコード | — |
+| 物が落ちた場所を決める所（DeliveryZone） | 物がそのフィールドに落ちたら、何であっても、そのフィールドの `IFieldRequests.Receive(food)` を呼ぶ。落ちた物を消すか残すか（いびつな世界なら残す）は、食べ物の側で決める | DeliveryZone のコード | — |
+| 採点（Game。決まりは未定） | 各フィールドの `Received` を聞いて、`Kind`（`Requested`・`Own`・`Foreign`）ごとに点を付ける。点の決まりは本編のデータ | Game のコードとデータ | — |
 
 - Game・Tutorial・UI・DeliveryZone は、フィールドを `Fields`（Core の置き場）から `IFieldRequests` として受け取り、`FieldStages` を直接使わない。Village のクラスを直接参照しない（asmdef で禁止。[architecture.md](architecture.md) §2）。見るのは Core の `IFieldRequests`・`RequestIssued`・`RequestClosed` だけ。
 - `IFieldRequests` の形（メンバーと意味）を変えるときは、使う側すべてに効くので、別の PR にする。
@@ -294,6 +300,18 @@ Play の始めに、次のものは Console に警告が出る（Play は止め�
 
 本編の出し方（Game）も、`IFieldRequests` しか見ないので、フィールドの作りが変わっても直さなくてよい。
 
+## 頼んでいない物が届いたとき（反応と採点の受け口）
+
+体験者は、頼まれていない物も投げてきます。フィールドは戻りませんが、**何が届いたかは必ず知らせます**（`Received`、`Kind` 付き）。反応も採点も、まだ決まっていません。決まったら、この知らせを受けて足すだけで済み、フィールドの仕組みは直しません。
+
+| 届いた物 | `Kind` | フィールド | 反応（案。未定） | 足す所 |
+|---|---|---|---|---|
+| 吹き出しで頼まれた物 | `Requested` | そのステップが戻る | 村人が喜ぶ（いまある） | — |
+| このフィールドの物だが、頼まれていない（2 本目のにんじんなど） | `Own` | 戻らない | やたらと豊作になる（神の過剰さ） | `Received` を受けるスクリプトをフィールドに置く |
+| よその物（村に豚） | `Foreign` | 戻らない | 豚がそのまま居座る、いびつな世界。村人が困惑する | 物を残すかは食べ物の側、困惑は `Received` を受けるスクリプト |
+
+採点（決まりは未定）は、本編（Game）が各フィールドの `Received` を聞いて、`Kind` ごとに点を付けます。何点にするか・連続ボーナス・`Foreign` を減点にするか面白さで加点にするか、は本編のデータで決めます。
+
 ## チュートリアルと本編
 
 チュートリアル（T3・T4）と本編は別の場面ですが、**同じフィールドを使い続けます**。
@@ -303,7 +321,7 @@ Play の始めに、次のものは Console に警告が出る（Play は止め�
 
 ## 足りないもの（この仕組みの外で作る）
 
-- 吹き出し（#59）、届いたかを決める所（DeliveryZone、#63）、本編の出し方（#81）。
+- 吹き出し（#59）、物が落ちた場所を決める所（DeliveryZone、#63）、本編の出し方と採点（#81・#83）。
 - 後から足す（今の約束を変えずに足せる）: 「いまの場面」（チュートリアル中は本編が出さない）と「体験者がいまいるフィールド」（届け先）の置き場、欲しくない物が届いたときの村人の反応（T2 で少し喜ぶ、T3 で首をかしげる、本編で首を振る）、体験の終わりに各フィールドを `Restart` する所。
 - 待ちきれなかったときの村人の反応（がっかり）。今の `VillagerMood` は「済んだか」しか見ない。`RequestClosed(Resolved = false)` を見て反応させるのは、そのとき足す。
 - 欲しい物の ID（村の carrot・pumpkin・sheep・pig）は仮。食べ物の ID は、食感と食べ物の対応（#31）で決まる。

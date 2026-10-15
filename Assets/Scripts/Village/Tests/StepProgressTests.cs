@@ -113,6 +113,37 @@ namespace MouthOfGod.Village.Tests
         }
 
         [Test]
+        public void Wants_IsTrueForAnyStepsFood_EvenIfDone()
+        {
+            var progress = CreateProgress();
+            progress.Complete(0);
+
+            Assert.IsTrue(progress.Wants(Carrot));
+            Assert.IsTrue(progress.Wants(Pumpkin));
+            Assert.IsFalse(progress.Wants(new FoodId("test-pig")));
+            Assert.IsFalse(progress.Wants(FoodId.None));
+        }
+
+        [Test]
+        public void TryOpenRandom_PicksOnlyNotDoneSteps_AndCoversAll()
+        {
+            var sheep = new FoodId("test-sheep");
+            var progress = new StepProgress(new[] { Carrot, Pumpkin, sheep, FoodId.None });
+            progress.Complete(1);
+            var random = new System.Random(1);
+            var opened = new System.Collections.Generic.HashSet<int>();
+
+            for (var i = 0; i < 50; i++)
+            {
+                Assert.IsTrue(progress.TryOpen(out var index, random));
+                opened.Add(index);
+                progress.Close();
+            }
+
+            CollectionAssert.AreEquivalent(new[] { 0, 2 }, opened); // 済んだ 1 と、欲しい物が空の 3 は出ない
+        }
+
+        [Test]
         public void EmptyWant_IsSkippedWhenOpening()
         {
             var progress = new StepProgress(new[] { FoodId.None, Pumpkin });

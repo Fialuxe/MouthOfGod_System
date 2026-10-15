@@ -43,7 +43,8 @@
 | 吹き出し（UI） | 「出た」で吹き出しを出し、「終わった」で消す | `Fields`・`RequestIssued`・`RequestClosed` |
 | 本編（Game） | いつ・どこに欲しい物を出すかを決める | `Fields`・`IFieldRequests` の `CanOpen`・`Open()`・`Expire()` |
 | チュートリアル | 台本どおりに「海に魚」を出し、届くのを待つ | `Fields.Find`・`Open(food)`・`Closed` |
-| 届いたかの判定 | 生まれた物を、体験者がいる場所に届ける | `Fields.Find`・`Resolve(food)` |
+| 物が落ちた場所の判定 | 生まれた物を、体験者がいる場所に渡す（何であっても） | `Fields.Find`・`Receive(food)` |
+| 採点・反応 | 届いた物が何だったか（頼まれた・このフィールドの物・よその物）で、点や反応を付ける | `Fields`・`Received`・`Delivered.Kind` |
 
 コードの例（そのまま写して始められる）:
 
@@ -91,15 +92,27 @@ void Update()
 ```
 
 ```csharp
+// 採点（決まりは未定）: どのフィールドに何が届いたかを数える。吹き出しと同じく Fields.All と Added で各フィールドの Received を購読する
+void OnReceived(Delivered d)
+{
+    switch (d.Kind)
+    {
+        case DeliveryKind.Requested: score += 10; break; // 頼まれた物
+        case DeliveryKind.Own: score += 1; break;        // 2 本目のにんじん（豊作）
+        case DeliveryKind.Foreign: break;                // 村に豚（いびつな世界）
+    }
+}
+```
+
+```csharp
 // チュートリアル 3: 海の困っている人に、魚を欲しがらせる
 var sea = Fields.Find(new FieldId("sea"));
 if (sea != null && sea.Open(new FoodId("fish"))) sea.Closed += OnSeaClosed; // 届いたら次のステップへ
 ```
 
 ```csharp
-// 届いたかの判定: 生まれた物を、体験者がいる場所に渡す（いる場所の受け取り方は、作るときに Core に足す）
-var field = Fields.Find(currentField);
-var accepted = field != null && field.Resolve(spawned.Food); // false なら、違う物か、欲しがっていない
+// 物が落ちた場所の判定: 生まれた物を、何であっても、体験者がいる場所に渡す（いる場所の受け取り方は、作るときに Core に足す）
+Fields.Find(currentField)?.Receive(spawned.Food); // 戻るのは頼まれた物のときだけ。何だったかは Received で知らせる
 ```
 
 もっと詳しく: 考え方・流れ・約束の全部は [docs/requests.md](../../docs/requests.md)（「これは何か」「API 仕様」）。

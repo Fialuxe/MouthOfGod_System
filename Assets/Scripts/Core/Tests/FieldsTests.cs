@@ -14,11 +14,12 @@ namespace MouthOfGod.Core.Tests
             public bool CanOpen => false;
             public bool Open() => false;
             public bool Open(FoodId food) => false;
-            public bool Resolve(FoodId food) => false;
+            public DeliveryKind Receive(FoodId food) => DeliveryKind.Foreign;
             public void Expire() { }
             public void Restart() { }
             public event Action<RequestIssued> Issued { add { } remove { } }
             public event Action<RequestClosed> Closed { add { } remove { } }
+            public event Action<Delivered> Received { add { } remove { } }
         }
 
         readonly List<Exception> _exceptions = new List<Exception>();

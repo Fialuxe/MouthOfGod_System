@@ -16,6 +16,13 @@ namespace MouthOfGod.Village
         [Tooltip("フィールドの ID（docs/fields.md）。village / mountain / sea / grassland のどれか。空のままだと、本編などにつながらない（Play の始めに警告）")]
         [SerializeField] string fieldId = "";
 
+        [Tooltip("欲しい物を出す順番。InOrder: Steps の並び順。Random: まだのステップからランダム")]
+        [SerializeField] RequestOrder requestOrder = RequestOrder.InOrder;
+
+        public enum RequestOrder { InOrder, Random }
+
+        static readonly System.Random Rng = new System.Random();
+
         FieldStep[] _steps;
         StepProgress _progress;
         // 見た目を写し直してから Closed を出すまでの間。ここで Open されると Issued が Closed より先に出るので、出させない。
@@ -23,6 +30,7 @@ namespace MouthOfGod.Village
 
         public event Action<RequestIssued> Issued;
         public event Action<RequestClosed> Closed;
+        public event Action<Delivered> Received;
 
         /// <summary>ステップが済んだとき（済んだステップ）。Closed の後に出る。フィールドごとの独自の演出を、ここから足せる。</summary>
         public event Action<FieldStep> StepDone;
@@ -99,9 +107,11 @@ namespace MouthOfGod.Village
         /// <summary>次の欲しい物を出す（Issued）。出ているものがある・全部済んだなら false。</summary>
         public bool Open()
         {
-            if (_closing || !Progress.TryOpen(out var index)) return false;
+            if (_closing || !Progress.TryOpen(out var index, requestOrder == RequestOrder.Random ? Rng : null)) return false;
             return Issue(index);
         }
+
+        public RequestOrder Order { get => requestOrder; set => requestOrder = value; }
 
         /// <summary>その物を欲しがる、まだ済んでいないステップを出す（並び順によらない。チュートリアル用）。出せなければ false。</summary>
         public bool Open(FoodId food)
@@ -119,16 +129,25 @@ namespace MouthOfGod.Village
         }
 
         /// <summary>
-        /// 物が届いた。出ている欲しい物と同じならステップを済ませ（見た目が変わる）、Closed（Resolved = true）を出して true。違う物・出ていないときは false。
-        /// 届いたかを決める所（DeliveryZone）が IFieldRequests 越しに呼ぶ。戻り値は Delivered の Accepted に使える。
+        /// 物が届いた。何が届いても受け取り、何だったかを返す。Received を 1 回出す。
+        /// 欲しがっていた物（Requested）なら、ステップを済ませ（見た目が変わる）、Closed（Resolved = true）→ Received → StepDone の順に出す。
+        /// このフィールドの物（Own）・よその物（Foreign）なら、フィールドは戻らず、Received だけ出す（反応は受けた側が足す）。
+        /// 物が落ちた場所を決める所（DeliveryZone）が IFieldRequests 越しに呼ぶ。
         /// </summary>
-        public bool Resolve(FoodId food)
+        public DeliveryKind Receive(FoodId food)
         {
-            if (!Progress.TryResolve(food, out var index)) return false;
+            if (!Progress.TryResolve(food, out var index))
+            {
+                var kind = Progress.Wants(food) ? DeliveryKind.Own : DeliveryKind.Foreign;
+                Received?.Invoke(new Delivered(food, Field, kind));
+                return kind;
+            }
+
             // 見た目を先に変えてから知らせる（Closed を受けてすぐ Open しても、次のステップの欲しい物が出るように）
             ApplyThenClose(food, wasOpen: true, resolved: true, celebrate: true);
+            Received?.Invoke(new Delivered(food, Field, DeliveryKind.Requested));
             RaiseStepDone(index);
-            return true;
+            return DeliveryKind.Requested;
         }
 
         public void Expire()
@@ -196,7 +215,11 @@ namespace MouthOfGod.Village
         }
 
         [ContextMenu("Deliver Wanted Food")]
-        void ResolveFromMenu() => Resolve(Current);
+        void ReceiveFromMenu() => Receive(Current);
+
+        // 頼まれていない物を投げたとき（豊作・いびつな世界の反応を作るとき）の確認用。Received だけが出て、見た目は変わらない
+        [ContextMenu("Deliver Foreign Food (test)")]
+        void ReceiveForeignFromMenu() => Debug.Log($"[FieldStages] {fieldId} received test-foreign: {Receive(new FoodId("test-foreign"))}", this);
 
         [ContextMenu("Complete Next Step")]
         void CompleteFromMenu()

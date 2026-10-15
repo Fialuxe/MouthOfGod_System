@@ -70,8 +70,9 @@ namespace MouthOfGod.Village.Tests
             _field.Closed += closed.Add;
             _field.Open();
 
-            Assert.IsFalse(_field.Resolve(new FoodId("test-pumpkin")));
-            Assert.IsTrue(_field.Resolve(new FoodId("test-carrot")));
+            Assert.AreEqual(DeliveryKind.Own, _field.Receive(new FoodId("test-pumpkin")), "頼んでいない自分の物では戻らない");
+            Assert.IsFalse(_field.IsDone(_crops));
+            Assert.AreEqual(DeliveryKind.Requested, _field.Receive(new FoodId("test-carrot")));
 
             Assert.AreEqual(1, closed.Count);
             Assert.IsTrue(closed[0].Resolved);
@@ -87,9 +88,9 @@ namespace MouthOfGod.Village.Tests
         public void LaterStepHides_ObjectShownByEarlierStep()
         {
             _field.Open();
-            _field.Resolve(new FoodId("test-carrot"));
+            _field.Receive(new FoodId("test-carrot"));
             _field.Open();
-            _field.Resolve(new FoodId("test-pumpkin"));
+            _field.Receive(new FoodId("test-pumpkin"));
 
             Assert.IsTrue(_field.IsFullyRecovered);
             Assert.IsFalse(_sproutChild.activeSelf);
@@ -107,7 +108,7 @@ namespace MouthOfGod.Village.Tests
             _field.Closed += _ => _field.Open();
             _field.Open();
 
-            _field.Resolve(new FoodId("test-carrot"));
+            _field.Receive(new FoodId("test-carrot"));
 
             Assert.AreEqual(2, issued.Count);
             Assert.AreEqual(new FoodId("test-pumpkin"), issued[1].Food);
@@ -124,7 +125,7 @@ namespace MouthOfGod.Village.Tests
             _field.StepDone += _ => _field.Open();
             _field.Open();
 
-            _field.Resolve(new FoodId("test-carrot"));
+            _field.Receive(new FoodId("test-carrot"));
 
             CollectionAssert.AreEqual(
                 new[] { "Issued test-carrot", "Closed test-carrot", "StepDone", "Issued test-pumpkin" }, events);
@@ -156,7 +157,7 @@ namespace MouthOfGod.Village.Tests
             field.Issued += issued.Add;
 
             field.Open();
-            field.Resolve(new FoodId("test-carrot"));
+            field.Receive(new FoodId("test-carrot"));
             field.Open();
 
             Assert.AreEqual(new FoodId("test-turnip"), issued[1].Food);
@@ -167,7 +168,7 @@ namespace MouthOfGod.Village.Tests
         public void Restart_OpenFromClosed_OpensTheFirstStepAgain()
         {
             _field.Open();
-            _field.Resolve(new FoodId("test-carrot"));
+            _field.Receive(new FoodId("test-carrot"));
             _field.Open();
             var issued = new List<RequestIssued>();
             _field.Issued += issued.Add;
@@ -193,9 +194,57 @@ namespace MouthOfGod.Village.Tests
             Assert.AreEqual(1, issued.Count);
             Assert.AreEqual(new FoodId("test-pumpkin"), issued[0].Food);
             Assert.AreEqual(_elder.transform, issued[0].Anchor);
-            Assert.IsTrue(_field.Resolve(new FoodId("test-pumpkin")));
+            Assert.AreEqual(DeliveryKind.Requested, _field.Receive(new FoodId("test-pumpkin")));
             Assert.IsTrue(_field.IsDone(_crops));
             Assert.IsFalse(_field.IsDone(_sprout));
+        }
+
+        [Test]
+        public void Receive_ClassifiesEveryDelivery_AndOnlyRequestedRestores()
+        {
+            var got = new List<Delivered>();
+            _field.Received += got.Add;
+
+            Assert.AreEqual(DeliveryKind.Own, _field.Receive(new FoodId("test-carrot")), "吹き出しが出ていなければ、自分の物でも戻らない");
+            Assert.AreEqual(DeliveryKind.Foreign, _field.Receive(new FoodId("test-pig")));
+            Assert.AreEqual(0, _field.DoneCount, "頼まれていない物では、どのステップも済まない");
+
+            _field.Open();
+            Assert.AreEqual(DeliveryKind.Requested, _field.Receive(new FoodId("test-carrot")));
+            Assert.AreEqual(DeliveryKind.Own, _field.Receive(new FoodId("test-carrot")), "2 本目のにんじん");
+
+            CollectionAssert.AreEqual(
+                new[] { DeliveryKind.Own, DeliveryKind.Foreign, DeliveryKind.Requested, DeliveryKind.Own },
+                got.ConvertAll(d => d.Kind));
+            Assert.IsTrue(got.TrueForAll(d => d.Field == new FieldId("village")));
+            Assert.AreEqual(1, _field.DoneCount);
+        }
+
+        [Test]
+        public void Requested_RaisesClosedThenReceivedThenStepDone()
+        {
+            var events = new List<string>();
+            _field.Closed += _ => events.Add("Closed");
+            _field.Received += _ => events.Add("Received");
+            _field.StepDone += _ => events.Add("StepDone");
+            _field.Open();
+
+            _field.Receive(new FoodId("test-carrot"));
+
+            CollectionAssert.AreEqual(new[] { "Closed", "Received", "StepDone" }, events);
+        }
+
+        [Test]
+        public void RandomOrder_OpensEveryStepOnce()
+        {
+            _field.Order = FieldStages.RequestOrder.Random;
+            var foods = new List<FoodId>();
+            _field.Issued += r => foods.Add(r.Food);
+
+            while (_field.Open()) _field.Receive(_field.Current);
+
+            CollectionAssert.AreEquivalent(new[] { new FoodId("test-carrot"), new FoodId("test-pumpkin") }, foods);
+            Assert.IsTrue(_field.IsFullyRecovered);
         }
 
         [Test]
@@ -220,7 +269,7 @@ namespace MouthOfGod.Village.Tests
         {
             var closed = new List<RequestClosed>();
             _field.Open();
-            _field.Resolve(new FoodId("test-carrot"));
+            _field.Receive(new FoodId("test-carrot"));
             _field.Open();
             _field.Closed += closed.Add;
 

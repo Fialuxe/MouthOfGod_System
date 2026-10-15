@@ -58,13 +58,35 @@ namespace MouthOfGod.Village
 
         public bool CanOpen => !IsOpen && NextIndex >= 0;
 
-        /// <summary>次のステップの欲しい物を出す。出せなければ false（index は -1）。</summary>
-        public bool TryOpen(out int index)
+        /// <summary>次の欲しい物を出す。出せなければ false（index は -1）。random を渡すと、並び順ではなく、まだのステップからランダムに選ぶ。</summary>
+        public bool TryOpen(out int index, System.Random random = null)
         {
-            index = CanOpen ? NextIndex : -1;
-            if (index < 0) return false;
+            index = -1;
+            if (!CanOpen) return false;
+            if (random == null)
+            {
+                index = NextIndex;
+            }
+            else
+            {
+                var candidates = 0;
+                for (var i = 0; i < _wants.Length; i++)
+                    if (!_done[i] && !_wants[i].IsEmpty) candidates++;
+                var pick = random.Next(candidates);
+                for (var i = 0; i < _wants.Length && index < 0; i++)
+                    if (!_done[i] && !_wants[i].IsEmpty && pick-- == 0) index = i;
+            }
             OpenIndex = index;
             return true;
+        }
+
+        /// <summary>このフィールドのどれかのステップが欲しがる物か（済んだステップも含む）。</summary>
+        public bool Wants(FoodId food)
+        {
+            if (food.IsEmpty) return false;
+            foreach (var want in _wants)
+                if (want == food) return true;
+            return false;
         }
 
         /// <summary>その物を欲しがる、まだ済んでいない最初のステップを出す。出ているものがある・無いなら false（index は -1）。</summary>
