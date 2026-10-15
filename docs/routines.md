@@ -23,6 +23,14 @@
 
 3 つのスキル（`mtg-agenda`・`mtg-sync`・`issue-hygiene`）は、リポジトリの `.claude/skills/` にある。ルーティンに**リポジトリを足せば、スキルは自動で読み込まれる**。ルーティンに入れるのは、上の指示文だけ。
 
+## 日本語チェックも、リポジトリにある
+
+ルーティンが書く議事録・Issue・PR・コメントの日本語は、別のモデル（Haiku）が読んで確かめます。読みにくければ、Claude が書き直してから投稿します。直すのは言い方だけで、事実・決定・数字・名前・やることは消しません。
+
+仕組みは `.claude/settings.json` と `.claude/hooks/ja-check/` にあります。リポジトリを足したルーティンでは、自動で動きます。詳しくは [ja-check の README](../.claude/hooks/ja-check/README.md) にあります。
+
+日報（Daily Digest）は Gemini で書いているので、このチェックは効きません。
+
 ## 作り直す手順（5 分）
 
 1. claude.ai にログインして、GitHub を連携する: [claude.ai/connect-github](https://claude.ai/connect-github)。**GitHub には、リポジトリの持ち主（Fialuxe）でログインしておく**。Claude の GitHub アプリを、`MouthOfGod_System` に入れる（非公開の `MouthOfGod_transcripts` も使うなら、これも）
