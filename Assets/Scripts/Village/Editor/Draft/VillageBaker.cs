@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,8 +11,11 @@ namespace MouthOfGod.Village.Editor.Draft
     ///
     /// できる Prefab の形:
     ///   Village（<see cref="FieldStages"/>・<see cref="SurfaceAnchor"/>。シーンの Village の地面の子に置く）
-    ///     └ 置き物（素材の Prefab のインスタンス。1 = 1 m）
-    ///         段階で出入りする物には <see cref="StageVisibility"/>、村人には <see cref="VillagerMood"/> の設定が付く
+    ///     ├ 置き物・村人（素材の Prefab のインスタンス。1 = 1 m。はじめからある物）
+    ///     └ Steps
+    ///         ├ 1 Sprout（<see cref="FieldStep"/>: 欲しい物・困りごとが解ける人・消す物）
+    ///         │   └ 済むと出る物
+    ///         └ 2 Crops …
     /// </summary>
     public static class VillageBaker
     {
@@ -20,7 +25,7 @@ namespace MouthOfGod.Village.Editor.Draft
         [MenuItem("MouthOfGod/Village/Bake Draft Village Prefab")]
         public static void Bake()
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(OutputPath) != null
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(OutputPath) != null && !Application.isBatchMode
                 && !EditorUtility.DisplayDialog("Village.prefab を作り直す",
                     $"{OutputPath} はもうあります。下書きから作り直すと、Prefab を手で直した分は消えます。作り直しますか？",
                     "作り直す", "やめる"))
@@ -32,12 +37,42 @@ namespace MouthOfGod.Village.Editor.Draft
             root.AddComponent<SurfaceAnchor>();
             var so = new SerializedObject(stages);
             so.FindProperty("fieldId").stringValue = field.Id;
-            so.FindProperty("maxStage").intValue = VillageLayout.MaxStage;
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // ステップ。Hierarchy の並び順がそのまま順番になる（番号は名前の目印だけ）
+            var stepsRoot = new GameObject("Steps").transform;
+            stepsRoot.SetParent(root.transform, false);
+            var steps = new List<FieldStep>();
+            for (var i = 0; i < VillageLayout.Steps.Count; i++)
+            {
+                var stepGo = new GameObject($"{i + 1} {VillageLayout.Steps[i].Name}");
+                stepGo.transform.SetParent(stepsRoot, false);
+                var step = stepGo.AddComponent<FieldStep>();
+                step.Food = VillageLayout.Steps[i].Food;
+                steps.Add(step);
+            }
+            var helped = steps.Select(_ => new List<VillagerMood>()).ToList();
+            var hidden = steps.Select(_ => new List<GameObject>()).ToList();
 
             var missing = 0;
             foreach (var item in field.Items)
-                if (CreateItem(item, root.transform) == null) missing++;
+            {
+                var parent = item.AppearsAt > 0 ? steps[item.AppearsAt - 1].transform : root.transform;
+                var go = CreateItem(item, root.transform, parent);
+                if (go == null) { missing++; continue; }
+                if (item.GoneAt > 0) hidden[item.GoneAt - 1].Add(go);
+                if (item.IsVillager)
+                {
+                    var mood = go.GetComponent<VillagerMood>();
+                    if (mood == null) mood = go.AddComponent<VillagerMood>(); // Unity の null は ?? で判定できない
+                    if (item.HelpedAt > 0) helped[item.HelpedAt - 1].Add(mood);
+                }
+            }
+            for (var i = 0; i < steps.Count; i++)
+            {
+                steps[i].SetHelped(helped[i].ToArray());
+                steps[i].SetHideWhenDone(hidden[i].ToArray());
+            }
 
             PrefabUtility.SaveAsPrefabAsset(root, OutputPath);
             Object.DestroyImmediate(root);
@@ -46,7 +81,8 @@ namespace MouthOfGod.Village.Editor.Draft
                       "シーンの Village（地面）の子に置く");
         }
 
-        static GameObject CreateItem(VillageItem item, Transform root)
+        // root は位置の基準（フィールドの中心）、parent は置く場所（root か、ステップ）。
+        static GameObject CreateItem(VillageItem item, Transform root, Transform parent)
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PartsFolder + item.Prefab + ".prefab");
             if (prefab == null)
@@ -56,7 +92,7 @@ namespace MouthOfGod.Village.Editor.Draft
             }
 
             // 素材の Prefab へのつながりを残す（素材の Prefab を直せば、村にも反映される）。
-            var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, root);
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             // 素材の根元の向き（FBX の軸の違いを直す回転）は残し、その上から Y で向きを付ける。
             go.transform.localRotation = Quaternion.Euler(0f, item.YawDegrees, 0f) * prefab.transform.localRotation;
             var target = root.TransformPoint(new Vector3(item.X, item.Y, item.Z));
@@ -74,19 +110,6 @@ namespace MouthOfGod.Village.Editor.Draft
                 if (longest > 0f) go.transform.localScale *= item.Size / longest;
                 TryGetBounds(go, out bounds);
                 go.transform.position += target - new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
-            }
-
-            if (item.FromStage > 0 || item.UntilStage != Stages.UntilEnd)
-            {
-                var visibility = go.AddComponent<StageVisibility>();
-                visibility.FromStage = item.FromStage;
-                visibility.UntilStage = item.UntilStage;
-            }
-            if (item.IsVillager)
-            {
-                var mood = go.GetComponent<VillagerMood>();
-                if (mood == null) mood = go.AddComponent<VillagerMood>(); // Unity の null は ?? で判定できない
-                mood.CalmFromStage = item.CalmFromStage;
             }
             return go;
         }

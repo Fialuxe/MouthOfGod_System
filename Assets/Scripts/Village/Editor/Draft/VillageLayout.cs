@@ -9,14 +9,16 @@ namespace MouthOfGod.Village.Editor.Draft
         /// <summary>Resources/Prefabs/Village/ の Prefab 名。無ければ VillageBuilder が仮の箱を置く。</summary>
         public string Prefab;
         /// <summary>
-        /// 見える段階（両端を含む。<see cref="Stages.UntilEnd"/> は最後まで）。段階は村の戻り具合で、0 が飢饉。
-        /// 既定は常に見える。Bake すると <see cref="StageVisibility"/> になる。
+        /// このステップ（1 から。<see cref="VillageLayout.Steps"/> の何番目か）が済むと出る。0 なら、はじめからある。
+        /// Bake すると、そのステップ（<see cref="FieldStep"/>）の子になる。
         /// </summary>
-        public int FromStage, UntilStage = Stages.UntilEnd;
+        public int AppearsAt;
+        /// <summary>このステップが済むと消える。0 なら消えない。Bake すると、そのステップの「消す物」に入る。</summary>
+        public int GoneAt;
         /// <summary>
-        /// 村人だけ使う。この段階になると悩むのをやめる。-1 は村人ではない。Bake すると <see cref="VillagerMood"/> の設定になる。
+        /// 村人だけ使う。このステップで困りごとが解ける。-1 は村人ではない。Bake すると、そのステップの「困りごとが解ける人」に入る。
         /// </summary>
-        public int CalmFromStage = -1;
+        public int HelpedAt = -1;
         /// <summary>フィールド（シーンの Village）の中心からの位置（メートル。実物のミニチュアの寸法。村は 0.54 m 四方なので ±0.27 の中）。</summary>
         public float X, Z;
         /// <summary>地面からの高さ（メートル）。畑の畝の上に乗せる作物などに使う。</summary>
@@ -33,7 +35,15 @@ namespace MouthOfGod.Village.Editor.Draft
         /// </summary>
         public float Length, Width;
 
-        public bool IsVillager => CalmFromStage >= 0;
+        public bool IsVillager => HelpedAt >= 0;
+    }
+
+    /// <summary>戻り方の 1 段（下書き）。Bake すると <see cref="FieldStep"/> になる。</summary>
+    public sealed class VillageStep
+    {
+        public string Name;
+        /// <summary>欲しい物の FoodId（仮。食べ物の ID は #31 で決まる）。</summary>
+        public string Food;
     }
 
     public sealed class VillageField
@@ -57,8 +67,7 @@ namespace MouthOfGod.Village.Editor.Draft
     /// 5. 外周に木を置いて、村の端をやわらげる。詰め込みすぎず、広場のまわりは空ける。
     /// 6. 村人は、何かをしている場所にいる。1 か所に集めない。
     ///
-    /// 村は届けるたびに少しずつ戻る（README「段階」）:
-    ///   0 飢饉（畑は枯れ、木は茶色、家畜はいない、村人は全員悩む）
+    /// 村は届けるたびに少しずつ戻る（README「ステップ」）。はじめは飢饉（畑は枯れ、木は茶色、家畜はいない、村人は全員悩む）:
     ///   1 畑に芽が出る（畑の 2 人が元気になる）
     ///   2 作物が実り、木が緑に戻る（井戸の人が元気になる）
     ///   3 羊が戻る（羊の番の長老が元気になる）
@@ -67,9 +76,18 @@ namespace MouthOfGod.Village.Editor.Draft
     public static class VillageLayout
     {
         public const string Village = "village";
-        public const int MaxStage = 4;
 
+        // ステップの番号（下の Steps の何番目か。1 から）。下書きの中だけで使い、Bake した Prefab には番号は残らない。
         const int Sprout = 1, Crops = 2, Sheep = 3, Pig = 4;
+
+        /// <summary>村の戻り方の順番。欲しい物の ID は仮。</summary>
+        public static readonly IReadOnlyList<VillageStep> Steps = new[]
+        {
+            new VillageStep { Name = "Sprout", Food = "carrot" },
+            new VillageStep { Name = "Crops", Food = "pumpkin" },
+            new VillageStep { Name = "Sheep", Food = "sheep" },
+            new VillageStep { Name = "Pig", Food = "pig" },
+        };
 
         const float HouseSize = 0.10f;
         const float VillagerSize = 0.065f;
@@ -130,9 +148,9 @@ namespace MouthOfGod.Village.Editor.Draft
                     Item("Wagon", -0.10f, -0.03f, 85f, 0.04f),
                     Item("Crate", 0.05f, -0.235f, 10f, 0.015f),
                     Item("Crate", 0.058f, -0.215f, 35f, 0.015f),
-                    Appears(Item("Sheep", -0.22f, 0.19f, 120f, 0.035f), from: Sheep),
-                    Appears(Item("Sheep", -0.18f, 0.22f, 200f, 0.035f), from: Sheep),
-                    Appears(Item("Pig", -0.12f, -0.23f, 60f, 0.03f), from: Pig),
+                    Appears(Item("Sheep", -0.22f, 0.19f, 120f, 0.035f), at: Sheep),
+                    Appears(Item("Sheep", -0.18f, 0.22f, 200f, 0.035f), at: Sheep),
+                    Appears(Item("Pig", -0.12f, -0.23f, 60f, 0.03f), at: Pig),
 
                     // 畑（中心 (FarmX, FarmZ)、一辺 FarmSize、畝 4 本は X 方向に並ぶ）。北側は道に向けて開け、残る 3 辺を柵で囲む
                     Item("Farmland", FarmX, FarmZ, 0f, FarmSize),
@@ -141,43 +159,43 @@ namespace MouthOfGod.Village.Editor.Draft
                     Fence(-2, -1, 90f), Fence(-2, 0, 90f),
 
                     // 村人（困っている人）。1 か所に集めず、それぞれ何かをしている場所に置く。家に対して少し大きめ（誇張）
-                    // 悩むのをやめる段階は、その人の困りごとが解けたとき（畑の人は芽が出たら、長老は羊が戻ったら）
-                    Villager("Casual_Female", 0.035f, -0.02f, 0f, 0f, calmFrom: Crops),           // 井戸で水をくむ
-                    Villager("Casual_Male", -0.10f, 0.03f, -0.05f, -0.02f, calmFrom: Pig),        // 家の戸口で、大通りの方を見る
-                    Villager("OldClassy_Male", -0.20f, 0.15f, -0.20f, 0.21f, calmFrom: Sheep),    // 長老が羊の番をする
-                    Villager("Worker_Male", 0.10f, -0.07f, FarmX, FarmZ, calmFrom: Sprout),       // 畑の入り口で、畑を見る
-                    Villager("Worker_Female", 0.19f, -0.13f, 0.15f, -0.20f, calmFrom: Sprout),    // 畑の中で、畝を見下ろす
+                    // 悩むのをやめるのは、その人の困りごとが解けるステップ（畑の人は芽が出たら、長老は羊が戻ったら）。1 人目が吹き出しを出す
+                    Villager("Worker_Male", 0.10f, -0.07f, FarmX, FarmZ, helpedAt: Sprout),       // 畑の入り口で、畑を見る
+                    Villager("Worker_Female", 0.19f, -0.13f, 0.15f, -0.20f, helpedAt: Sprout),    // 畑の中で、畝を見下ろす
+                    Villager("Casual_Female", 0.035f, -0.02f, 0f, 0f, helpedAt: Crops),           // 井戸で水をくむ
+                    Villager("OldClassy_Male", -0.20f, 0.15f, -0.20f, 0.21f, helpedAt: Sheep),    // 長老が羊の番をする
+                    Villager("Casual_Male", -0.10f, 0.03f, -0.05f, -0.02f, helpedAt: Pig),        // 家の戸口で、大通りの方を見る
                 },
             };
 
             // 5. 外周の木。飢饉の間は茶色、作物が実ると緑
             foreach (var t in Trees)
             {
-                village.Items.Add(Appears(Item("Tree_Bare", t.X, t.Z, t.Yaw, t.Size), from: 0, until: Crops - 1));
-                village.Items.Add(Appears(Item("Tree", t.X, t.Z, t.Yaw, t.Size), from: Crops));
+                village.Items.Add(Appears(Item("Tree_Bare", t.X, t.Z, t.Yaw, t.Size), at: 0, goneAt: Crops));
+                village.Items.Add(Appears(Item("Tree", t.X, t.Z, t.Yaw, t.Size), at: Crops));
             }
 
             // 畑。飢饉の間は枯れた茎、芽が出て、作物が実る。畝 1 本に CropsPerRidge 個ずつ
             for (var ridge = 0; ridge < RidgeX.Length; ridge++)
             {
-                village.Items.AddRange(CropRow("Crop_Withered", ridge, 0.02f, 0, Sprout - 1));
-                village.Items.AddRange(CropRow("Crop_Sprout", ridge, 0.012f, Sprout, Crops - 1));
+                village.Items.AddRange(CropRow("Crop_Withered", ridge, 0.02f, 0, goneAt: Sprout));
+                village.Items.AddRange(CropRow("Crop_Sprout", ridge, 0.012f, Sprout, goneAt: Crops));
             }
-            village.Items.AddRange(CropRow("Carrot", 0, 0.025f, Crops, Stages.UntilEnd));
-            village.Items.AddRange(CropRow("Turnip", 1, 0.024f, Crops, Stages.UntilEnd));
-            village.Items.AddRange(CropRow("Carrot", 2, 0.025f, Crops, Stages.UntilEnd));
-            village.Items.AddRange(CropRow("Pumpkin", 3, 0.03f, Crops, Stages.UntilEnd));
+            village.Items.AddRange(CropRow("Carrot", 0, 0.025f, Crops));
+            village.Items.AddRange(CropRow("Turnip", 1, 0.024f, Crops));
+            village.Items.AddRange(CropRow("Carrot", 2, 0.025f, Crops));
+            village.Items.AddRange(CropRow("Pumpkin", 3, 0.03f, Crops));
 
             return new List<VillageField> { village };
         }
 
-        /// <summary>この段階で見える置き物か。</summary>
-        public static bool IsVisible(VillageItem item, int stage)
-            => Stages.IsVisible(item.FromStage, item.UntilStage, stage);
+        /// <summary>はじめから順に done 個のステップが済んだときに、見える置き物か。</summary>
+        public static bool IsVisible(VillageItem item, int done)
+            => item.AppearsAt <= done && (item.GoneAt == 0 || done < item.GoneAt);
 
-        /// <summary>この段階で、村人が悩んでいるか。村人でなければ false。</summary>
-        public static bool IsWorried(VillageItem item, int stage)
-            => item.IsVillager && Stages.IsWorried(item.CalmFromStage, stage);
+        /// <summary>はじめから順に done 個のステップが済んだときに、村人が悩んでいるか。村人でなければ false。</summary>
+        public static bool IsWorried(VillageItem item, int done)
+            => item.IsVillager && done < item.HelpedAt;
 
         // (x1, z1) から (x2, z2) までの道。道の Prefab は一辺 1 の板で、長さを Z に伸ばす。
         static VillageItem Path(float x1, float z1, float x2, float z2, float width)
@@ -193,10 +211,10 @@ namespace MouthOfGod.Village.Editor.Draft
         static VillageItem House(float x, float z, float faceX, float faceZ)
             => Item("House_Sample", x, z, YawToward(faceX - x, faceZ - z) + HouseFrontYaw, HouseSize);
 
-        static VillageItem Villager(string prefab, float x, float z, float faceX, float faceZ, int calmFrom)
+        static VillageItem Villager(string prefab, float x, float z, float faceX, float faceZ, int helpedAt)
         {
             var item = Item(prefab, x, z, YawToward(faceX - x, faceZ - z) + CharacterFrontYaw, VillagerSize);
-            item.CalmFromStage = calmFrom;
+            item.HelpedAt = helpedAt;
             return item;
         }
 
@@ -205,7 +223,7 @@ namespace MouthOfGod.Village.Editor.Draft
             => (float)(Math.Atan2(dx, dz) * 180.0 / Math.PI);
 
         // 畝 1 本に、奥行き（Z）に等間隔に並べる。
-        static IEnumerable<VillageItem> CropRow(string prefab, int ridge, float size, int from, int until)
+        static IEnumerable<VillageItem> CropRow(string prefab, int ridge, float size, int at, int goneAt = 0)
         {
             var spacing = FarmSize * 0.9f / CropsPerRidge;
             for (var i = 0; i < CropsPerRidge; i++)
@@ -213,7 +231,7 @@ namespace MouthOfGod.Village.Editor.Draft
                 var z = FarmZ + (i - (CropsPerRidge - 1) / 2f) * spacing;
                 var item = Item(prefab, FarmX + RidgeX[ridge] * FarmSize, z, ridge * 37f + i * 53f, size);
                 item.Y = RidgeTop * FarmSize;
-                yield return Appears(item, from, until);
+                yield return Appears(item, at, goneAt);
             }
         }
 
@@ -227,10 +245,10 @@ namespace MouthOfGod.Village.Editor.Draft
             return Item("Fence", x, z, yaw, FenceLength);
         }
 
-        static VillageItem Appears(VillageItem item, int from, int until = Stages.UntilEnd)
+        static VillageItem Appears(VillageItem item, int at, int goneAt = 0)
         {
-            item.FromStage = from;
-            item.UntilStage = until;
+            item.AppearsAt = at;
+            item.GoneAt = goneAt;
             return item;
         }
 

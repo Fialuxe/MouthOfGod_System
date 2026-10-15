@@ -1,76 +1,219 @@
 using System;
 using System.Collections.Generic;
+using MouthOfGod.Core;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// フィールド（山・海・草原・村）の戻り具合（段階）を持つ。フィールドの一番上の物に 1 つ付ける。
-    /// 段階が変わると、子の <see cref="IStageListener"/>（<see cref="StageVisibility"/>・<see cref="VillagerMood"/> など）に知らせ、
-    /// C# の <see cref="StageChanged"/> と、Inspector でつなげる <see cref="onStageChanged"/> を出す。
-    /// 届いたら 1 段階進める（<see cref="Advance"/>）のは、Core の Delivered を受ける側が呼ぶ（Bootstrap がつなぐ）。
+    /// フィールド（山・海・草原・村）の戻り方と欲しい物。フィールドの一番上の物に 1 つ付ける。
+    /// 戻り方は、下にある <see cref="FieldStep"/> を Hierarchy の並び順に使う（番号は持たない）。
+    /// 有効になると Core の <see cref="Fields"/> に自分を登録する。本編（Game）とチュートリアル（Tutorial）は、そこから <see cref="IFieldRequests"/> として受け取り、
+    /// 欲しい物を出す（<see cref="Open()"/>）。いつ出すかは、ここでは決めない（docs/requests.md）。
     /// </summary>
-    public sealed class FieldStages : MonoBehaviour
+    public sealed class FieldStages : MonoBehaviour, IFieldRequests
     {
-        [Tooltip("フィールドの ID（docs/fields.md）。village / mountain / sea / grassland")]
-        [SerializeField] string fieldId = "village";
+        [Tooltip("フィールドの ID（docs/fields.md）。village / mountain / sea / grassland のどれか。空のままだと、本編などにつながらない（Play の始めに警告）")]
+        [SerializeField] string fieldId = "";
 
-        [Tooltip("最後の段階。0 が飢饉（始まり）で、この段階ですっかり戻る")]
-        [SerializeField, Min(1)] int maxStage = 4;
+        FieldStep[] _steps;
+        StepProgress _progress;
+        // 見た目を写し直してから Closed を出すまでの間。ここで Open されると Issued が Closed より先に出るので、出させない。
+        bool _closing;
 
-        [Tooltip("いまの段階。開発中の確認用に、Play 中に動かすとその段階に切り替わる")]
-        [SerializeField] int stage;
+        public event Action<RequestIssued> Issued;
+        public event Action<RequestClosed> Closed;
 
-        [Tooltip("段階が変わったとき（引数は新しい段階）。音・光などを Inspector からつなぐ")]
-        [SerializeField] UnityEvent<int> onStageChanged = new UnityEvent<int>();
+        /// <summary>ステップが済んだとき（済んだステップ）。Closed の後に出る。フィールドごとの独自の演出を、ここから足せる。</summary>
+        public event Action<FieldStep> StepDone;
 
-        /// <summary>段階が変わったとき（前の段階、新しい段階）。</summary>
-        public event Action<int, int> StageChanged;
+        /// <summary>はじめ（全部まだ）に戻したとき。</summary>
+        public event Action Restarted;
 
-        readonly List<IStageListener> _listeners = new List<IStageListener>();
-        int _applied = -1;
-
-        public string FieldId => fieldId;
-        public int MaxStage => maxStage;
-        public int Stage => _applied < 0 ? stage : _applied;
-        public bool IsFullyRecovered => Stage >= maxStage;
-
-        void Awake() => Refresh();
-
-        void Start() => SetStage(stage);
-
-        // Inspector で段階を動かしたら、その段階にする（開発中の確認用）。
-        void Update()
+        /// <summary>フィールドの ID。有効な間に変えると、Fields に登録し直す（空・重なりの確かめもやり直す）。</summary>
+        public string FieldId
         {
-            if (stage != _applied) SetStage(stage);
+            get => fieldId;
+            set
+            {
+                if (fieldId == value) return;
+                // 登録は Play 中だけ（OnEnable と同じ）。編集中・EditMode のテストでは掲示板に触らない
+                var registered = Application.isPlaying && isActiveAndEnabled;
+                if (registered) Fields.Unregister(this);
+                fieldId = value;
+                if (registered) Fields.Register(this);
+            }
+        }
+        public FieldId Field => new FieldId(fieldId);
+        public IReadOnlyList<FieldStep> Steps => StepsInOrder;
+        public int DoneCount => Progress.DoneCount;
+        public bool IsFullyRecovered => Progress.IsComplete;
+        public bool IsOpen => Progress.IsOpen;
+        public bool CanOpen => !_closing && Progress.CanOpen;
+
+        /// <summary>出ている欲しい物（出ていなければ FoodId.None）。</summary>
+        public FoodId Current => Progress.Current;
+
+        public bool IsDone(FieldStep step) => Progress.IsDone(Array.IndexOf(StepsInOrder, step));
+
+        FieldStep[] StepsInOrder => _steps ??= GetComponentsInChildren<FieldStep>(includeInactive: true);
+
+        StepProgress Progress
+        {
+            get
+            {
+                if (_progress != null) return _progress;
+                var foods = new FoodId[StepsInOrder.Length];
+                for (var i = 0; i < foods.Length; i++) foods[i] = new FoodId(StepsInOrder[i].Food);
+                return _progress = new StepProgress(foods);
+            }
         }
 
-        void OnValidate() => stage = Stages.Clamp(stage, maxStage);
+        // 掲示板への登録。ID が空・重なっているときは、Fields が警告を出す。
+        void OnEnable() => Fields.Register(this);
 
-        /// <summary>1 段階進める（届けたとき）。最後の段階より先には進まない。</summary>
-        public void Advance() => SetStage(Stage + 1);
-
-        /// <summary>その段階にする。子の置き物・村人に知らせ、イベントを出す。</summary>
-        public void SetStage(int value)
+        // 出ていた欲しい物は終えてから外す（使う側が Removed で購読を外しても、吹き出しが残らないように）。
+        void OnDisable()
         {
-            value = Stages.Clamp(value, maxStage);
-            if (value == _applied) return;
-            var previous = _applied;
-            stage = _applied = value;
-
-            foreach (var listener in _listeners) listener.OnStageChanged(previous, value);
-            StageChanged?.Invoke(previous, value);
-            onStageChanged.Invoke(value);
+            Expire();
+            Fields.Unregister(this);
         }
 
-        /// <summary>子の <see cref="IStageListener"/> を数え直す。Play 中に子を足したら呼ぶ。</summary>
-        public void Refresh()
+        // その時点の進み具合を見た目に写す（ふつうは、全部のステップがまだの見た目）。抜けがあれば警告する（止めない）。
+        void Start()
         {
-            _listeners.Clear();
-            GetComponentsInChildren(includeInactive: true, _listeners);
-            if (_applied >= 0)
-                foreach (var listener in _listeners) listener.OnStageChanged(-1, _applied);
+            WarnIfIncomplete();
+            Apply(celebrate: false);
         }
+
+        void WarnIfIncomplete()
+        {
+            if (StepsInOrder.Length == 0) Debug.LogWarning($"[FieldStages] {name}: ステップ（FieldStep）が 1 つもありません。", this);
+            foreach (var step in StepsInOrder)
+            {
+                if (string.IsNullOrEmpty(step.Food)) Debug.LogWarning($"[FieldStages] {name}/{step.name}: 欲しい物（Food）が空です（このステップは出ません）。", step);
+                if (step.Helped.Count == 0 || step.Helped[0] == null) Debug.LogWarning($"[FieldStages] {name}/{step.name}: 助かる人（Helped）が空です（吹き出しはステップの場所に出ます）。", step);
+            }
+        }
+
+        /// <summary>次の欲しい物を出す（Issued）。出ているものがある・全部済んだなら false。</summary>
+        public bool Open()
+        {
+            if (_closing || !Progress.TryOpen(out var index)) return false;
+            return Issue(index);
+        }
+
+        /// <summary>その物を欲しがる、まだ済んでいないステップを出す（並び順によらない。チュートリアル用）。出せなければ false。</summary>
+        public bool Open(FoodId food)
+        {
+            if (_closing || !Progress.TryOpen(food, out var index)) return false;
+            return Issue(index);
+        }
+
+        bool Issue(int index)
+        {
+            var food = Progress.Current;
+            Debug.Log($"[FieldStages] {fieldId} wants {food} ({StepsInOrder[index].name})");
+            Issued?.Invoke(new RequestIssued(food, Field, StepsInOrder[index].Anchor));
+            return true;
+        }
+
+        /// <summary>
+        /// 物が届いた。出ている欲しい物と同じならステップを済ませ（見た目が変わる）、Closed（Resolved = true）を出して true。違う物・出ていないときは false。
+        /// 届いたかを決める所（DeliveryZone）が IFieldRequests 越しに呼ぶ。戻り値は Delivered の Accepted に使える。
+        /// </summary>
+        public bool Resolve(FoodId food)
+        {
+            if (!Progress.TryResolve(food, out var index)) return false;
+            // 見た目を先に変えてから知らせる（Closed を受けてすぐ Open しても、次のステップの欲しい物が出るように）
+            ApplyThenClose(food, wasOpen: true, resolved: true, celebrate: true);
+            RaiseStepDone(index);
+            return true;
+        }
+
+        public void Expire()
+        {
+            var food = Progress.Current;
+            if (Progress.Close() < 0) return;
+            Closed?.Invoke(new RequestClosed(food, Field, resolved: false));
+        }
+
+        /// <summary>はじめ（全部まだ）に戻す。出ていた欲しい物も終える（体験の終わりのリセット）。</summary>
+        public void Restart()
+        {
+            // 状態を先に変えてから知らせる（Closed を受けてすぐ Open しても、はじめのステップから出るように）
+            var food = Progress.Current;
+            var wasOpen = Progress.IsOpen;
+            Progress.Reset();
+            ApplyThenClose(food, wasOpen, resolved: false, celebrate: false);
+            Restarted?.Invoke();
+        }
+
+        // 見た目を写し直し、出ていた欲しい物があれば Closed を出す。その間（出し入れした物の OnEnable など）に Open されないようにする。
+        void ApplyThenClose(FoodId food, bool wasOpen, bool resolved, bool celebrate)
+        {
+            _closing = wasOpen;
+            try { Apply(celebrate); }
+            finally { _closing = false; }
+            if (wasOpen) Closed?.Invoke(new RequestClosed(food, Field, resolved));
+        }
+
+        void RaiseStepDone(int index)
+        {
+            StepsInOrder[index].RaiseDone();
+            StepDone?.Invoke(StepsInOrder[index]);
+        }
+
+        // 済んだステップの子を出し、消す物を消し、村人の気持ちを合わせる。「消す」は「出す」より勝つ（芽は、実ったら消える）。
+        void Apply(bool celebrate)
+        {
+            var steps = StepsInOrder;
+            foreach (var step in steps)
+            foreach (var go in step.HideWhenDone)
+                if (go != null) go.SetActive(true);
+            for (var i = 0; i < steps.Length; i++) steps[i].ShowChildren(Progress.IsDone(i));
+            for (var i = 0; i < steps.Length; i++)
+            {
+                if (!Progress.IsDone(i)) continue;
+                foreach (var go in steps[i].HideWhenDone)
+                    if (go != null) go.SetActive(false);
+            }
+
+            // 困っている人は、自分の名前があるステップがすべて済むまで悩む（どのステップにも名前が無い人は元気）
+            var worried = new Dictionary<VillagerMood, bool>();
+            foreach (var mood in GetComponentsInChildren<VillagerMood>(includeInactive: true)) worried[mood] = false;
+            for (var i = 0; i < steps.Length; i++)
+            foreach (var mood in steps[i].Helped)
+                if (mood != null) worried[mood] = (worried.TryGetValue(mood, out var w) && w) || !Progress.IsDone(i);
+            foreach (var pair in worried) pair.Key.SetWorried(pair.Value, celebrate);
+        }
+
+        // 開発中の確認用（右クリックのメニュー）。展示では Game・Tutorial が呼ぶ。
+        [ContextMenu("Open Next Want")]
+        void OpenFromMenu()
+        {
+            if (!Open()) Debug.Log($"[FieldStages] {fieldId}: nothing to open (open: {IsOpen}, done: {DoneCount}/{StepsInOrder.Length}).", this);
+        }
+
+        [ContextMenu("Deliver Wanted Food")]
+        void ResolveFromMenu() => Resolve(Current);
+
+        [ContextMenu("Complete Next Step")]
+        void CompleteFromMenu()
+        {
+            var index = Progress.IsOpen ? Progress.OpenIndex : Progress.NextIndex;
+            if (index < 0)
+                for (var i = 0; i < StepsInOrder.Length && index < 0; i++)
+                    if (!Progress.IsDone(i)) index = i; // 欲しい物が空のステップも済ませられる
+            if (index < 0) return;
+            var food = Progress.Current;
+            var wasOpen = Progress.OpenIndex == index;
+            Progress.Complete(index);
+            ApplyThenClose(food, wasOpen, resolved: true, celebrate: true);
+            RaiseStepDone(index);
+        }
+
+        [ContextMenu("Restart")]
+        void RestartFromMenu() => Restart();
     }
 }

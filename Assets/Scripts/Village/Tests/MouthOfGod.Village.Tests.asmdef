@@ -2,6 +2,7 @@
     "name": "MouthOfGod.Village.Tests",
     "rootNamespace": "MouthOfGod.Village.Tests",
     "references": [
+        "MouthOfGod.Core",
         "MouthOfGod.Village",
         "MouthOfGod.Village.Editor",
         "UnityEngine.TestRunner",

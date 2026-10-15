@@ -3,20 +3,17 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 村人の気持ち。<see cref="FieldStages"/> の段階が <see cref="calmFromStage"/> になるまでは悩んでいる。
+    /// 村人の気持ち。<see cref="FieldStages"/> が、この人の名前があるステップ（<see cref="FieldStep"/> の Helped）がすべて済むまで「悩む」にする。
     /// 悩んでいる間: 頭の上に印を出し、肩を落としてゆっくり立つ（Worried）。ときどき、がっくりうなだれる（Slump = Defeat）。
     ///   うなだれる間隔と長さは人ごとにばらつかせ、全員が同時に動かないようにする（止まって見えないように）。
-    /// 元気: Idle。段階が上がったときは、元気な人が Victory を 1 回やって喜ぶ。
+    /// 元気: Idle。ステップが済んだときは、元気な人が Victory を 1 回やって喜ぶ。
     /// Animator は Villager.controller（VillagePrefabGenerator が作る）。村人の Prefab に付いている。
     /// </summary>
-    public sealed class VillagerMood : MonoBehaviour, IStageListener
+    public sealed class VillagerMood : MonoBehaviour
     {
         static readonly int WorriedBool = Animator.StringToHash("Worried");
         static readonly int SlumpBool = Animator.StringToHash("Slump");
         static readonly int DeliveredTrigger = Animator.StringToHash("Delivered");
-
-        [Tooltip("この段階になると、悩むのをやめて元気になる")]
-        [SerializeField, Min(0)] int calmFromStage = 1;
 
         [Tooltip("悩んでいる間だけ見える、頭の上の印")]
         [SerializeField] GameObject worryMark;
@@ -28,25 +25,27 @@ namespace MouthOfGod.Village
         [SerializeField] Vector2 slumpSeconds = new Vector2(3f, 6f);
 
         Animator _animator;
+        bool _applied;
         bool _worried;
         bool _slumped;
         float _nextSwitch;
 
-        public int CalmFromStage { get => calmFromStage; set => calmFromStage = value; }
         public GameObject WorryMark { get => worryMark; set => worryMark = value; }
         public bool IsWorried => _worried;
 
-        void Awake() => _animator = GetComponentInChildren<Animator>();
-
-        public void OnStageChanged(int previous, int current)
+        /// <summary>悩むか元気かを決める。celebrate なら、元気な人は喜ぶ（ステップが済んだとき）。<see cref="FieldStages"/> が呼ぶ。</summary>
+        public void SetWorried(bool worried, bool celebrate)
         {
             var wasWorried = _worried;
-            _worried = Stages.IsWorried(calmFromStage, current);
+            _worried = worried;
             if (worryMark != null) worryMark.SetActive(_worried);
             if (!HasAnimator()) return;
 
+            var first = !_applied;
+            _applied = true;
+
             _animator.SetBool(WorriedBool, _worried);
-            if (previous < 0)
+            if (first)
             {
                 // 始まり: 人ごとに、動きの途中から始める。うなだれている人と起きている人を混ぜる
                 _slumped = _worried && Random.value < 0.4f;
@@ -60,7 +59,7 @@ namespace MouthOfGod.Village
             {
                 _slumped = false;
                 _animator.SetBool(SlumpBool, false);
-                if (current > previous) _animator.SetTrigger(DeliveredTrigger); // 段階が上がったら喜ぶ
+                if (celebrate) _animator.SetTrigger(DeliveredTrigger); // ステップが済んだら喜ぶ
             }
             else if (!wasWorried)
             {
@@ -85,6 +84,7 @@ namespace MouthOfGod.Village
             _nextSwitch = Time.time + seconds;
         }
 
-        bool HasAnimator() => _animator != null && _animator.runtimeAnimatorController != null && _animator.isActiveAndEnabled;
+        // FieldStages が先に呼んでもよいように、Awake を待たずに探す。
+        bool HasAnimator() => (_animator != null || (_animator = GetComponentInChildren<Animator>()) != null) && _animator.runtimeAnimatorController != null && _animator.isActiveAndEnabled;
     }
 }

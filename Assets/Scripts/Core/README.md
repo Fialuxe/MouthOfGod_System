@@ -9,8 +9,10 @@
 | 型 | 役割 |
 |---|---|
 | `TextureId` / `FoodId` / `FieldId` / `CueId` | 文字列を包んだ ID（`readonly struct`）。`enum` にしないための型。`null` と空文字は、どちらも空 ID（`None`、`IsEmpty`）。大文字小文字は区別する。型が違えば、同じ文字列でも別物 |
-| `Spawned` / `Delivered` / `RequestIssued` / `CueRequested` | 機能をまたぐイベントが運ぶデータ（`readonly struct`）。値を持つだけ。デバイスの入力は `IDevice` のイベントで、ここには置かない |
-| `Devices` | いま使える `IDevice` の受け取り口（`WhenReady`・`Current`）。デバイスの実装が `Register` する |
+| `Spawned` / `Delivered` / `RequestIssued` / `RequestClosed` / `CueRequested` | 機能をまたぐイベントが運ぶデータ（`readonly struct`）。値を持つだけ。デバイスの入力は `IDevice` のイベントで、ここには置かない |
+| `Devices` | 置き場: いま使える `IDevice`（`WhenReady`・`Current`）。デバイスの実装が `Register` する |
+| `Fields` | 置き場: いまシーンにあるフィールド（`All`・`Added`・`Removed`・`Find`）。フィールドが有効になると自分で `Register` する。ID が空・重なりは警告して登録しない |
+| `IFieldRequests` | 1 つのフィールドの欲しい物（`Open`・`Resolve`・`Expire`・`Restart`・`Issued`・`Closed`）。いつもの実装は Village の `FieldStages`（独自の作りでも、これを実装すればつながる）。使う側は `Fields` から受け取る。分担は [docs/requests.md](../../../docs/requests.md) |
 | `IDevice` | 触感デバイスの入力。`Current`（いまの食感）、`TextureChanged(TextureId)`、`Confirmed(TextureId)`（決定したときの食感を運ぶ）、`Bitten`。実装は Device 側 |
 
 型とイベントの流れは [docs/architecture.md](../../../docs/architecture.md) §3。
@@ -70,8 +72,8 @@ public sealed class FoodSpawner : MonoBehaviour
 
 - 空 ID は、`null` と空文字を同じにそろえた（`default` も空）。
 - 大文字小文字は区別する（`Ordinal` で比べる）。
-- イベントの型の購読の仕組み（バス）は、まだ置かない。必要になるまで採用しない（architecture.md §3）。
-- `IDevice` だけは `Devices` から受け取る。デバイスは全体で 1 台で、Bootstrap を待たずに、どのシーンでも使えるようにするため。
+- イベントの型の購読の仕組み（バス）は置かない（流れが追えなくなる。architecture.md §3）。
+- 機能をまたいで使う「もの」は、置き場（`Devices`・`Fields`）で受け渡す。全機能を参照する組み立て役（Bootstrap）は置かない（2026-10-15）。置き場を足すのは、そういう「もの」が増えたときだけで、足したら上の表に書く。
 
 ## テスト
 
