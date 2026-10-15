@@ -5,7 +5,7 @@
 元にした記事:
 - Qiita（書き方のルールを、書く前と書いた後に強制する）: https://qiita.com/megmogmog1965/items/4b668265025cf97ea843
 - note（Simplified Technical English の考え方で、文の構造を縛る）: https://note.com/hacklog_stealth/n/ne9c620cd0432
-- Zenn（書く前に論点を整理し、別のモデルに日本語を判定させる）
+- Zenn（書く前に論点を整理し、別のモデルに日本語を判定させる）: https://zenn.dev/ncdc/articles/6ea029ba5ecf65
 
 ## 組み立て
 - 結論を、最初の 1 文に書く。前置きや「まとめると」のような宣言はしない。まとめを最後に回さない。

@@ -28,6 +28,6 @@ Claude が書く日本語を、読みやすくするための仕組みです。�
 - 止めたい: `.claude/settings.json` の hooks を消すか、Claude Code の `/hooks` から外します。
 
 参考にした記事:
-- Zenn の記事（hooks で日本語を Haiku に判定させ、読みにくければ突き返す仕組み）
+- https://zenn.dev/ncdc/articles/6ea029ba5ecf65 （hooks で日本語を Haiku に判定させ、読みにくければ突き返す仕組み）
 - https://qiita.com/megmogmog1965/items/4b668265025cf97ea843 （書き方のルールを会話の始めに読ませ、書く前に確かめる仕組み）
 - https://note.com/hacklog_stealth/n/ne9c620cd0432 （1 文の長さや動作の数で、書き方を縛るルール）
