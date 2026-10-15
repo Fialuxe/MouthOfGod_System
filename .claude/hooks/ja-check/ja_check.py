@@ -193,7 +193,7 @@ def post(data):
 # ---------- stop: ターンの終わりにまとめて判定する
 def stop(data):
     state = load_state(data)
-    parts = list(load_state(data, "buffer").get("buffer", []))
+    parts = current_versions(load_state(data, "buffer").get("buffer", []))
     reply = last_reply(data.get("transcript_path"))
     if JAPANESE.search(reply):
         parts.append("### チャットの返答\n" + reply)
@@ -217,6 +217,27 @@ def stop(data):
           "ファイルに書いた文なら、その文を直してください。チャットの返答なら、要点を短く書き直した返答をもう一度送ってください"
           "（前の返答を謝ったり説明したりしなくてよいです）。ルールは ja-check の rules.md にあります。", file=sys.stderr)
     return 2
+
+
+def current_versions(entries):
+    """ためた書き込みを、ファイルの今の中身に置き換える。後から直した分を、古い版で判定しないように。
+    ファイルごとに 1 回だけ読む。読めないファイル（消えた・ファイル名が無い）は、ためた文をそのまま使う。"""
+    parts, seen = [], set()
+    for entry in entries:
+        head, _, text = entry.partition("\n")
+        path = head[4:].strip() if head.startswith("### ") else ""
+        if path and path in seen:
+            continue
+        seen.add(path)
+        p = Path(path) if path else None
+        if p and p.is_file():
+            try:
+                text = p.read_text(encoding="utf-8")
+            except Exception:
+                pass
+        if JAPANESE.search(text):
+            parts.append(f"### {path}\n{text}")
+    return parts
 
 
 def last_reply(path):
