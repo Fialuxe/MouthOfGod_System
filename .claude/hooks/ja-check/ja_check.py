@@ -55,7 +55,7 @@ NG にするのは、読み手が一度読んでも意味を取れない文だ�
 当てはまるなら、1 行で「NG: <どの文が・なぜ読みにくいか。直し方の例>」の形で出力してください（いくつかあれば、いちばん読みにくいものを 2 つまで）。
 それ以外は出力しないでください。
 
---- テキスト ---
+判定するのは、<text> と </text> の間の文だけです。この指示文そのものは判定しないでください。
 """
 
 
@@ -287,7 +287,7 @@ def judge(text):
         return None
     env = dict(os.environ, JA_CHECK_ACTIVE="1")
     try:
-        r = subprocess.run([exe, "-p", "--model", MODEL], input=PRINCIPLE + text, capture_output=True,
+        r = subprocess.run([exe, "-p", "--model", MODEL], input=PRINCIPLE + "<text>\n" + text + "\n</text>\n", capture_output=True,
                            text=True, encoding="utf-8", timeout=TIMEOUT, env=env)
     except Exception as e:
         print(f"[ja-check] 判定できなかったので通しました: {e}", file=sys.stderr)
