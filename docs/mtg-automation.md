@@ -123,6 +123,26 @@ Zoom のホストが、自分の PC に「ローカル録画」をすれば、�
 
 未確認なこと: Google ドライブのデスクトップ版が、Zoom の保存先として指定したフォルダに、ファイルを正しく同期するか。最初の MTG のあとに、`mtg-inbox` の中を見て確かめる。同期されないときは、ホストが音声ファイルを手で `mtg-inbox` に入れる（今までと同じ）。
 
+## Fathom の書き起こしを自動で受け取る（PC も管理者の権限も、お金も要らない）
+
+Fathom は、Zoom の会議に「ボット」として入り、書き起こしを作るサービスです。GitHub Actions が 30 分おきに Fathom の API を見て、新しい書き起こしを非公開リポジトリに保存し、議事録（`mtg-sync`）を自動で始めます。ワークフローは `.github/workflows/fathom-fetch.yml`、本体は `tools/mtg/cloud/fathom_fetch.py`。ウェブフックは使いません（GitHub Actions を見に行く形なので、受け口が要りません）。
+
+Fathom の書き起こしには、話者の名前が付きます。Fathom の要約が取れたときは、`<name>.summary.md` として保存し、`mtg-sync` が話題の区切りの手がかりとして読みます（決定の根拠にはしません）。Whisper の流れは、Fathom で取れなかった MTG の予備として残します。同じ日に議事録か保留の印があれば、Fathom の取得は何もしません。
+
+### 初回の設定（一度だけ）
+
+1. Fathom のアカウントを作り、Zoom（またはカレンダー）とつなぐ。MTG の開始時に、ボットが自動で入るようにする
+2. Fathom の「User Settings」→「API Access」で、API キーを作る
+3. このリポジトリの Secrets に、`FATHOM_API_KEY`（手順 2 のキー）と `TRANSCRIPTS_PAT`（Drive の流れと同じ）を入れる。任意で、`FATHOM_MIN_MINUTES`（これより短い会議は無視。既定は 10）と、`MTG_ROUTINE_URL`・`MTG_ROUTINE_TOKEN`
+4. Actions の「MTG transcript (Fathom)」を手で一度実行し、ログの `fathom: seen=… done=…` を見る
+
+未確認なこと（最初の MTG のあとに確かめる）:
+- ボットが、Zoom の会議に入れるか（学校や会社の Zoom は、外部ボットを禁止していることがある）
+- 日本語の書き起こしの精度
+- API の項目名（書き起こしを読めないときは、ログに項目の名前が出る。値は出ない）
+
+Secrets が無いときは、何もせず終わります。公開ログには、件数と日付だけが出ます。
+
 ## Mac で使う（Apple Silicon、GPU なし）
 
 `tools/mtg/setup-mac.sh`（zsh）で、環境（Homebrew 経由の git・ffmpeg・gh・Python と、仮想環境 `~/.mtg-venv` の faster-whisper）を確かめて入れ、文字起こしの動作を確かめられる。GPU が無いので、`transcribe.py` は自動で CPU（int8）に切り替わる（`--device auto`）。

@@ -7,12 +7,14 @@ on:
     paths:
       - "tools/mtg/**"
       - ".github/workflows/transcribe-cloud.yml"
+      - ".github/workflows/fathom-fetch.yml"
       - ".github/workflows/mtg-tools-test.yml"
   push:
     branches: [main]
     paths:
       - "tools/mtg/**"
       - ".github/workflows/transcribe-cloud.yml"
+      - ".github/workflows/fathom-fetch.yml"
 
 permissions:
   contents: read
@@ -29,6 +31,8 @@ jobs:
         run: python -m py_compile tools/mtg/*.py tools/mtg/cloud/*.py
       - name: Cloud transcription flow (fake Drive, fake Whisper)
         run: python tools/mtg/cloud/test_transcribe_cloud.py
+      - name: Fathom transcript flow (fake Fathom, local git remote)
+        run: python tools/mtg/cloud/test_fathom_fetch.py
       - name: PowerShell scripts parse
         shell: pwsh
         run: |

@@ -1,0 +1,53 @@
+# MTG の書き起こしを、Fathom（Zoom に入る書き起こしボット）から受け取る。PC も管理者の権限も要らない。
+# 公開リポジトリのログは誰でも読める。書き起こしの中身・話者名・題名は、ログに出さない（fathom_fetch.py がそう作ってある）。
+# 成果物（artifact）をアップロードしない。結果は、非公開リポジトリにだけ書く。
+# 必要な Secrets: FATHOM_API_KEY、TRANSCRIPTS_PAT（無ければ、何もせず終わる）。任意: FATHOM_MIN_MINUTES、MTG_ROUTINE_URL、MTG_ROUTINE_TOKEN。
+name: MTG transcript (Fathom)
+
+on:
+  schedule:
+    - cron: "22,52 * * * *"   # 30 分おきに、Fathom を見る（新しい書き起こしが無ければ 1 分以内に終わる）
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "何日前までの MTG を見るか"
+        default: "7"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mtg-fathom
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FATHOM_API_KEY: ${{ secrets.FATHOM_API_KEY }}
+      FATHOM_MIN_MINUTES: ${{ secrets.FATHOM_MIN_MINUTES }}
+      MTG_ROUTINE_URL: ${{ secrets.MTG_ROUTINE_URL }}
+      MTG_ROUTINE_TOKEN: ${{ secrets.MTG_ROUTINE_TOKEN }}
+      DAYS: ${{ github.event.inputs.days || '7' }}
+    steps:
+      - name: Check the secrets
+        id: gate
+        run: |
+          if [ -n "$FATHOM_API_KEY" ] && [ -n "${{ secrets.TRANSCRIPTS_PAT }}" ]; then echo "run=1" >> "$GITHUB_OUTPUT"; else echo "secrets are not set: skipping"; fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == '1'
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == '1'
+        with:
+          python-version: "3.12"
+      - name: Check out the private transcripts repo
+        if: steps.gate.outputs.run == '1'
+        uses: actions/checkout@v4
+        with:
+          repository: Fialuxe/MouthOfGod_transcripts
+          token: ${{ secrets.TRANSCRIPTS_PAT }}
+          path: private
+      - name: Fetch Fathom transcripts and archive to the private repo
+        if: steps.gate.outputs.run == '1'
+        run: python tools/mtg/cloud/fathom_fetch.py --private-clone private --days "$DAYS"
