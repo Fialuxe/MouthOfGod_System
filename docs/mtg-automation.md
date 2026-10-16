@@ -210,7 +210,7 @@ Secrets が無いときは、何もせず終わります。公開ログには、
 
 ## チームのカレンダー（IVRC2026）を議題に使う
 
-GitHub Actions「Calendar sync」（`.github/workflows/calendar-sync.yml`）が、毎朝 6 時台に、チームの Google カレンダーの、これから 3 週間の予定を、非公開リポジトリの `calendar/upcoming.md` に書く。水曜の議題が読み、「お知らせ」に日付と予定の名前だけを書く（議題 Issue は公開なので、名前・理由・場所は書かない）。
+毎朝 6 時台に、GitHub Actions「Calendar sync」（`.github/workflows/calendar-sync.yml`）が動く。このとき、チームの Google カレンダーの、これから 3 週間の予定を、非公開リポジトリの `calendar/upcoming.md` に書く。水曜の議題を作るルーティンが、それを読む。そして、「お知らせ」に日付と予定の名前だけを書く（議題 Issue は公開なので、名前・理由・場所は書かない）。
 
 **初回の設定**（カレンダーの持ち主が 1 回だけ）:
 1. Google カレンダーの「設定と共有」→ IVRC2026 →「カレンダーの統合」の「**iCal 形式の非公開 URL**」をコピーする。**この URL を知っている人は誰でも予定を読める。** チャット・Issue・コミットに貼らない
