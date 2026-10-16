@@ -1,0 +1,32 @@
+# コメントに @claude があったとき、Claude のルーティン（clarify-reply スキル）を呼ぶ。
+# 呼ぶのは、コメントした人が owner・member・collaborator のときだけ。ルーティンには、コメントの URL だけを渡す。
+# owner（Fialuxe）以外は、30 分に 2 回まで（トークンの使いすぎを防ぐため）。
+# Secrets（MENTION_ROUTINE_URL・MENTION_ROUTINE_TOKEN）が無いあいだは、警告を出すだけ。
+name: Claude mention
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  mention:
+    # Issue と PR のコメントの両方が来る。呼びかけのあるものだけ動かす（詳しい条件は fire_mention.py）
+    if: contains(github.event.comment.body, '@claude') && github.event.comment.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tests
+        run: python .github/scripts/test_fire_mention.py
+      - name: Call the routine
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MENTION_ROUTINE_URL: ${{ secrets.MENTION_ROUTINE_URL }}
+          MENTION_ROUTINE_TOKEN: ${{ secrets.MENTION_ROUTINE_TOKEN }}
+        run: python .github/scripts/fire_mention.py
