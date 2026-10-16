@@ -330,7 +330,7 @@ Material:
     - _ShoreFadeHardness: 0.641
     - _ShoreFadeSmoothness: 0.2
     - _ShoreFade_1: 0
-    - _ShoreFade_Smoothness: 0.206
+    - _ShoreFade_Smoothness: 0.11
     - _ShoreLineAmmount: 4.54
     - _ShoreLineCenterMask: 2.01
     - _ShoreLineCutoff: 0.66
@@ -418,8 +418,8 @@ Material:
     - _1st_Wave_Direction: {r: 1, g: 0, b: 0, a: 0}
     - _2nd_Wave_Direction: {r: -1, g: 0, b: 1, a: 0}
     - _Caustics_Color: {r: 1, g: 1, b: 1, a: 1}
-    - _Color_Deep: {r: 0, g: 0.4509804, b: 0.3794683, a: 1}
-    - _Color_Shallow: {r: 0, g: 1, b: 0.84313726, a: 0}
+    - _Color_Deep: {r: 0, g: 0.068105794, b: 1.8039216, a: 1}
+    - _Color_Shallow: {r: 0, g: 0.5932412, b: 1, a: 1}
     - _Deep_Color: {r: 0, g: 0.084048375, b: 0.341, a: 1}
     - _DistanceColor: {r: 1, g: 1, b: 1, a: 1}
     - _FarColor: {r: 0.15966535, g: 0.6787135, b: 0.8679245, a: 0}
@@ -439,17 +439,17 @@ Material:
     - _SL_Color: {r: 1, g: 1, b: 1, a: 1}
     - _SL_MaskPan: {r: 0.01, g: 0, b: 0, a: 0}
     - _SL_MaskTile: {r: 1, g: 1, b: 0, a: 0}
-    - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.6}
+    - _ShadowColor: {r: 0, g: 0, b: 0.31764707, a: 1}
     - _ShallowColor: {r: 0.046745095, g: 0.745, b: 0.5917821, a: 1}
     - _Shore: {r: 1, g: 1, b: 1, a: 1}
     - _ShoreLineColor: {r: 1, g: 1, b: 1, a: 1}
     - _ShoreLineMaskPan: {r: 0.01, g: 0.02, b: 0, a: 0}
     - _ShoreLineMaskPanning: {r: 0, g: 0, b: 0, a: 0}
     - _ShoreLineMaskTile: {r: 3, g: 3, b: 0, a: 0}
-    - _Specular_Color: {r: 4.0000005, g: 4.0000005, b: 4.0000005, a: 1}
-    - _SurfFoam_Color: {r: 1, g: 0.844, b: 0.9524024, a: 1}
+    - _Specular_Color: {r: 4.0000005, g: 4.0000005, b: 4.0000005, a: 0.8980392}
+    - _SurfFoam_Color: {r: 0, g: 0.14122508, b: 0.93962264, a: 1}
     - _SurfFoam_Pan: {r: 0.2, g: 0.1, b: 0, a: 0}
-    - _SurfFoam_Tile: {r: 1, g: 1, b: 0, a: 0}
+    - _SurfFoam_Tile: {r: 0.005, g: 0.005, b: 0, a: 0}
     - _Surface: {r: 1, g: 1, b: 1, a: 1}
     - _SurfaceDistortionSpeed: {r: 0.01, g: 0.02, b: 0, a: 0}
     - _SurfaceDistortion_Pan: {r: 1, g: 1, b: 0, a: 0}
