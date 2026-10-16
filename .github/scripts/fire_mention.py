@@ -2,6 +2,7 @@
 
 - 呼ぶのは、コメントした人がリポジトリの owner・member・collaborator のときだけ（公開リポジトリで、
   他の人のコメントに書かれた指示で Claude が動かないようにする）。
+- トークンを使いすぎないよう、owner（Fialuxe）以外は、30 分に 2 回まで（上限を超えたコメントは、ルーティンを呼ばない）。
 - ルーティンに渡すのは、コメントの URL だけ。本文は渡さない（Claude が API で読む）。
 - Secrets（MENTION_ROUTINE_URL・MENTION_ROUTINE_TOKEN）が無ければ、警告を出すだけ。URL とトークンはログに出さない。
 """
@@ -10,14 +11,19 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 import time
+from datetime import datetime, timedelta, timezone
 import urllib.error
 import urllib.request
 
 ALLOWED = {"OWNER", "MEMBER", "COLLABORATOR"}
 MENTION = re.compile(r"(?<![\w@])@claude\b", re.IGNORECASE)
 RETRY_STATUSES = {429, 500, 502, 503, 529}
+UNLIMITED = {"OWNER"}  # 回数の上限が無い人
+LIMIT = 2              # それ以外の人が、WINDOW_MINUTES のあいだに呼べる回数
+WINDOW_MINUTES = 30
 
 
 def log(msg: str) -> None:
@@ -39,6 +45,38 @@ def should_fire(event: dict) -> tuple[bool, str]:
     if not MENTION.search(body):
         return False, "no mention"
     return True, "ok"
+
+
+def count_recent(comments: list[dict], login: str, now: datetime, window_minutes: int = WINDOW_MINUTES) -> int:
+    """直近 window_minutes 分に、login が書いた @claude つきコメントの数（いま届いたものを含む）。"""
+    since = now - timedelta(minutes=window_minutes)
+    n = 0
+    for c in comments:
+        if (c.get("user") or {}).get("login") != login:
+            continue
+        if not MENTION.search(c.get("body") or ""):
+            continue
+        created = datetime.fromisoformat(str(c.get("created_at")).replace("Z", "+00:00"))
+        if since <= created <= now:
+            n += 1
+    return n
+
+
+def over_limit(event: dict, comments: list[dict], now: datetime) -> bool:
+    comment = event["comment"]
+    if comment.get("author_association") in UNLIMITED:
+        return False
+    return count_recent(comments, comment["user"]["login"], now) > LIMIT
+
+
+def recent_comments(repo: str, now: datetime) -> list[dict]:
+    since = (now - timedelta(minutes=WINDOW_MINUTES)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    r = subprocess.run(["gh", "api", f"repos/{repo}/issues/comments?since={since}&per_page=100", "--paginate", "--slurp"],
+                       capture_output=True, text=True, encoding="utf-8", timeout=60)
+    if r.returncode != 0:
+        return []
+    pages = json.loads(r.stdout or "[]")
+    return [c for page in pages for c in page]
 
 
 def fire(text: str, attempts: int = 3) -> bool:
@@ -73,6 +111,10 @@ def main() -> int:
     ok, reason = should_fire(event)
     if not ok:
         log(f"skip: {reason}")
+        return 0
+    now = datetime.now(timezone.utc)
+    if over_limit(event, recent_comments(os.environ.get("GITHUB_REPOSITORY", ""), now), now):
+        log(f"skip: over the limit ({LIMIT} per {WINDOW_MINUTES} minutes)")
         return 0
     comment = event["comment"]
     fire(f"comment={comment['html_url']}")
