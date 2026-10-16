@@ -256,5 +256,35 @@ check("flow: without the routine secrets the marker says route=pc", __import__("
 urllib.request.urlopen = real_urlopen
 tc.time.sleep = real_sleep
 
+# 9) a Zoom meeting folder in the inbox: the audio is taken, the video goes along, the per-participant folder is ignored, the topic stays out of names and log
+def zoom_world():
+    st, drive, folders, priv, tmp = new_world()
+    del st["files"]["a1"]
+    fo = "2026-10-16 19.03.11 秘密のトピック 123456789"
+    st["files"]["z"] = {"id": "z", "name": fo, "mimeType": tc.FOLDER_MIME, "parents": ["INBOX"], "modifiedTime": "2026-10-16T10:00:00Z"}
+    st["files"]["za"] = {"id": "za", "name": "audio123456789.m4a", "mimeType": "audio/mp4", "parents": ["z"], "modifiedTime": "2026-10-16T12:00:00Z", "size": "5000000"}
+    st["files"]["zv"] = {"id": "zv", "name": "video123456789.mp4", "mimeType": "video/mp4", "parents": ["z"], "modifiedTime": "2026-10-16T12:00:00Z", "size": "90000000"}
+    st["files"]["zp"] = {"id": "zp", "name": "Audio Record", "mimeType": tc.FOLDER_MIME, "parents": ["INBOX"], "modifiedTime": "2026-10-16T12:00:00Z"}
+    st["files"]["zpa"] = {"id": "zpa", "name": "audio_only_山田.m4a", "mimeType": "audio/mp4", "parents": ["zp"], "modifiedTime": "2026-10-16T12:00:00Z", "size": "1"}
+    return st, drive, folders, priv, tmp
+
+st, drive, folders, priv, tmp = zoom_world()
+w = drive.waiting()
+check("zoom folder: only the audio file is waiting (not the video, not the per-participant folder)", [f["id"] for f in w] == ["za"])
+tc.transcribe = ok_transcribe
+res, err, out = run_process(drive, folders, priv, w[0])
+check("zoom folder: done", res == "done" and err is None and folders["done"] in st["files"]["za"]["parents"])
+check("zoom folder: the video was moved to done/ too (no second transcription)", folders["done"] in st["files"]["zv"]["parents"])
+check("zoom folder: nothing is waiting afterwards", not drive.waiting())
+files = sorted(p.relative_to(priv).as_posix() for p in priv.rglob("*") if p.is_file() and ".git" not in p.parts)
+check("zoom folder: dated 2026-10-16, named 'zoom 1903', no topic in file names", "2026-10-16/2026-10-16 zoom 1903.clean.txt" in files and not any("秘密" in f for f in files))
+check("zoom folder: log has no topic", "秘密" not in out and "123456789" not in out)
+
+st, drive, folders, priv, tmp = zoom_world()
+tc.transcribe = boom
+res, err, out = run_process(drive, folders, priv, drive.waiting()[0])
+check("zoom folder: a failure puts the audio back in its meeting folder (not the inbox root)", err is not None and st["files"]["za"]["parents"] == ["z"])
+check("zoom folder: after the failure the same audio is waiting again, the video is not", [f["id"] for f in drive.waiting()] == ["za"])
+
 print("\n" + ("ALL PASSED" if not FAILS else f"{len(FAILS)} FAILED: {FAILS}"))
 sys.exit(1 if FAILS else 0)

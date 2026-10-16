@@ -36,6 +36,9 @@ import time
 from pathlib import Path
 
 AUDIO_EXTS = {".mp3", ".m4a", ".wav", ".aac", ".flac", ".mp4", ".ogg"}
+AUDIO_ONLY_EXTS = AUDIO_EXTS - {".mp4"}  # a Zoom meeting folder has a video (.mp4) and an audio (.m4a) of the same meeting: take the audio
+RESERVED_FOLDERS = {"processing", "done", "failed"}
+SKIP_FOLDERS = {"Audio Record"}  # Zoom's per-participant audio files: the mixed audio is enough
 TOOLS = Path(__file__).resolve().parent.parent  # tools/mtg
 NORMALISE = "highpass=f=80,dynaudnorm=f=200:g=21:p=0.9:m=30,loudnorm=I=-16:TP=-1.5:LRA=11"  # same as transcribe.ps1
 JST = dt.timezone(dt.timedelta(hours=9))
@@ -71,6 +74,18 @@ def is_audio(name: str) -> bool:
     return Path(name).suffix.lower() in AUDIO_EXTS
 
 
+def stem_for(f: dict) -> str:
+    """The name used for the transcript files. A Zoom meeting folder ("2026-10-16 19.03.11 <topic> <id>") becomes "2026-10-16 zoom 1903":
+    the topic and the meeting id stay out of the file names."""
+    folder = f.get("folder")
+    if folder:
+        m = re.match(r"^(\d{4}-\d{2}-\d{2}) (\d{2})\.(\d{2})\.\d{2}", folder)
+        if m:
+            return f"{m.group(1)} zoom {m.group(2)}{m.group(3)}"
+        return re.sub(r"[\\/:*?\"<>|]", "_", folder)
+    return Path(f["name"]).stem
+
+
 class Drive:
     """The few Drive calls we need. `svc` is a googleapiclient Drive v3 service (or a test double)."""
 
@@ -94,9 +109,28 @@ class Drive:
         body = {"name": name, "mimeType": FOLDER_MIME, "parents": [self.inbox]}
         return self.svc.files().create(body=body, fields="id", supportsAllDrives=True).execute()["id"]
 
+    def _audio_in(self, parent):
+        files = self._list(f"'{parent}' in parents and trashed = false and mimeType != '{FOLDER_MIME}'")
+        return [f for f in files if is_audio(f["name"])]
+
     def waiting(self):
-        files = self._list(f"'{self.inbox}' in parents and trashed = false and mimeType != '{FOLDER_MIME}'")
-        return sorted((f for f in files if is_audio(f["name"])), key=lambda f: f["modifiedTime"])
+        """Recordings in the inbox, and in one level of sub-folders (Zoom saves each meeting in its own folder).
+        In a meeting folder the audio-only file is taken; the video is moved together with it when the work ends ("siblings")."""
+        out = []
+        for f in self._audio_in(self.inbox):
+            out.append({**f, "parent": self.inbox, "siblings": []})
+        for fo in self._list(f"'{self.inbox}' in parents and trashed = false and mimeType = '{FOLDER_MIME}'"):
+            if fo["name"] in RESERVED_FOLDERS or fo["name"] in SKIP_FOLDERS:
+                continue
+            inner = self._audio_in(fo["id"])
+            if not inner:
+                continue
+            audio = [f for f in inner if Path(f["name"]).suffix.lower() in AUDIO_ONLY_EXTS]
+            chosen = audio or [max(inner, key=lambda f: int(f.get("size") or 0))]
+            rest = [f["id"] for f in inner if f not in chosen]
+            for c in chosen:
+                out.append({**c, "parent": fo["id"], "folder": fo["name"], "siblings": rest})
+        return sorted(out, key=lambda f: f["modifiedTime"])
 
     def attempts(self, f) -> int:
         try:
@@ -106,6 +140,10 @@ class Drive:
 
     def set_attempts(self, file_id, n: int):
         self.svc.files().update(fileId=file_id, body={"appProperties": {"mtg_attempts": str(n)}}, fields="id", supportsAllDrives=True).execute()
+
+    def set_origin(self, file_id, parent):
+        """Remember where the recording was, so that --release puts it back there (a Zoom meeting folder), not in the inbox root."""
+        self.svc.files().update(fileId=file_id, body={"appProperties": {"mtg_parent": parent}}, fields="id", supportsAllDrives=True).execute()
 
     def pc_busy(self) -> bool:
         """A PC is processing this folder right now (a claim file written less than PC_CLAIM_HOURS ago)."""
@@ -235,15 +273,18 @@ def archive(private: Path, tx_dir: Path, stem: str, date: str):
 
 def process_one(drive: Drive, f: dict, folders: dict, private: Path, model: str) -> str:
     """Returns "done" or "quarantined". Raises on a failure that will be retried (or quarantined after MAX_ATTEMPTS)."""
-    date = mtg_date(f["name"], f["modifiedTime"])
-    stem = Path(f["name"]).stem
+    date = mtg_date(f.get("folder") or f["name"], f["modifiedTime"])
+    stem = stem_for(f)
+    origin = f.get("parent", folders["inbox"])
     tries = drive.attempts(f)
     if tries >= MAX_ATTEMPTS:  # a person moved it back from failed/ after fixing the cause: start again from zero
         tries = 0
         drive.set_attempts(f["id"], 0)
     log(f"start: recording dated {date}, {int(f.get('size', 0)) // 1_000_000} MB, attempt {tries + 1}/{MAX_ATTEMPTS}")
-    drive.move(f["id"], folders["inbox"], folders["processing"])  # claim
-    dest = folders["inbox"]  # where the recording goes when this function ends
+    if origin != folders["inbox"]:
+        drive.set_origin(f["id"], origin)
+    drive.move(f["id"], origin, folders["processing"])  # claim
+    dest = origin  # where the recording goes when this function ends
     try:
         with tempfile.TemporaryDirectory() as td:
             td = Path(td)
@@ -283,6 +324,9 @@ def process_one(drive: Drive, f: dict, folders: dict, private: Path, model: str)
         raise
     finally:
         drive.move(f["id"], folders["processing"], dest)
+        if dest in (folders["done"], folders["failed"]):
+            for sid in f.get("siblings", []):  # the video of the same Zoom meeting: do not process it again
+                drive.move(sid, origin, dest)
     return "quarantined" if dest == folders["failed"] else "done"
 
 
@@ -340,7 +384,8 @@ def main():
         proc = drive.subfolder("processing")
         stuck = [f for f in drive._list(f"'{proc}' in parents and trashed = false") if is_audio(f["name"])]
         for f in stuck:
-            drive.move(f["id"], proc, drive.inbox)
+            back = (f.get("appProperties") or {}).get("mtg_parent") or drive.inbox
+            drive.move(f["id"], proc, back)
         log(f"released: {len(stuck)}")
         return 0
     if a.benchmark:
