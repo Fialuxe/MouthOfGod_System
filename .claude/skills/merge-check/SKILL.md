@@ -16,7 +16,7 @@ description: コンフリクトした PR を merge-doctor で調べ、原因と�
 1. **まだ必要か確かめる**: `gh pr view N --json state,baseRefName,headRefOid`。`OPEN` でなければ飛ばす。`gh api repos/{owner}/{repo}/issues/N/comments --paginate` に `<!-- merge-doctor:<目印> -->` がすでにあれば、報告済みなので飛ばす
 2. **調べる**: `merge-doctor` サブエージェントを呼ぶ（PR 番号だけを渡す）
 3. merge-doctor が「コンフリクトなし」と返したら（呼ばれた後に解消された）、コメントせずに飛ばす
-4. **コメントする**: `gh pr comment N --body-file <一時ファイル>`。本文は次の形。**最後の行に目印を必ず入れる**（無いと、次の push でまた呼ばれる）
+4. **コメントする**: `GH_TOKEN="${CLAUDE_BOT_GH_TOKEN:-$GH_TOKEN}" gh api repos/{owner}/{repo}/issues/N/comments -F body=@<一時ファイル>`（`gh pr comment` は GraphQL を使うため、ルーティンの環境で 403 になることがある。`CLAUDE_BOT_GH_TOKEN` は、Claude 専用のアカウントのトークンで、あれば使う）。本文は次の形。**最後の行に目印を必ず入れる**（無いと、次の push でまた呼ばれる）
 
 ```
 ### コンフリクトの調査（Claude）

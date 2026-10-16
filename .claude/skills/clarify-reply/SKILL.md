@@ -59,7 +59,10 @@ description: Claude が書いた質問や説明に、人が「わからない」
 [cold-read](../cold-read/SKILL.md) の手順で、下書きを読ませる。「分からない所はありません」になるまで直す（最大 3 回）。
 
 ### 5. 投稿する
-- `gh issue comment <番号> --body-file <一時ファイル>`（PR のコメントも同じ）。元のコメントへの返信として、本文の先頭に、元のコメントの URL を 1 行で添える。
+- 投稿は REST API で行う（`gh issue comment` は GraphQL を使うため、ルーティンの環境で 403 になることがある）:
+  `GH_TOKEN="${CLAUDE_BOT_GH_TOKEN:-$GH_TOKEN}" gh api repos/{owner}/{repo}/issues/<番号>/comments -F body=@<一時ファイル>`（PR のコメントも同じ番号の形）。
+  環境変数 `CLAUDE_BOT_GH_TOKEN` があれば、それで投稿する（Claude 専用のアカウントのトークン。無ければ、いつものアカウントで投稿される）。
+- 元のコメントへの返信として、本文の先頭に、元のコメントの URL を 1 行で添える。
 - 元の Claude のコメントや本文は、**編集しない**。
 
 ### 6. 記録する
