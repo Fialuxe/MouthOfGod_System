@@ -25,7 +25,7 @@ description: 担当（Leading）がいない Issue に、候補を挙げる。�
    - 残っている → 別の人が引き継ぎやすい。担当を広げられる。
    - 残りが少ない → 本人が続けるほうが効率がよい。ただし、「記録が少ないから任せる」と、本人の負担が増える。本人の意向を先に聞く。
 3. **意向**: 直近の `docs/minutes/*.md` の「アクション」「未解決・次回」、議題 Issue と Issue のコメントでの、本人の発言。
-4. **負荷**: いま Leading を持つ open の Issue の数（`gh issue list --assignee <login> --state open`）。不在の予定（`docs/minutes/` の「お知らせ」、カレンダーの公開部分）。件数で圧をかけない。多い人は、「手が足りているか」を確かめる材料にするだけ。
+4. **負荷**: いま**個別に**持つ open の Issue の数。`gh issue list --assignee <login> --state open --json number,title,assignees` で取り、**担当が 3 人以上いる Issue（議題や決めることのように、全員が担当のもの）は数えない**（全員担当を数えると、全員が同じ件数に見えて、負荷の差を読み違える）。不在の予定（`docs/minutes/` の「お知らせ」、カレンダーの公開部分）。件数で圧をかけない。数字を書くときは、どの Issue を数えたかも添える。
 5. **全員の一覧**: `gh api repos/{owner}/{repo}/collaborators --jq '.[].login'`。
 
 ## 出す形（Issue のコメント、または質問の「決める人」の下）
