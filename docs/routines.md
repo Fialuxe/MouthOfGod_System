@@ -7,7 +7,7 @@
 | 名前 | いつ（日本時間） | 何をする | 指示文（そのまま貼る） |
 |---|---|---|---|
 | MTG の議題 | 毎週水曜 9:05（リポジトリは `MouthOfGod_System` と、カレンダーを読むために非公開の `MouthOfGod_transcripts`） | 金曜の MTG の議題 Issue を作る（前回のアクションの結果、決めることの候補つき） | `mtg-agenda スキルに従って、次の MTG（金曜）の議題 Issue を作ってください。確認は取らず、最後まで実行すること。` |
-| 週次の Issue 整理 | 毎週火曜 8:47 | 完了した Issue を閉じ、重複・担当なし・止まっているものを「Issue 整理（週次）」にまとめる | `issue-hygiene スキルに従って、Fialuxe/MouthOfGod_System の open の Issue を整理してください。確認は取らず、最後まで実行すること。` |
+| 週次の Issue 整理 | 毎週火曜 8:47 | 完了した Issue を閉じ、重複・担当なし・止まっているものを「Issue 整理（週次）」にまとめる。人に通じなかった Claude の質問を探し、`docs/question-lessons.md` に足す PR を作る | `issue-hygiene スキルに従って、Fialuxe/MouthOfGod_System の open の Issue を整理してください。確認は取らず、最後まで実行すること。` |
 
 | 議事録（クラウド） | 時刻なし（API で呼ぶ） | クラウドの文字起こしの後に呼ばれ、議事録の PR を作る | `mtg-sync スキルの「クラウドで動かすとき」に従って、渡された date と name の MTG の議事録を作ってください。確認は取らず、最後まで実行すること。` |
 | 開発（dev-loop） | 1 日 2〜3 回（例: 10:13・15:13・21:13 JST）。最初は週 2 回から | PM が open の Issue から「Claude だけで実装できる小さな 1 件」を選び、engineer が実装し、reviewer が確かめて、PR にする（マージは人） | `dev-loop スキルに従って、open の Issue から 1 件を進めてください。確認は取らず、最後まで実行すること。` |
