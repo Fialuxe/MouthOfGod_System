@@ -13,6 +13,7 @@
 | `Devices` | 置き場: いま使える `IDevice`（`WhenReady`・`Current`）。デバイスの実装が `Register` する |
 | `Fields` | 置き場: いまシーンにあるフィールド（`All`・`Added`・`Removed`・`Find`）。フィールドが有効になると自分で `Register` する。ID が空・重なりは警告して登録しない |
 | `IFieldRequests` | 1 つのフィールドの欲しい物（`Open`・`Receive`・`Expire`・`Restart`・`Issued`・`Closed`・`Received`）。いつもの実装は Village の `FieldStages`（独自の作りでも、これを実装すればつながる）。使う側は `Fields` から受け取る。分担は [docs/requests.md](../../../docs/requests.md) |
+| `IFoodItem` | 生まれた食べ物が持つ。`Food`（食べ物の ID）を返す。届け先の判定などが、Food を参照せずに「どの食べ物か」を読むために使う。実装は Food の `FoodItemTag` |
 | `IDevice` | 触感デバイスの入力。`Current`（いまの食感）、`TextureChanged(TextureId)`、`Confirmed(TextureId)`（決定したときの食感を運ぶ）、`Bitten`。実装は Device 側 |
 
 型とイベントの流れは [docs/architecture.md](../../../docs/architecture.md) §3。
