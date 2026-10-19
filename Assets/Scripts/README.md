@@ -8,6 +8,7 @@
 |---|---|---|
 | `Core/` | 全体で共有する小さな基盤（ID の型 `TextureId` `FoodId` `FieldId` `CueId`、イベントのデータ、約束（`IDevice`・`IFieldRequests`）と受け取り口（`Devices`・`Fields`））。他のフォルダに依存しない | |
 | `Device/` | 触感デバイス・Arduino との通信。いまは、キーボードで動く `MockDevice`（`IDevice` の擬似実装） | |
+| `Food/` | 食感 → 食べ物の対応（`FoodTable`）と、決定したときに食べ物を生んで飛ばす `FoodSpawner` | |
 | `Tracking/` | VR・位置取得 | |
 | `Tutorial/` | チュートリアル 1〜4 の進行 | |
 | `Game/` | 本編の進行、スコア、判定 | |
@@ -136,7 +137,7 @@ Fields.Find(currentField)?.Receive(spawned.Food); // 戻るのは頼まれた物
 **素材担当**
 - モデル・テクスチャ・音は、`Assets/Resources/` の外（`Assets/ArtisticResources/` など）に置く。タグ（食感・置き場所）を素材に埋め込まない。データ側で持つ。
 - Prefab は `Assets/Resources/Prefabs/<機能>/` に置く（フォルダ名はスクリプトとそろえる）。
-- 食べ物を足すときは、`FoodDefinition` を 1 つ足すだけ。共有のリストは触らない。
+- 食べ物を足すときは、Prefab を `Assets/Resources/Prefabs/Food/` に置き（ファイル名が ID）、`FoodTable` に 1 行足す。全員で触る共有のリストは作らない。
 
 **企画・シーン担当**
 - データ（ScriptableObject）は `Assets/Resources/Data/<種類>/` に、1 件 1 アセットで作る。チュートリアルは `Data/Tutorial/T1/`、`T2/` と分ける。

@@ -31,8 +31,8 @@
 
 - **共有シーンは 1 つ（例: `Main`）にし、分けない。** 村全体と全フィールドを 1 つのシーンに置き、複数人で同時に編集するときは Scene Fusion を使う（CONTRIBUTING 第 3 章）。シーンを分けると、加算ロードや位置合わせのつなぎ、他の人のシーンと合わせる手間が増え、このチームには重い。シーンの外で別々に作業したいものは、データ（下の 3 つ）やコードに出す。
 - **1 チュートリアル = 1 まとまりのデータ。** チュートリアルごとにフォルダを分け（`Assets/Resources/Data/Tutorial/T1/`、`T2/`）、そのステップのアセットはその中に置く。チュートリアル 2 を直す人は、チュートリアル 1 のファイルを開かない。
-- **1 件 = 1 アセット。** 食べ物・フィールド・ステップなどは、1 件ごとに別のアセット（`FoodDefinition` など）にする。全部を 1 つの巨大なリストやファイルに入れない。
-- **目次になるアセットは、手で編集しない。** 「食感 → 食べ物」の対応表（`FoodCatalog`）のように全員が使うものは、リストを手で持たず、`FoodDefinition` を集めて作る（`Assets/Resources/Data/` の下のフォルダを、起動時に読む。置き場所は [CONTRIBUTING「型の名前とデータの置き場所」](../CONTRIBUTING.md#型の名前とデータの置き場所)）。食べ物を足す人は `FoodDefinition` を 1 つ足すだけで、共有のファイルを触らない。食感の重複などは起動時に検出してエラーを出す。
+- **1 件 = 1 つのまとまり。** 食べ物は Prefab 1 つ（ファイル名が食べ物の ID）、フィールド・ステップなどは、1 件ごとに別の Prefab かアセットにする。全部を 1 つの巨大なリストやファイルに入れない。
+- **「食感 → 食べ物」の対応表は、全員で触る 1 つのリストにしない。** 全フィールド共通の表（`FoodTable`。0 個か 1 個）と、フィールドごとの専用の表（そのフィールドの Prefab に付ける `FoodTable`）に分ける。食べ物を足す人は、Prefab を置いて、自分のフィールドの表に 1 行足す。食感の重複などは、起動時に警告する（2026-10-19 の [決めたことの記録](decisions.md)。作りは [Food/README.md](../Assets/Scripts/Food/README.md)）。
 - **中央の進行クラスを作らない。** `GameFlow` や `GameManager` の中に「チュートリアル 1 ならこう、2 ならこう」と書かない。進行を担う `TutorialRunner` は**どのチュートリアルでも同じコード**で、中身はデータ（`TutorialStep`）から読む。
 - **PR が同じファイルでぶつかったら、分け方を見直すサイン**として扱う。
 
@@ -60,7 +60,7 @@ Core        型（TextureId / FoodId / FieldId）、小さな interface、イベ
  ↑
 Device      IDevice の実装（Serial / Mock）                      Core のみ
 Tracking    AprilTag・位置                                       Core のみ（現状は Core も不要）
-Food        食感→食べ物の対応、生成（FoodCatalog / FoodSpawner）   Core のみ
+Food        食感→食べ物の対応、生成（FoodTable / FoodSpawner）     Core のみ
 Village     Field・DeliveryZone・村人の要求・村の変化              Core のみ（位置合わせは「親 Transform が動く」ことにだけ依存）
 UI          表示。Core のイベントを購読                           Core のみ
  ↑
@@ -97,7 +97,7 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 |---|---|---|
 | 食感 | `TextureId`（論理 ID。物理量は Device の内側で ID に変換する） | Core |
 | 入力 | `IDevice`: `Current`、`TextureChanged`、`Confirmed`（決定したときの食感を運ぶ）、`Bitten` | Core（interface）／ Device（実装） |
-| 食べ物 | `FoodId`、`FoodCatalog.Resolve(TextureId)` → `FoodId`、`FoodSpawner.Spawned` | Food |
+| 食べ物 | `FoodId`、`FoodTables.Resolve(FieldId, TextureId)` → 食べ物の Prefab、`FoodSpawner.Spawned`、生んだ物の `IFoodItem`（どの食べ物かを渡す） | Core（`FoodId`・`Spawned`・`IFoodItem`）／ Food |
 | 届け先 | `FieldId`、`IFieldRequests.Receive(FoodId)` → `DeliveryKind`、`Delivered`（`Kind` 付き） | Core ／ Village |
 | 欲しい物（要求） | `Fields`（置き場）、`IFieldRequests`（`Open`・`Receive`・`Expire`・`Restart`）、`RequestIssued`（`Anchor` 付き）、`RequestClosed` | Core（interface・イベント）／ Village（`FieldStages`・`FieldStep`） |
 | 進行 | `TutorialRunner`、`StepEntered`、`StepCompleted`、`CueRequested` | Tutorial ／ Core |
@@ -121,9 +121,9 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 |---|---|---|
 | 素材（Art） | モデル、テクスチャ、アニメーション、SE、Particle | 素材担当 |
 | Prefab | 食べ物・生物、フィールド、村人の見た目と Collider | 素材担当 ＋ シーン担当 |
-| データ（ScriptableObject） | `FoodCatalog`、`FoodDefinition`、`FieldDefinition`、`TutorialStep`（欲しい物はフィールドの Prefab の `FieldStep` に持つ） | 企画・シーン担当（実装は読むだけ） |
+| データ（ScriptableObject など） | `FieldDefinition`、`TutorialStep`（欲しい物はフィールドの Prefab の `FieldStep` に持つ）。「食感 → 食べ物」の表は `FoodTable`（Prefab に付ける部品） | 企画・シーン担当（実装は読むだけ） |
 | シーン | 村・フィールドの配置、AprilTag の位置 | シーン担当（Scene Fusion） |
-| コード | カタログの参照、完了条件の評価、判定、Device 通信、起動時の組み立て | 実装担当 |
+| コード | 表の参照、完了条件の評価、判定、Device 通信、起動時の組み立て | 実装担当 |
 
 素材にタグ（食感・置き場所）を埋め込まず、データ側で持つ。素材を差し替えても、コードとシーンを触らずに済む。
 
