@@ -26,6 +26,16 @@ namespace MouthOfGod.Core.Tests
         }
 
         [Test]
+        public void PhaseId_BehavesLikeTheOtherIds()
+        {
+            Assert.IsTrue(new PhaseId(null).IsEmpty);
+            Assert.IsTrue(new PhaseId("") == PhaseId.None);
+            Assert.AreEqual(new PhaseId("fork"), new PhaseId("fork"));
+            Assert.AreNotEqual(new PhaseId("fork"), new PhaseId("Fork"));
+            Assert.AreEqual("fork", new PhaseId("fork").ToString());
+        }
+
+        [Test]
         public void Case_IsSignificant()
         {
             Assert.AreNotEqual(new FieldId("Mountain"), new FieldId("mountain"));

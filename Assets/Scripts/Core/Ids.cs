@@ -117,4 +117,33 @@ namespace MouthOfGod.Core
 
         public static bool operator !=(CueId left, CueId right) => !left.Equals(right);
     }
+
+    /// <summary>いまの場面（チュートリアルの名前、本編、エンディングなど）の ID。文字列を包んだ値。null と空文字は、どちらも空 ID（PhaseId.None）。大文字小文字は区別する。</summary>
+    public readonly struct PhaseId : IEquatable<PhaseId>
+    {
+        public static readonly PhaseId None = default;
+
+        readonly string _value;
+
+        public PhaseId(string value)
+        {
+            _value = string.IsNullOrEmpty(value) ? string.Empty : value;
+        }
+
+        public string Value => _value ?? string.Empty;
+
+        public bool IsEmpty => string.IsNullOrEmpty(_value);
+
+        public bool Equals(PhaseId other) => string.Equals(Value, other.Value, StringComparison.Ordinal);
+
+        public override bool Equals(object obj) => obj is PhaseId other && Equals(other);
+
+        public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Value);
+
+        public override string ToString() => Value;
+
+        public static bool operator ==(PhaseId left, PhaseId right) => left.Equals(right);
+
+        public static bool operator !=(PhaseId left, PhaseId right) => !left.Equals(right);
+    }
 }

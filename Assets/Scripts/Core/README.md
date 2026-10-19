@@ -8,9 +8,11 @@
 
 | 型 | 役割 |
 |---|---|
-| `TextureId` / `FoodId` / `FieldId` / `CueId` | 文字列を包んだ ID（`readonly struct`）。`enum` にしないための型。`null` と空文字は、どちらも空 ID（`None`、`IsEmpty`）。大文字小文字は区別する。型が違えば、同じ文字列でも別物 |
+| `TextureId` / `FoodId` / `FieldId` / `CueId` / `PhaseId` | 文字列を包んだ ID（`readonly struct`）。`enum` にしないための型。`null` と空文字は、どちらも空 ID（`None`、`IsEmpty`）。大文字小文字は区別する。型が違えば、同じ文字列でも別物 |
 | `Spawned` / `Delivered`（`DeliveryKind` 付き）/ `RequestIssued` / `RequestClosed` / `CueRequested` | 機能をまたぐイベントが運ぶデータ（`readonly struct`）。値を持つだけ。デバイスの入力は `IDevice` のイベントで、ここには置かない |
 | `Devices` | 置き場: いま使える `IDevice`（`WhenReady`・`Current`）。デバイスの実装が `Register` する |
+| `Cues` | 置き場: 合図（`CueRequested`）。Tutorial が `Request(CueId)` し、Village や UI が `Requested` を購読して、見せ方を決める。出す側は、誰が受けるかを知らない |
+| `Phases` | 置き場: いまの場面（`PhaseId`。チュートリアルの名前など）。決める側（Tutorial・Game）が `Set` し、使う側は `Current` で読み、`Changed` で知らせを受ける |
 | `Fields` | 置き場: いまシーンにあるフィールド（`All`・`Added`・`Removed`・`Find`）。フィールドが有効になると自分で `Register` する。ID が空・重なりは警告して登録しない |
 | `IFieldRequests` | 1 つのフィールドの欲しい物（`Open`・`Receive`・`Expire`・`Restart`・`Issued`・`Closed`・`Received`）。いつもの実装は Village の `FieldStages`（独自の作りでも、これを実装すればつながる）。使う側は `Fields` から受け取る。分担は [docs/requests.md](../../../docs/requests.md) |
 | `IFoodItem` | 生まれた食べ物が持つ。`Food`（食べ物の ID）を返す。届け先の判定などが、Food を参照せずに「どの食べ物か」を読むために使う。実装は Food の `FoodItemTag` |
