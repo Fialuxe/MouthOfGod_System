@@ -10,7 +10,7 @@
 | `Device/` | 触感デバイス・Arduino との通信。いまは、キーボードで動く `MockDevice`（`IDevice` の擬似実装） | |
 | `Food/` | 食感 → 食べ物の対応（`FoodTable`）と、決定したときに食べ物を生んで飛ばす `FoodSpawner` | |
 | `Tracking/` | VR・位置取得 | |
-| `Tutorial/` | チュートリアル 1〜4 の進行 | |
+| `Tutorial/` | チュートリアル 1〜4 の進行。チュートリアルごとの人形劇スクリプト（`TutorialScript`）と、順に動かす `TutorialRunner` | |
 | `Game/` | 本編の進行、スコア、判定 | |
 | `Village/` | ミニチュアの村・フィールド・村人。フィールドが戻る部品と欲しい物（`FieldStages`・`FieldStep`・`VillagerMood`）と、村のフィールドの `Village.prefab` | |
 | `UI/` | 画面表示 | |
@@ -130,8 +130,8 @@ Fields.Find(currentField)?.Receive(spawned.Food); // 戻るのは頼まれた物
 **実装担当（C#）**
 - 自分の機能のフォルダ `Assets/Scripts/<機能>/` の中だけで作る。他の機能のクラスを直接参照しない。つなぐのは `Core` の interface かイベント（参照してよいのは自分と `Core` だけ。破ると PR に警告が出る）。
 - 食感・食べ物・フィールドを `enum` にしない。ID は文字列（`TextureId` `FoodId` `FieldId`）。
-- 「チュートリアル 1 ならこう」という分岐を、共通のコードに書かない。進行は `TutorialRunner` が共通で、中身は `TutorialStep` のデータ。
-- チュートリアルのあいだで引き継ぐものは、`IProgress` の記録の名前だけを見る（T2 のことは見ない）。記録を足すときは [progress-keys.md](../../docs/progress-keys.md) に 1 行足す。
+- 「チュートリアル 1 ならこう」という分岐を、共通のコードに書かない。進行は `TutorialRunner` が共通で、中身はチュートリアルごとの人形劇スクリプト（`TutorialScript`。コルーチン）。フィールドの見せ方は、合図（`Cues`）を受けて、フィールドの担当が決める。
+- チュートリアルのあいだで引き継ぐものは、`TutorialMemory` の名前だけを見る（T2 のことは見ない）。名前を足すときは [progress-keys.md](../../docs/progress-keys.md) に 1 行足す。
 - 型と、データの置き場所: [CONTRIBUTING「型の名前とデータの置き場所」](../../CONTRIBUTING.md#型の名前とデータの置き場所)。型の一覧とイベントの流れ: [docs/architecture.md](../../docs/architecture.md)。
 
 **素材担当**
@@ -140,9 +140,9 @@ Fields.Find(currentField)?.Receive(spawned.Food); // 戻るのは頼まれた物
 - 食べ物を足すときは、Prefab を `Assets/Resources/Prefabs/Food/` に置き（ファイル名が ID）、`FoodTable` に 1 行足す。全員で触る共有のリストは作らない。
 
 **企画・シーン担当**
-- データ（ScriptableObject）は `Assets/Resources/Data/<種類>/` に、1 件 1 アセットで作る。チュートリアルは `Data/Tutorial/T1/`、`T2/` と分ける。
+- データ（ScriptableObject）は `Assets/Resources/Data/<種類>/` に、1 件 1 アセットで作る。そのチュートリアルにしかない物の Prefab は `Assets/Resources/Prefabs/Tutorial/` に置く。
 - フィールドの定義（山・海・草原・村、足りない状態と届いた後の状態）は [docs/fields.md](../../docs/fields.md)。
-- 引き継ぎの記録の名前は、[progress-keys.md](../../docs/progress-keys.md) の一覧にあるものだけ使う。
+- 覚えたこと・場面の名前は、[progress-keys.md](../../docs/progress-keys.md) の一覧にあるものだけ使う。
 
 **レビュワー**
 - 見るのは、(1) 他の機能を直接参照していないか（警告）、(2) `enum` や直書きの ID が入っていないか、(3) 同じファイルを複数の PR が触っていないか、(4) 記録の名前が一覧と合っているか。

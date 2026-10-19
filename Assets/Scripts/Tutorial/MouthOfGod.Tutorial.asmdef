@@ -1,0 +1,16 @@
+{
+    "name": "MouthOfGod.Tutorial",
+    "rootNamespace": "MouthOfGod.Tutorial",
+    "references": [
+        "MouthOfGod.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -30,10 +30,10 @@
 そこで、作業の単位とファイルの単位をそろえる。
 
 - **共有シーンは 1 つ（例: `Main`）にし、分けない。** 村全体と全フィールドを 1 つのシーンに置き、複数人で同時に編集するときは Scene Fusion を使う（CONTRIBUTING 第 3 章）。シーンを分けると、加算ロードや位置合わせのつなぎ、他の人のシーンと合わせる手間が増え、このチームには重い。シーンの外で別々に作業したいものは、データ（下の 3 つ）やコードに出す。
-- **1 チュートリアル = 1 まとまりのデータ。** チュートリアルごとにフォルダを分け（`Assets/Resources/Data/Tutorial/T1/`、`T2/`）、そのステップのアセットはその中に置く。チュートリアル 2 を直す人は、チュートリアル 1 のファイルを開かない。
+- **1 チュートリアル = 1 つの人形劇スクリプト。** チュートリアルごとに 1 つのファイル（`Assets/Scripts/Tutorial/T1.cs`、`T2.cs`）を書き、そのチュートリアルにしかない物（浮かぶお供え物、影など）の Prefab は `Assets/Resources/Prefabs/Tutorial/` に置く。チュートリアル 2 を直す人は、チュートリアル 1 のファイルを開かない。
 - **1 件 = 1 つのまとまり。** 食べ物は Prefab 1 つ（ファイル名が食べ物の ID）、フィールド・ステップなどは、1 件ごとに別の Prefab かアセットにする。全部を 1 つの巨大なリストやファイルに入れない。
 - **「食感 → 食べ物」の対応表は、全員で触る 1 つのリストにしない。** 全フィールド共通の表（`FoodTable`。0 個か 1 個）と、フィールドごとの専用の表（そのフィールドの Prefab に付ける `FoodTable`）に分ける。食べ物を足す人は、Prefab を置いて、自分のフィールドの表に 1 行足す。食感の重複などは、起動時に警告する（2026-10-19 の [決めたことの記録](decisions.md)。作りは [Food/README.md](../Assets/Scripts/Food/README.md)）。
-- **中央の進行クラスを作らない。** `GameFlow` や `GameManager` の中に「チュートリアル 1 ならこう、2 ならこう」と書かない。進行を担う `TutorialRunner` は**どのチュートリアルでも同じコード**で、中身はデータ（`TutorialStep`）から読む。
+- **中央の進行クラスを作らない。** `GameFlow` や `GameManager` の中に「チュートリアル 1 ならこう、2 ならこう」と書かない。進行を担う `TutorialRunner` は**どのチュートリアルでも同じコード**で、中身（流れ）は、チュートリアルごとの人形劇スクリプト（`TutorialScript`）に書く。
 - **PR が同じファイルでぶつかったら、分け方を見直すサイン**として扱う。
 
 > 未確認: ScriptableObject を Scene Fusion で同時に編集したときの挙動は、#43 で確かめる。
@@ -64,7 +64,7 @@ Food        食感→食べ物の対応、生成（FoodTable / FoodSpawner）   
 Village     Field・DeliveryZone・村人の要求・村の変化              Core のみ（位置合わせは「親 Transform が動く」ことにだけ依存）
 UI          表示。Core のイベントを購読                           Core のみ
  ↑
-Tutorial    ステップの進行（データ駆動）                          Core のみ。Game とは互いに依存しない
+Tutorial    チュートリアルの進行（人形劇スクリプト）               Core のみ。Game とは互いに依存しない
 Game        本編（時間・スコア）                                  Core のみ
 ```
 
@@ -86,10 +86,11 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 
 - Tutorial は Device を直接見ない（`MockDevice` に差し替えても動く）。
 - 欲しい物は、フィールドが「何が欲しいか・届いたら何が変わるか」を持ち、「いつ・どこに出すか」は Game（本編）と Tutorial が決める。分担と流れは [requests.md](requests.md)。
-- Tutorial から村や UI への指示（「この場所を光らせる」など）は、Tutorial が Core の `CueRequested(CueId)` を発行し、Village や UI が購読する（依存の向きを保つため）。
+- Tutorial から村や UI への指示（「この場所を光らせる」など）は、Tutorial が Core の `Cues.Request(CueId)` で合図を出し、Village や UI が `Cues.Requested` を購読する（依存の向きを保つため）。見せ方は、受けた側が決める。合図の名前はフィールド名から始める（[requests.md](requests.md)）。
+- フィールドや UI が「いまのチュートリアル」で動きを分けたいときは、Core の `Phases.Current`（`PhaseId`。`fork` `spawn` のような名前）を読んでよい。番号ではなく名前にする。ふつうの反応は合図で足りるので、`if` はそのフィールドだけの特別な反応に使う。
 - 機能の中は C# の `event`。機能をまたぐものは、Core の interface とイベントで、相手は Core の置き場から受け取る。ScriptableObject のイベントチャンネルや、知らせの通り道（イベントバス）は採用しない（流れが追えなくなり、返事や順番の約束を守らせにくい）。
 - `IDevice` は `Devices` から（`Devices.WhenReady`。どのデバイスを登録するかは Device 側が決める）、フィールドは `Fields` から（`Fields.All`・`Fields.Added`）受け取る。どのシーンでも、置くだけでつながる。
-- 置き場を足してよいのは、機能をまたいで使う「もの」が増えたときだけ。候補は「体験者がいまいるフィールド」「いまの場面（チュートリアル・本編・エンディング）」で、使う側を作るときに足す。置き場は static なので、Play のたびに空にする（`Reset`、`RuntimeInitializeOnLoadMethod`）。
+- 置き場を足してよいのは、機能をまたいで使う「もの」が増えたときだけ。いまある置き場は `Devices`・`Fields`・`Cues`・`Phases`（いまの場面）。候補は「体験者がいまいるフィールド」で、使う側を作るときに足す。置き場が膨らんだら、持ち主に聞くだけの窓口（ファサード）で包んでもよい。ただし、状態や判断は持たせない（`GameFlow` と同じになる）。置き場は static なので、Play のたびに空にする（`Reset`、`RuntimeInitializeOnLoadMethod`）。
 
 ### 型とイベント（案。名前は仮）
 
@@ -100,19 +101,18 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 | 食べ物 | `FoodId`、`FoodTables.Resolve(FieldId, TextureId)` → 食べ物の Prefab、`FoodSpawner.Spawned`、生んだ物の `IFoodItem`（どの食べ物かを渡す） | Core（`FoodId`・`Spawned`・`IFoodItem`）／ Food |
 | 届け先 | `FieldId`、`IFieldRequests.Receive(FoodId)` → `DeliveryKind`、`Delivered`（`Kind` 付き） | Core ／ Village |
 | 欲しい物（要求） | `Fields`（置き場）、`IFieldRequests`（`Open`・`Receive`・`Expire`・`Restart`）、`RequestIssued`（`Anchor` 付き）、`RequestClosed` | Core（interface・イベント）／ Village（`FieldStages`・`FieldStep`） |
-| 進行 | `TutorialRunner`、`StepEntered`、`StepCompleted`、`CueRequested` | Tutorial ／ Core |
+| 進行 | `TutorialRunner`・`TutorialScript`（人形劇スクリプト）、`Phases`（いまの場面）、`Cues`（合図。`CueRequested` を運ぶ） | Tutorial ／ Core |
 
 - 食感・食べ物を `enum` で Core に直書きしない。追加のたびに全機能が再コンパイルされ、素材担当が触れなくなる。ID は文字列にする（決定。CONTRIBUTING「型の名前とデータの置き場所」）。
 
-### チュートリアルのあいだでデータを引き継ぐ（案）
+### チュートリアルのあいだでデータを引き継ぐ
 
-チュートリアル 1〜4 は、互いを知らない（T3 のコードに「T2 では」と書かない）。それでも、「T2 で覚えた食感の対応」「どこまで進んだか」のようなデータは、次のチュートリアルや、抜き差しのあとの続き（#144）に引き継ぐ必要がある。そこで、**引き継ぐものを、名前の付いた「記録」にして、Core の小さな interface 越しに読み書きする。**
+チュートリアル 1〜4 は、互いを知らない（T3 のコードに「T2 では」と書かない）。それでも、「T2 で覚えた食感の対応」のようなことは、次のチュートリアルに引き継ぐ必要がある。そこで、**引き継ぐものを、名前の付いた「覚えたこと」にして、`TutorialRunner` が持つ `TutorialMemory` で読み書きする。** Core の interface は要らない（2026-10-19 の [決めたことの記録](decisions.md)。前の案の `IProgress` はやめた）。
 
-- Core に `IProgress`（記録の読み書き。例: `Has(ProgressKey)`、`Set(ProgressKey)`）と、記録の名前 `ProgressKey`（文字列を包んだ型）を置く。実装は、Core の置き場に登録し、使う側はそこから受け取る（`Devices` と同じ形。保存の仕方は実装の中に閉じる）。
-- 各 `TutorialStep` のデータに、「始めるのに必要な記録」と「終わったら残す記録」を書く。T3 は、T2 のことではなく、**記録の名前だけ**を見る（例: `texture-mapping-learned`）。T2 を直しても、記録の名前を変えなければ、T3 は壊れない。
-- 記録は「事実の名前」にする（`t2-done` のように、特定のチュートリアルを指す名前は避ける）。値を持たせるのは必要になってから。
-- **記録の名前は、1 か所の一覧に書く**（`docs/progress-keys.md`、記録を足す PR で一緒に足す）。一覧にない名前を、コードやデータに書かない。名前が人によってずれると、見えない結合になる。PR のレビューでは、足した記録の名前が一覧と合っているか、特定のチュートリアルを指していないかを見る。
-- Tutorial と Game は互いに依存しない（上の層の図）。引き継ぎも、`IProgress` を通して Core の中で行い、直接は呼び合わない。
+- 人形劇スクリプトは、`Memory.Set("texture-mapping-learned")` で覚え、`Memory.Has("texture-mapping-learned")` で読む。T3 は、T2 のことではなく、**名前だけ**を見る。T2 を直しても、名前を変えなければ、T3 は壊れない。
+- 名前は「事実の名前」にする（`t2-done` のように、特定のチュートリアルを指す名前は避ける）。値を持たせるのは必要になってから。
+- **名前は、1 か所の一覧に書く**（`docs/progress-keys.md`、足す PR で一緒に足す）。一覧にない名前を、コードに書かない。名前が人によってずれると、見えない結合になる。
+- `TutorialRunner.Begin()` で空にする。次の体験者に引き継がない。
 - 保存（電源が切れても続きから）が必要になるまでは、メモリに持つだけでよい。
 
 ## 4. 素材・データ・実装を分ける
@@ -121,7 +121,7 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 |---|---|---|
 | 素材（Art） | モデル、テクスチャ、アニメーション、SE、Particle | 素材担当 |
 | Prefab | 食べ物・生物、フィールド、村人の見た目と Collider | 素材担当 ＋ シーン担当 |
-| データ（ScriptableObject など） | `FieldDefinition`、`TutorialStep`（欲しい物はフィールドの Prefab の `FieldStep` に持つ）。「食感 → 食べ物」の表は `FoodTable`（Prefab に付ける部品） | 企画・シーン担当（実装は読むだけ） |
+| データ（ScriptableObject など） | `FieldDefinition`（欲しい物はフィールドの Prefab の `FieldStep` に持つ）。「食感 → 食べ物」の表は `FoodTable`（Prefab に付ける部品） | 企画・シーン担当（実装は読むだけ） |
 | シーン | 村・フィールドの配置、AprilTag の位置 | シーン担当（Scene Fusion） |
 | コード | 表の参照、完了条件の評価、判定、Device 通信、起動時の組み立て | 実装担当 |
 
@@ -167,13 +167,13 @@ ScriptableObject や Prefab の `.asset` / `.prefab` は、GUID と参照を含�
 | 避けること | なぜ困るか | 代わりに |
 |---|---|---|
 | `GameManager` / `GameFlow`（や、全部をつなぐ Bootstrap）が Device・Village・UI・各チュートリアルを全部持つ | 全員がそのファイルを編集するので順番待ちになる。1 か所の変更が全体を壊す | 機能ごとに分け、イベントでつなぐ。相手は Core の置き場から受け取る |
-| チュートリアルごとの処理を、共通クラスの `switch` や `if` で分ける | チュートリアルを足す・直すたびに共通ファイルを編集し、互いを壊しやすい | `TutorialRunner` は共通、中身はチュートリアルごとのデータ |
+| チュートリアルごとの処理を、共通クラスの `switch` や `if` で分ける | チュートリアルを足す・直すたびに共通ファイルを編集し、互いを壊しやすい | `TutorialRunner` は共通、中身はチュートリアルごとの人形劇スクリプト |
 | 全部のデータを 1 つのアセットに入れる | マージできないので、同時に編集できない | 1 件 1 アセット |
 | 対応表などの「目次」を、手で編集するリストにする | 何かを足すたびに全員が同じファイルを触る | 1 件ずつのアセットを集めて作る |
 | 共有シーンを、Scene Fusion のセッションの外で別々に編集してコミットする | Git でマージできず、どちらかの作業が消える | 同時に編集するときは Scene Fusion。動作確認はサンドボックスで |
 | エージェントが `.asset` / `.prefab` の YAML を手で書く | GUID や参照が壊れても気づきにくい | 人に頼む、MCP、一時的なエディタメニュー（使ったら消す） |
 | Device がゲームの状態（旧 `UserChoice`）を持つ | 通信とゲームの都合が絡み、Mock に差し替えられない | Device は入力を ID とイベントにするだけ |
-| Tutorial が Village の Field などを直接叩く | 依存の向きが崩れ、片方だけ直せなくなる | Core のイベント（`CueRequested` など）経由 |
+| Tutorial が Village の Field などを直接叩く | 依存の向きが崩れ、片方だけ直せなくなる | Core の `Cues`（合図）や `Phases` 経由 |
 | 食感・食べ物を `enum` で Core に直書き | 追加のたびに全体が再コンパイル。素材担当が触れない | 文字列 ID か ScriptableObject |
 | `static` なシングルトンの乱用、`FindObjectOfType` / `GameObject.Find` | どこから使われているか追えない。テストで差し替えられない | Core の置き場（`Devices`・`Fields`）から受け取る。置き場は Core の README の一覧にあるものだけ |
 | 機能をまたぐ `[SerializeField]` の手配線 | Play の前に手作業が要る。付け忘れで動かない | 自分で Core の置き場に登録し、使う側はそこから受け取る |
