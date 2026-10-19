@@ -147,6 +147,13 @@ namespace MouthOfGod.Tutorial
             }
         }
 
+        // 開発中の確かめ用（右クリックメニュー）。ふだんは呼ぶ側が Begin・Stop を呼ぶ。
+        [ContextMenu("Begin")]
+        void BeginFromMenu() => Begin();
+
+        [ContextMenu("Stop")]
+        void StopFromMenu() => Stop();
+
         void OnDisable() => Stop();
     }
 }
