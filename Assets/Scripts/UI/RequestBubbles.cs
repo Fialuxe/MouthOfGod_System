@@ -32,6 +32,12 @@ namespace MouthOfGod.UI
             return string.IsNullOrEmpty(name) ? DisplayName(food) : name;
         }
 
+        /// <summary>
+        /// 食べ物のアイコンの Resources の場所（"Icons/Food/fish"）。アイコンは、Food のメニュー「MouthOfGod/Food/Generate Icons」で作る。
+        /// ファイル名が食べ物の ID なのは、食べ物の Prefab と同じ決まり。空 ID は null。
+        /// </summary>
+        public static string IconPath(FoodId food) => food.IsEmpty ? null : "Icons/Food/" + food.Value;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics()
         {
@@ -40,7 +46,7 @@ namespace MouthOfGod.UI
     }
 
     /// <summary>
-    /// 村人の欲しい物を、頭の上の吹き出し（文字だけ）で見せる（#59）。Play で自動で置かれるので、手で置かなくてよい。
+    /// 村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。食べ物のアイコンがあれば絵を、無ければ英語の名前を出す。Play で自動で置かれるので、手で置かなくてよい。
     /// <see cref="Fields"/> のフィールドの Issued で <see cref="RequestIssued.Anchor"/> の上に出し、Closed で消す（届いたか・待ちきれなかったかで色を変えて、少しだけ見せてから消す）。
     /// Village の型は参照しない。Prefab もシーンも使わず、子の物をコードで作る。
     /// 遠くの村人への気づき方（見えない位置の村人をどう知らせるか）は別 Issue。
@@ -64,6 +70,7 @@ namespace MouthOfGod.UI
         const float CharWidth = 0.35f;
         const float LineHeight = 0.7f;
         const float Padding = 0.3f;
+        const float IconSize = 1.2f; // アイコンの一辺（吹き出しの中の大きさ。文字 1 行の高さの約 2 倍）
 
         static bool _placed;
 
@@ -92,6 +99,7 @@ namespace MouthOfGod.UI
             public Renderer Background;
             public Material BackgroundMaterial;
             public Material TextMaterial;
+            public Material IconMaterial;
             public float DestroyAt;
         }
 
@@ -213,6 +221,7 @@ namespace MouthOfGod.UI
         {
             if (bubble.BackgroundMaterial != null) DestroySafely(bubble.BackgroundMaterial);
             if (bubble.TextMaterial != null) DestroySafely(bubble.TextMaterial);
+            if (bubble.IconMaterial != null) DestroySafely(bubble.IconMaterial);
             if (bubble.Root != null) DestroySafely(bubble.Root);
         }
 
@@ -223,8 +232,14 @@ namespace MouthOfGod.UI
             else UnityEngine.Object.DestroyImmediate(obj);
         }
 
+        // アイコンがあれば絵だけ、無ければ文字を出す。
         Bubble Create(RequestIssued request)
         {
+            Shader shader = Shader.Find("Sprites/Default");
+            // アイコンは Sprites/Default でだけ描ける（代わりの Unlit/Color は絵を貼れない）。
+            string iconPath = shader != null ? RequestBubbleText.IconPath(request.Food) : null;
+            Texture2D icon = iconPath != null ? Resources.Load<Texture2D>(iconPath) : null;
+            if (shader == null) shader = Shader.Find("Unlit/Color");
             string text = RequestBubbleText.Resolve(request.Food);
             if (_font == null) _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -232,17 +247,17 @@ namespace MouthOfGod.UI
             root.transform.SetParent(transform, false); // Anchor の子にしない（ミニチュアの拡大縮小を受けないため）
             root.transform.localScale = Vector3.one * _size;
 
-            // 背景（文字の長さに合わせた Quad）
+            // 背景（アイコンなら正方形、文字なら文字の長さに合わせた Quad）
             var back = GameObject.CreatePrimitive(PrimitiveType.Quad);
             back.name = "Background";
             DestroySafely(back.GetComponent<Collider>());
             back.transform.SetParent(root.transform, false);
             back.transform.localPosition = new Vector3(0f, 0f, 0.01f); // 文字の奥
-            back.transform.localScale = new Vector3(text.Length * CharWidth + Padding * 2f, LineHeight + Padding, 1f);
+            back.transform.localScale = icon != null
+                ? new Vector3(IconSize + Padding, IconSize + Padding, 1f)
+                : new Vector3(text.Length * CharWidth + Padding * 2f, LineHeight + Padding, 1f);
             var backRenderer = back.GetComponent<Renderer>();
             Material backMaterial = null;
-            Shader shader = Shader.Find("Sprites/Default");
-            if (shader == null) shader = Shader.Find("Unlit/Color");
             if (shader != null)
             {
                 backMaterial = new Material(shader) { color = OpenColor, renderQueue = 3000 };
@@ -254,19 +269,35 @@ namespace MouthOfGod.UI
                 backRenderer.enabled = false;
             }
 
-            // 文字
-            var label = new GameObject("Text");
-            label.transform.SetParent(root.transform, false);
-            var mesh = label.AddComponent<TextMesh>();
-            mesh.text = text;
-            mesh.font = _font;
-            mesh.fontSize = 64;
-            mesh.characterSize = 0.1f;
-            mesh.anchor = TextAnchor.MiddleCenter;
-            mesh.alignment = TextAlignment.Center;
-            mesh.color = Color.black;
-            var textMaterial = new Material(_font.material) { renderQueue = 3001 };
-            label.GetComponent<MeshRenderer>().sharedMaterial = textMaterial;
+            Material textMaterial = null;
+            Material iconMaterial = null;
+            if (icon != null)
+            {
+                // アイコン（背景の手前の Quad）
+                var picture = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                picture.name = "Icon";
+                DestroySafely(picture.GetComponent<Collider>());
+                picture.transform.SetParent(root.transform, false);
+                picture.transform.localScale = new Vector3(IconSize, IconSize, 1f);
+                iconMaterial = new Material(shader) { mainTexture = icon, color = Color.white, renderQueue = 3001 };
+                picture.GetComponent<Renderer>().sharedMaterial = iconMaterial;
+            }
+            else
+            {
+                // 文字
+                var label = new GameObject("Text");
+                label.transform.SetParent(root.transform, false);
+                var mesh = label.AddComponent<TextMesh>();
+                mesh.text = text;
+                mesh.font = _font;
+                mesh.fontSize = 64;
+                mesh.characterSize = 0.1f;
+                mesh.anchor = TextAnchor.MiddleCenter;
+                mesh.alignment = TextAlignment.Center;
+                mesh.color = Color.black;
+                textMaterial = new Material(_font.material) { renderQueue = 3001 };
+                label.GetComponent<MeshRenderer>().sharedMaterial = textMaterial;
+            }
 
             var bubble = new Bubble
             {
@@ -275,6 +306,7 @@ namespace MouthOfGod.UI
                 Background = backRenderer,
                 BackgroundMaterial = backMaterial,
                 TextMaterial = textMaterial,
+                IconMaterial = iconMaterial,
             };
             Place(bubble, GetCamera());
             return bubble;

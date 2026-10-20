@@ -91,6 +91,13 @@ namespace MouthOfGod.UI.Tests
         }
 
         [Test]
+        public void IconPath_UsesTheFoodId_AndIsNullForAnEmptyId()
+        {
+            Assert.AreEqual("Icons/Food/pumpkin", RequestBubbleText.IconPath(new FoodId("pumpkin")));
+            Assert.IsNull(RequestBubbleText.IconPath(FoodId.None));
+        }
+
+        [Test]
         public void Issued_ShowsBubble_AndClosed_RemovesIt()
         {
             Fields.Register(_field);
