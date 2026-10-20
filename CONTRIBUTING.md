@@ -288,7 +288,7 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 | `Core/` | 全体で共有する小さな基盤（イベント、共通インターフェース、ユーティリティ）。**他のフォルダに依存しない** |
 | `Device/` | 触感デバイス・Arduino との通信（下記） |
 | `Tracking/` | VR・位置取得 |
-| `Tutorial/` | チュートリアル 1〜4 の進行 |
+| `Tutorial/` | チュートリアル 1〜4 の進行（人形劇スクリプト） |
 | `Game/` | 本編の進行、スコア、判定 |
 | `Village/` | ミニチュアの村・フィールド・村人 |
 | `UI/` | 画面表示 |
@@ -300,11 +300,11 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 ### 型の名前とデータの置き場所
 決めたこと（2026-10-13）。型の一覧と、機能どうしのつなぎ方は [docs/architecture.md「3. 流れはイベントの連鎖にする」](docs/architecture.md#3-流れはイベントの連鎖にする) にある。
 
-- **食べ物と生物は同じ型にする**。名前は `Food`（`FoodDefinition`、`FoodId`、`FoodCatalog`）。`Offering` や `Creature` の型は作らない。
-- 他の型の名前: `TextureId`（食感）、`FieldId` と `FieldDefinition`（フィールド）、`FieldStages` と `FieldStep`（フィールドの戻り方と欲しい物。データはフィールドの Prefab に持つ: [docs/requests.md](docs/requests.md)）、`TutorialStep`（チュートリアルの 1 ステップ）。
+- **食べ物と生物は同じ型にする**。名前は `Food`（ID は `FoodId`。食感との対応は `FoodTable`: [Food/README.md](Assets/Scripts/Food/README.md)）。食べ物の Prefab は `Assets/Resources/Prefabs/Food/` に置き、ファイル名を ID にする。`Offering` や `Creature` の型は作らない。
+- 他の型の名前: `TextureId`（食感）、`FieldId` と `FieldDefinition`（フィールド）、`FieldStages` と `FieldStep`（フィールドの戻り方と欲しい物。データはフィールドの Prefab に持つ: [docs/requests.md](docs/requests.md)）、`TutorialScript`（チュートリアル 1 つぶんの人形劇スクリプト）。
 - **ID は文字列**（`FoodId` などは、文字列を包んだ型）。食感や食べ物を `enum` で `Core` に直書きしない（足すたびに全機能が再コンパイルされ、素材担当が触れなくなる）。重複した ID は、起動時にエラーにする。
-- **データ（ScriptableObject）の置き場所は `Assets/Resources/Data/<種類>/`**。種類は `Foods/` `Fields/` `Tutorial/`（`Tutorial/T1/`、`T2/` と、チュートリアルごとにさらに分ける）。起動時に、フォルダごと `Resources` から読み込む。1 件 = 1 アセットで、全部を入れた 1 つのリストは作らない。
-- 目次になるもの（`FoodCatalog` など）は、手で編集しない。`FoodDefinition` を集めて、起動時に作る。
+- **データ（ScriptableObject）の置き場所は `Assets/Resources/Data/<種類>/`**。種類は `Fields/`。起動時に、フォルダごと `Resources` から読み込む。1 件 = 1 アセットで、全部を入れた 1 つのリストは作らない。
+- 全員で触る 1 つのリストは作らない。「食感 → 食べ物」の対応は、共通の表と、フィールドごとの専用の表（`FoodTable`）に分ける（2026-10-19 の [決めたことの記録](docs/decisions.md)）。
 - **`Resources/` には、起動時に読むデータと Prefab だけを置く**。`Resources/` の中身は、使わなくてもビルドに入り、起動時間とビルドの大きさに効く。素材（モデル、テクスチャ、音）は `Assets/ArtisticResources/` など `Resources/` の外に置き、Prefab から参照する。置き場所は、上の `Data/<種類>/` と `Prefabs/<Feature>/` のどちらかにそろえる。新しいフォルダを足すときは、ここに 1 行足す。
 
 ### 書き方

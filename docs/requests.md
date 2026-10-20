@@ -250,7 +250,7 @@ Play のたびに空になる（前の Play の登録や購読は残らない）
 |---|---|---|
 | フィールド（`FieldId`） | 4 つだけ: `village` / `mountain` / `sea` / `grassland`。`FieldStages` の初期値は空なので、自分のフィールドの ID を入れる | `sea` |
 | 合図（`CueId`。光らせる場所・足あとの印など） | 各担当が自由に作るので、**フィールド名から始める** | `sea.footprint`、`village.glow` |
-| 食べ物（`FoodId`） | 食べ物のデータ（`FoodDefinition`）の名前をそのまま使う。前に何も付けない | `fish` |
+| 食べ物（`FoodId`） | 食べ物の Prefab のファイル名をそのまま使う。前に何も付けない | `fish` |
 
 ### 抜けの知らせ
 
