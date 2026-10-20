@@ -15,7 +15,7 @@
 | [Ultimate Animated Character Pack](#ultimate-animated-character-pack-nov-2019) | 人型のキャラクター（村人・兵士・騎士・料理人など。アニメーション付き） | 52 | 村人（#19） |
 | [Animated Fish Pack](#animated-fish-pack) | 魚・イルカ・サメなど（アニメーション付き） | 7 | 海（届け先）の「魚」（#15） |
 
-**ないもの**: 木と海の地形は、これらのパックには入っていません。木と海は、別の素材を使うか、仮の形で用意します。別の素材の候補は、Quaternius の別のパックや Kenney です（#45）。村人の素材は、これとは別に決めています。村人には [Ultimate Animated Character Pack](#ultimate-animated-character-pack-nov-2019) を使います。
+**ないもの**: 木と海の地形は、これらのパックには入っていません。木と海は、別の素材を使うか、仮の形で用意します。別の素材の候補は、Quaternius の別のパックや Kenney です（#45）。村人には [Ultimate Animated Character Pack](#ultimate-animated-character-pack-nov-2019) を使います。
 
 ## 共通の構成
 

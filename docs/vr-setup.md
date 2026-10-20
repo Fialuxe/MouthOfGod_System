@@ -13,7 +13,8 @@ PC に Quest を接続し、Unity の Play 中に PC 側で描画する構成。
 
 - どちらも Unity 6000.0 対応で、Unity のパッケージレジストリで取得できる（2026-10 時点で確認）。
 - **MRUK と Core のバージョンは必ず揃える**（MRUK 207.0.0 は Core 207.0.0 に依存）。上げるときは両方を同時に上げる。
-- XR Interaction Toolkit は、今は使いません。Meta XR SDK の機能（パススルー、MRUK）を使う方針のためです。OpenXR は、Core SDK を動かす経路として有効にします（手順 3）。
+- XR Interaction Toolkit は使いません。パススルーや MRUK など、Meta XR SDK の機能を使う方針だからです。
+- OpenXR は、Core SDK を動かすために有効にします。やり方は手順 3 にあります。
 
 ## 手順
 1. **PC 側**: Meta Quest Link アプリを入れ、Quest を接続する。

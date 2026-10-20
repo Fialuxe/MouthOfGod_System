@@ -101,7 +101,7 @@ flowchart LR
 | **Calendar sync** | 毎日 6:17（日本時間） | チームのカレンダーの 3 週間分の予定を、非公開リポジトリに書く。水曜の議題づくりが読む |
 | **Claude mention** | コメントに `@claude` が付いたとき | Claude のルーティン（`clarify-reply`）を呼び、言い直しの返信を書かせる |
 | **Conflict check** | `main` が進んだとき、PR が更新されたとき | open の PR のコンフリクトを git で調べる。新しくぶつかった PR があれば、Claude のルーティン（`merge-check`）を呼ぶ |
-| **MTG tools test** | MTG の自動化のスクリプトを触る PR | 録音・文字起こし・議事録の補助スクリプトが壊れていないかを確かめる |
+| **MTG tools test** | MTG の自動化のスクリプトを触る PR | MTG の自動化のスクリプトが壊れていないかを確かめる。録音と文字起こしの中身は使いません |
 
 ## 3. 1 週間の流れ
 
