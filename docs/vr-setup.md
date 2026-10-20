@@ -18,7 +18,7 @@ PC に Quest を接続し、Unity の Play 中に PC 側で描画する構成。
 ## 手順
 1. **PC 側**: Meta Quest Link アプリを入れ、Quest を接続する。
 2. **Unity を開く**: `git pull` 後、初回はパッケージ解決に時間がかかる。
-3. `Edit > Project Settings > XR Plug-in Management` で、PC タブの **OpenXR** を有効にし、`OpenXR` の項目で **Meta XR Feature**（ある場合）を有効にする。（Core SDK 207 は OpenXR 経由で動く。Play 時のログに `Meta.XR.OpenXRFeatures` / `XRGeneralSettings` が出ていれば、この経路で動いている。）`Project Validation`（`Meta XR > Project Setup Tool` など）に出る項目を直す。
+3. `Edit > Project Settings > XR Plug-in Management` を開きます。PC タブで **OpenXR** を有効にします。`OpenXR` の項目に **Meta XR Feature** があれば、それも有効にします。Core SDK 207 は OpenXR を通して動きます。Play したときのログに `Meta.XR.OpenXRFeatures` か `XRGeneralSettings` が出ていれば、この経路で動いています。最後に、`Project Validation` に出る項目を直します。`Project Validation` は `Meta XR > Project Setup Tool` などから開けます。
 4. **シーンにリグを置く**: `GameObject > Meta XR > Building Blocks` から **Camera Rig** と **Passthrough** を追加する。MRUK を使うには、**MRUK** の Building Block も追加する。
    - 動作確認用のシーンは `Assets/Scenes/Sandbox/<名前>_vr-test.unity`（CONTRIBUTING.md「サンドボックスシーン」）。`Main.unity` には置かない。
 5. Quest を接続したまま Play し、頭とコントローラーが追従することを確認する。
