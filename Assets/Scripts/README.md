@@ -13,7 +13,7 @@
 | `Tutorial/` | チュートリアル 1〜4 の進行。チュートリアルごとの人形劇スクリプト（`TutorialScript`）と、順に動かす `TutorialRunner` | |
 | `Game/` | 本編の進行、スコア、判定 | |
 | `Village/` | ミニチュアの村・フィールド・村人。フィールドが戻る部品と欲しい物（`FieldStages`・`FieldStep`・`VillagerMood`）と、村のフィールドの `Village.prefab` | |
-| `UI/` | 画面表示 | |
+| `UI/` | 画面表示。村人の欲しい物の吹き出し `RequestBubbles`（#59。文字だけ。Play で自動で置かれる）。名前を引く所は `RequestBubbleText.NameLookup` で差し替えられる（食べ物のデータ（アイコン付き）へ移る入口） | |
 
 フォルダを増やしたら、この表に 1 行足す。
 
