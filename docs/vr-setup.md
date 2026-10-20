@@ -13,12 +13,13 @@ PC に Quest を接続し、Unity の Play 中に PC 側で描画する構成。
 
 - どちらも Unity 6000.0 対応で、Unity のパッケージレジストリで取得できる（2026-10 時点で確認）。
 - **MRUK と Core のバージョンは必ず揃える**（MRUK 207.0.0 は Core 207.0.0 に依存）。上げるときは両方を同時に上げる。
-- OpenXR / XR Interaction Toolkit は、今は使わない。Meta XR SDK の機能（パススルー、MRUK）を使う方針のため。
+- XR Interaction Toolkit は使いません。パススルーや MRUK など、Meta XR SDK の機能を使う方針だからです。
+- OpenXR は、Core SDK を動かすために有効にします。やり方は手順 3 にあります。
 
 ## 手順
 1. **PC 側**: Meta Quest Link アプリを入れ、Quest を接続する。
 2. **Unity を開く**: `git pull` 後、初回はパッケージ解決に時間がかかる。
-3. `Edit > Project Settings > XR Plug-in Management` で、PC タブの **OpenXR** を有効にし、`OpenXR` の項目で **Meta XR Feature**（ある場合）を有効にする。（Core SDK 207 は OpenXR 経由で動く。Play 時のログに `Meta.XR.OpenXRFeatures` / `XRGeneralSettings` が出ていれば、この経路で動いている。）`Project Validation`（`Meta XR > Project Setup Tool` など）に出る項目を直す。
+3. `Edit > Project Settings > XR Plug-in Management` を開きます。PC タブで **OpenXR** を有効にします。`OpenXR` の項目に **Meta XR Feature** があれば、それも有効にします。Core SDK 207 は OpenXR を通して動きます。Play したときのログに `Meta.XR.OpenXRFeatures` か `XRGeneralSettings` が出ていれば、この経路で動いています。最後に、`Project Validation` に出る項目を直します。`Project Validation` は `Meta XR > Project Setup Tool` などから開けます。
 4. **シーンにリグを置く**: `GameObject > Meta XR > Building Blocks` から **Camera Rig** と **Passthrough** を追加する。MRUK を使うには、**MRUK** の Building Block も追加する。
    - 動作確認用のシーンは `Assets/Scenes/Sandbox/<名前>_vr-test.unity`（CONTRIBUTING.md「サンドボックスシーン」）。`Main.unity` には置かない。
 5. Quest を接続したまま Play し、頭とコントローラーが追従することを確認する。
@@ -71,4 +72,4 @@ Play 時に次の警告が大量に出る。いずれも `LogWarning` で、エ�
 - **アプリのビルド**: 今は PC 描画（Link）を前提にしている。Quest 単体ビルド（Android）にする場合は、別途設定が要る。
 
 ## 位置取得について
-コントローラーや部屋の情報で、プレイヤーの位置や指す場所を取得する。実装は `Assets/Scripts/Tracking/` に置く（CONTRIBUTING.md「6. スクリプト方針」）。旧プロジェクト MealBeBack は Vive トラッカーを使っていたが、今回は Quest が前提。
+体験者の頭の位置は Quest から取ります。フォークの位置は、手（ハンドトラッキング）と AprilTag から推定します。実装は `Assets/Scripts/Tracking/` に置きます。決まりは CONTRIBUTING.md の「6. スクリプト方針」にあります。今回は Quest が前提です。前の作品の MealBeBack は Vive トラッカーで位置を取っていたので、今回とは取り方が違います。

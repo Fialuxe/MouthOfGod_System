@@ -13,9 +13,9 @@
 | [Farm Animals](#farm-animals) | 牛・馬・豚・羊など | 7 | 村の動物、「生まれる物」の候補 |
 | [Ultimate Animated Animals](#ultimate-animated-animals-july-2021) | 鹿・キツネ・犬など（アニメーション付き） | 12 | 森・村の動物 |
 | [Ultimate Animated Character Pack](#ultimate-animated-character-pack-nov-2019) | 人型のキャラクター（村人・兵士・騎士・料理人など。アニメーション付き） | 52 | 村人（#19） |
-| [Animated Fish Pack](#animated-fish-pack) | 魚・イルカ・サメなど（アニメーション付き） | 7 | 川（届け先）の「魚」（#15） |
+| [Animated Fish Pack](#animated-fish-pack) | 魚・イルカ・サメなど（アニメーション付き） | 7 | 海（届け先）の「魚」（#15） |
 
-**ないもの**: 木、川の地形は、これらのパックには入っていない。木・川は、別の素材（Quaternius の別パックや Kenney など。#45）か、仮の形で用意する。村人（人型のキャラクター）は [Ultimate Animated Character Pack](#ultimate-animated-character-pack-nov-2019) を使う。
+**ないもの**: 木と海の地形は、これらのパックには入っていません。木と海は、別の素材を使うか、仮の形で用意します。別の素材の候補は、Quaternius の別のパックや Kenney です（#45）。村人には [Ultimate Animated Character Pack](#ultimate-animated-character-pack-nov-2019) を使います。
 
 ## 共通の構成
 
@@ -131,7 +131,7 @@
 
 - 構成: `FBX/`（7）、`OBJ/`（7 ×（obj + mtl））、`License.txt`
 - 中身: `Fish1`、`Fish2`、`Fish3`、`Dolphin`、`Manta ray`、`Shark`、`Whale`
-- アニメーション付き（FBX）。川に置く「魚」には `Fish1`〜`Fish3` が使える。
+- アニメーション付き（FBX）。海に置く「魚」には `Fish1`〜`Fish3` が使える。
 
 ## パックを足すとき
 
