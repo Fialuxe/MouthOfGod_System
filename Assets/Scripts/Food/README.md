@@ -18,7 +18,7 @@
 ## 使い方
 
 1. シーンの空のオブジェクトに `FoodSpawner` と `FoodTable` を付ける。`FoodTable` の Field Id は空のまま。
-2. 食べ物の Prefab を `Assets/Resources/Prefabs/Food/` に置く。**Prefab のファイル名が、食べ物の ID（`FoodId`）になる**。`FieldStep` の欲しい物（Food）と同じ文字にする。飛ばしたいときは、Prefab に Rigidbody を付ける（Mass・Drag で動きが変わる）。
+2. 食べ物の Prefab を `Assets/Resources/Prefabs/Food/` に置く。**Prefab のファイル名が、食べ物の ID（`FoodId`）になる**。`FieldStep` の欲しい物（Food）と同じ文字にする。飛ばしたいときは、Prefab に Rigidbody を付ける（Mass・Drag で動きが変わる）。いまある `carrot`・`pumpkin`・`sheep`・`pig`・`apple`・`fish`・`cow` は、メニューの **MouthOfGod > Food > Generate Prefabs**（`Editor/FoodPrefabGenerator.cs`）で素材から作ったものです。大きさを変えるときは、そのスクリプトの表を直し、Prefab を消してから作り直します。
 3. `FoodTable` の Rows に、1 行ずつ足す。Texture に食感の ID、Food に Prefab をドラッグする。デバイスなしで試すときの食感は、`MockDevice` の `placeholder-a` `placeholder-b` `placeholder-c`。
 4. フィールドごとに変えたいときだけ、そのフィールドの Prefab に `FoodTable` を付け、Field Id にフィールドの ID を入れ、変えたい食感の行だけ足す。ほかの食感は共通の表が使われる。
 5. **共通の表はなくてもよい**（なければ、専用の表にない食感は何も生まれない）。
