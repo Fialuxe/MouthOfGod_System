@@ -97,3 +97,7 @@ desktop.ini
 
 # 外部素材: OBJ 形式のフォルダは入れる（上の [Oo]bj/ は大文字小文字を区別しない環境で OBJ/ にも当たってしまうため）
 !/Assets/ArtisticResources/ThirdParty/**/OBJ/
+
+# Python が自動で作るキャッシュ。実行のたびに書き換わるので、管理しない
+__pycache__/
+*.pyc
