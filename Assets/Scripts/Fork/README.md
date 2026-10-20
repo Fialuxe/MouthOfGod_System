@@ -12,6 +12,7 @@
 |---|---|---|
 | `ForkTip` | フォークの先の位置に置いた、空のオブジェクト | 雲に触れたら「刺した」、口に近づいたら「口に入った」とします。有効になると、自分で `Forks` に登録します。先の当たり判定（小さな球のトリガー）と、動かない Rigidbody は、起動時に自分で付けます |
 | `Cloud` | 刺せる雲の見た目（Collider を付ける） | 刺されると隠れ、`Respawn Seconds` たつと戻ります |
+| `CloudRing` | シーンのどこか 1 か所 | 体験者の前に、雲を半円状に浮かべます。体験者が歩くと、ついて来ます |
 
 ## 判定の決まり
 
@@ -25,9 +26,21 @@
 1. フォークの位置を取るコントローラーの、手のアンカーの子に、空のオブジェクトを作ります。名前は `ForkTip` にし、フォークの先の位置まで動かします。`ForkTip` を付けます。
 2. `ForkTip` の `Mouth` に、Main Camera の子の `MouthAnchor` を入れます。
 3. 刺した雲のかけらの見た目があれば、`ForkTip` の子に置き、`Loaded Piece` に入れます。刺している間だけ表示されます。
-4. 雲の見た目に、Collider と `Cloud` を付けます。
+4. メニューの **MouthOfGod > Fork > Generate Cloud Prefab** で、雲の Prefab を作ります。白い球を重ねた、仮の見た目です。`Assets/Resources/Prefabs/Fork/Cloud.prefab` にできます。
+5. シーンに空のオブジェクトを作り、`CloudRing` を付けます。Play すると、体験者の前に雲が 5 つ浮かびます。
 
 コントローラーを左右どちらの手に付けるかは、まだ決まっていません。手のアンカーを変えれば、どちらでも動きます。
+
+## 雲の置き方
+
+雲をどこに、いくつ浮かべるかは、まだ決まっていません。シナリオブックの未決事項にあります。そのため、`CloudRing` は次の仮の形にしています。どの値も Inspector で変えられます。
+
+- 頭から 45 cm 前、30 cm 下に、正面を中心にした 120 度の幅で、5 つ並べます。
+- 並べる向きは、Play を始めたときの頭の向きです。首を振っても、雲は動きません。
+- 体験者が歩くと、雲はゆっくりついて来ます。シナリオブックの「雲は体験者の周りに、いつも浮かんでいます」に合わせました。
+- 雲は、上下に 2 cm ゆれます。
+
+素材の雲ができたら、`Cloud.prefab` の見た目だけを差し替えます。`Cloud` と当たり判定は残します。
 
 ## Quest なしで試す
 
@@ -64,4 +77,4 @@ yield return WaitForMouth();
 
 ## テスト
 
-`Tests/`（EditMode）の `ForkLogicTests` で、刺す・口・食べたの決まりを確かめます。Core の `Forks` は `Core/Tests/ForksTests`、待ちは `Tutorial/Tests/TutorialWaitTests` で確かめます。
+`Tests/`（EditMode）の `ForkLogicTests` で、刺す・口・食べたの決まりを確かめます。`CloudRingTests` では、雲を並べる位置を確かめます。Core の `Forks` は `Core/Tests/ForksTests`、待ちは `Tutorial/Tests/TutorialWaitTests` で確かめます。
