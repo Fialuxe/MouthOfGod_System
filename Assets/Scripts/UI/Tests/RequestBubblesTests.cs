@@ -18,16 +18,17 @@ namespace MouthOfGod.UI.Tests
             public bool Open(FoodId food) => false;
             public DeliveryKind Receive(FoodId food) => DeliveryKind.Foreign;
             public void Expire() { }
+            public void Expire(int request) { }
             public void Restart() { }
             public event Action<RequestIssued> Issued;
             public event Action<RequestClosed> Closed;
             public event Action<Delivered> Received { add { } remove { } }
 
-            public void RaiseIssued(Transform anchor, string food = "fish") =>
-                Issued?.Invoke(new RequestIssued(new FoodId(food), Field, anchor));
+            public void RaiseIssued(Transform anchor, string food = "fish", int request = 0) =>
+                Issued?.Invoke(new RequestIssued(new FoodId(food), Field, anchor, request));
 
-            public void RaiseClosed(bool resolved, string food = "fish") =>
-                Closed?.Invoke(new RequestClosed(new FoodId(food), Field, resolved));
+            public void RaiseClosed(bool resolved, string food = "fish", int request = 0) =>
+                Closed?.Invoke(new RequestClosed(new FoodId(food), Field, resolved, request));
         }
 
         GameObject _host;
@@ -233,6 +234,46 @@ namespace MouthOfGod.UI.Tests
 
             _field.RaiseIssued(_anchor.transform);
             Assert.AreEqual(0, bubbles.OpenCount);
+        }
+
+        [Test]
+        public void TwoRequestsInOneField_ShowTwoBubbles_AndCloseOneByOne()
+        {
+            Fields.Register(_field);
+            var bubbles = CreateBubbles();
+            var other = new GameObject("OtherAnchor");
+            try
+            {
+                _field.RaiseIssued(_anchor.transform, "carrot", request: 1);
+                _field.RaiseIssued(other.transform, "pumpkin", request: 2);
+                Assert.AreEqual(2, bubbles.OpenCount);
+
+                _field.RaiseClosed(true, "carrot", request: 1);
+                Assert.AreEqual(1, bubbles.OpenCount);
+                Assert.IsTrue(bubbles.HasBubble(_field.Field));
+
+                _field.RaiseClosed(false, "pumpkin", request: 2);
+                Assert.AreEqual(0, bubbles.OpenCount);
+                Assert.AreEqual(2, bubbles.ClosingCount);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(other);
+            }
+        }
+
+        [Test]
+        public void TwoRequestsOverTheSamePerson_AreStacked()
+        {
+            Fields.Register(_field);
+            CreateBubbles();
+
+            _field.RaiseIssued(_anchor.transform, "carrot", request: 1);
+            _field.RaiseIssued(_anchor.transform, "pumpkin", request: 2);
+
+            Transform first = _host.transform.GetChild(0);
+            Transform second = _host.transform.GetChild(1);
+            Assert.Greater(second.position.y, first.position.y, "2 つ目は上に積む");
         }
     }
 }

@@ -62,6 +62,7 @@ namespace MouthOfGod.UI
         const float LineHeight = 0.7f;
         const float Padding = 0.3f;
         const float IconSize = 1.2f; // アイコンの一辺（吹き出しの中の大きさ。文字 1 行の高さの約 2 倍）
+        const float StackSpacing = 2f; // 積むときの間隔（吹き出しの中の大きさ。アイコンの吹き出しの高さとしっぽ、少しの隙間）
         const int CornerSegments = 6; // 角の丸みを何本の線で作るか
         const float TailWidth = 0.4f; // しっぽ（話している人を指す三角）の幅
         const float TailHeight = 0.35f;
@@ -94,6 +95,7 @@ namespace MouthOfGod.UI
             public Material TextMaterial;
             public Material IconMaterial;
             public Mesh Shape;
+            public int Stack; // 同じ人の上に、何番目に積んだか（0 から）
             public float DestroyAt;
         }
 
@@ -105,7 +107,8 @@ namespace MouthOfGod.UI
         }
 
         readonly Dictionary<IFieldRequests, Subscription> _subscriptions = new Dictionary<IFieldRequests, Subscription>();
-        readonly Dictionary<FieldId, Bubble> _open = new Dictionary<FieldId, Bubble>();
+        // 出ている吹き出し。欲しい物ごと（フィールドと番号の組）に 1 つ。
+        readonly Dictionary<(FieldId Field, int Request), Bubble> _open = new Dictionary<(FieldId, int), Bubble>();
         readonly List<Bubble> _closing = new List<Bubble>();
         Font _font;
         Camera _camera;
@@ -116,7 +119,12 @@ namespace MouthOfGod.UI
         /// <summary>終わって、色を変えたまま消えるのを待っている吹き出しの数。</summary>
         internal int ClosingCount => _closing.Count;
 
-        internal bool HasBubble(FieldId field) => _open.ContainsKey(field);
+        internal bool HasBubble(FieldId field)
+        {
+            foreach (var key in _open.Keys)
+                if (key.Field == field) return true;
+            return false;
+        }
 
         /// <summary>消えるのを待っている吹き出し（0 から数える）の背景の色。背景が無い（シェーダーが無い）ときは透明。</summary>
         internal Color GetClosingColor(int index)
@@ -178,28 +186,40 @@ namespace MouthOfGod.UI
 
         void OnIssued(RequestIssued request)
         {
-            Remove(request.Field); // 1 フィールド 1 吹き出し
+            var key = (request.Field, request.Request);
+            RemoveBubble(key); // 同じ欲しい物の吹き出しは 1 つ
             if (request.Anchor == null)
             {
                 Debug.LogWarning($"[RequestBubbles] フィールド「{request.Field}」の Anchor が無いので、吹き出しを出しません。");
                 return;
             }
-            _open[request.Field] = Create(request);
+            Bubble bubble = Create(request);
+            _open[key] = bubble;
         }
 
         void OnClosed(RequestClosed closed)
         {
-            if (!_open.TryGetValue(closed.Field, out Bubble bubble)) return;
-            _open.Remove(closed.Field);
+            var key = (closed.Field, closed.Request);
+            if (!_open.TryGetValue(key, out Bubble bubble)) return;
+            _open.Remove(key);
             if (bubble.BackgroundMaterial != null) bubble.BackgroundMaterial.color = Faded(closed.Resolved ? Settings.ResolvedColor : Settings.UnresolvedColor);
             bubble.DestroyAt = Time.time + Settings.ClosedHoldSeconds;
             _closing.Add(bubble);
         }
 
+        // そのフィールドの吹き出しを、すべて消す（フィールドが外れたとき）。
         void Remove(FieldId field)
         {
-            if (!_open.TryGetValue(field, out Bubble bubble)) return;
-            _open.Remove(field);
+            var keys = new List<(FieldId, int)>();
+            foreach (var key in _open.Keys)
+                if (key.Field == field) keys.Add(key);
+            foreach (var key in keys) RemoveBubble(key);
+        }
+
+        void RemoveBubble((FieldId, int) key)
+        {
+            if (!_open.TryGetValue(key, out Bubble bubble)) return;
+            _open.Remove(key);
             DestroyBubble(bubble);
         }
 
@@ -338,6 +358,7 @@ namespace MouthOfGod.UI
             {
                 Root = root,
                 Anchor = request.Anchor,
+                Stack = CountOpenAt(request.Anchor),
                 Shape = shape,
                 BackgroundMaterial = backMaterial,
                 TextMaterial = textMaterial,
@@ -360,6 +381,15 @@ namespace MouthOfGod.UI
             }
         }
 
+        // 同じ人の上に、いま出ている吹き出しの数（その上に積む）。
+        int CountOpenAt(Transform anchor)
+        {
+            var count = 0;
+            foreach (Bubble open in _open.Values)
+                if (open.Anchor == anchor) count++;
+            return count;
+        }
+
         Camera GetCamera()
         {
             if (_camera == null) _camera = Camera.main;
@@ -374,7 +404,8 @@ namespace MouthOfGod.UI
                 bubble.Root.SetActive(false);
                 return;
             }
-            Vector3 position = bubble.Anchor.position + Vector3.up * Settings.Height;
+            // 同じ人に 2 つ以上出ているときは、上に積む（間隔は、吹き出しの大きさに合わせる）
+            Vector3 position = bubble.Anchor.position + Vector3.up * (Settings.Height + bubble.Stack * StackSpacing * Settings.Size);
             bubble.Root.transform.position = position;
             bubble.Root.transform.localScale = Vector3.one * Settings.Size; // 毎フレーム読むので、Play 中に設定を直しても効く
             if (cam != null)

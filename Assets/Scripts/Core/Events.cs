@@ -49,7 +49,10 @@ namespace MouthOfGod.Core
         public bool WasRequested => Kind == DeliveryKind.Requested;
     }
 
-    /// <summary>フィールドの困っている人が、欲しい物を出した（吹き出しを出す合図）。1 つのフィールドに、同時に出ているのは 1 つだけ。</summary>
+    /// <summary>
+    /// フィールドの困っている人が、欲しい物を出した（吹き出しを出す合図）。1 つのフィールドに、同時に複数出ていることがある。
+    /// どの欲しい物かは <see cref="Request"/>（番号）で見分ける。終わったときの <see cref="RequestClosed"/> にも、同じ番号が入る。
+    /// </summary>
     public readonly struct RequestIssued
     {
         public readonly FoodId Food;
@@ -58,11 +61,15 @@ namespace MouthOfGod.Core
         /// <summary>吹き出しを出す場所（困っている人の頭の上など）。ミニチュアと一緒に動くので、位置ではなく Transform で渡す。無ければ null。</summary>
         public readonly Transform Anchor;
 
-        public RequestIssued(FoodId food, FieldId field, Transform anchor = null)
+        /// <summary>欲しい物の番号。同じフィールドの中で、出すたびに変わる。フィールドと組で、1 つの欲しい物を見分ける。</summary>
+        public readonly int Request;
+
+        public RequestIssued(FoodId food, FieldId field, Transform anchor = null, int request = 0)
         {
             Food = food;
             Field = field;
             Anchor = anchor;
+            Request = request;
         }
     }
 
@@ -73,11 +80,15 @@ namespace MouthOfGod.Core
         public readonly FieldId Field;
         public readonly bool Resolved;
 
-        public RequestClosed(FoodId food, FieldId field, bool resolved)
+        /// <summary>終わった欲しい物の番号。出したときの <see cref="RequestIssued.Request"/> と同じ。</summary>
+        public readonly int Request;
+
+        public RequestClosed(FoodId food, FieldId field, bool resolved, int request = 0)
         {
             Food = food;
             Field = field;
             Resolved = resolved;
+            Request = request;
         }
     }
 
