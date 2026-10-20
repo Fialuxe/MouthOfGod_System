@@ -66,8 +66,8 @@ public sealed class SeaReaction : MonoBehaviour
 
 ## まだないもの
 
-- T1〜T4 の中身。待つ相手が、まだそろっていません。
-- 食べ物が生まれた知らせを受ける、Core の置き場。いまは `FoodSpawner.Spawned` が Food の中にあります。使う側ができたときに足します。
+- T1〜T4 の中身は、まだありません。待つ相手が、まだそろっていません。
+- 食べ物が生まれた知らせを受ける置き場は、Core にまだありません。いまは `FoodSpawner.Spawned` が Food の中にあります。使う側ができたときに足します。
 
 ## テスト
 

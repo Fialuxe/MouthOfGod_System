@@ -10,7 +10,7 @@ VR と位置の取得です。いまは、パススルーカメラの映像か�
 
 | 型 | 役割 |
 |---|---|
-| `AprilTagDetectionService` | シーンに **1 つだけ**あります。`AprilTagPlace` が必要なときに自動で作るので、手で置かなくてよいです。カメラの RGB フレームを読み、AprilTag を検出して、ワールド座標の姿勢を公開します（`IAprilTagSource`）。読み出しと検出は重いので、タグごとではなく、ここで 1 回だけ行います |
+| `AprilTagDetectionService` | シーンに **1 つだけ**あります。`AprilTagPlace` が必要なときに自動で作るので、手で置かなくてよいです。カメラの RGB フレームから AprilTag を検出します。検出した姿勢は、ワールド座標で公開します（`IAprilTagSource`）。読み出しと検出は重いので、タグごとではなく、ここで 1 回だけ行います |
 | `AprilTagSettings` | 検出の設定（タグのサイズなど）です。`Assets/Resources/AprilTagSettings.asset` に保存します。なければ、コードの既定値で動きます |
 | `AprilTagRecalibrateInput` | タグの位置を取り直す入力です。Quest の左コントローラーの Y ボタンを 2 秒長押しするか、キーボードの R です。サービスが自動で付けます |
 | `AprilTagPlace` | **タグ 1 枚につき 1 つ**、シーンに置きます。指定した ID のタグの位置に、対象の Transform を合わせます。対象の既定は自分自身です |
