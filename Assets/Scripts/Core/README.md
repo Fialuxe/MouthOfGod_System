@@ -18,7 +18,7 @@
 | `Phases` | いまの場面（`PhaseId`）の置き場です。チュートリアルの名前などが入ります。決める側（Tutorial・Game）が `Set` します。使う側は `Current` で読み、`Changed` で知らせを受けます |
 | `Fields` | いまシーンにあるフィールドの置き場です（`All`・`Added`・`Removed`・`Find`）。フィールドは、有効になると自分で `Register` します。ID が空か重なっていれば、警告して登録しません |
 | `IFieldRequests` | 1 つのフィールドの欲しい物です（`Open`・`Receive`・`Expire`・`Restart`・`Issued`・`Closed`・`Received`）。同時に複数出ていることがあります。欲しい物ごとに番号（`Request`）が付きます。いつもの実装は Village の `FieldStages` です。独自の作りでも、これを実装すればつながります。使う側は `Fields` から受け取ります。分担は [docs/requests.md](../../../docs/requests.md) にあります |
-| `IFoodItem` | 生まれた食べ物が持ちます。`Food`（食べ物の ID）を返します。届け先の判定などが、Food を参照せずに食べ物を読むために使います。実装は Food の `FoodItemTag` です |
+| `IFoodItem` | 生まれた食べ物が持ちます。`Food`（食べ物の ID）を返します。届け先の判定などで使います。Food を参照せずに、食べ物の情報を読めます。実装は Food の `FoodItemTag` です |
 | `IDevice` | 触感デバイスの入力です。`Current`（いまの食感）、`TextureChanged(TextureId)`、`Confirmed(TextureId)`、`Bitten` があります。`Confirmed` は、決定したときの食感を運びます。実装は Device 側です |
 | `IFork` | 体験者が持つフォークです。`IsLoaded` は、先に雲のかけらが付いていることです。`InMouth` は、先が口の中にあることです。イベントは `Pierced`・`MouthEntered`・`MouthLeft`・`Emptied` です。`Emptied` は、決定してかけらがなくなったときです。実装は Fork 側です |
 
@@ -32,6 +32,8 @@
 - 型とイベントの流れは [docs/architecture.md](../../../docs/architecture.md) §3 にあります。
 
 ## 使い方
+
+### ID を作る
 
 ID は文字列で作ります。
 
