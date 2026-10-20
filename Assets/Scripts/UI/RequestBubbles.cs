@@ -53,29 +53,15 @@ namespace MouthOfGod.UI
     /// </summary>
     public class RequestBubbles : MonoBehaviour
     {
-        [Tooltip("吹き出し全体の大きさ（ワールドでの倍率）。ミニチュアに合わせて直す")]
-        [SerializeField] float _size = 0.1f;
-
-        [Tooltip("Anchor からの高さ（m）")]
-        [SerializeField] float _height = 0.15f;
-
-        [Tooltip("終わったあと、色を変えて残す秒数")]
-        [SerializeField] float _closedHoldSeconds = 0.6f;
-
-        [Tooltip("背景としっぽの不透明度。下げると、吹き出しの後ろの物が透けて見える。アイコンと文字は透けない。仮の値")]
-        [SerializeField, Range(0f, 1f)] float _backgroundOpacity = 0.75f;
-
-        static readonly Color OpenColor = new Color(1f, 0.95f, 0.7f, 0.95f);
-        static readonly Color ResolvedColor = new Color(0.6f, 0.95f, 0.6f, 0.95f);
-        static readonly Color UnresolvedColor = new Color(0.8f, 0.8f, 0.8f, 0.95f);
+        // 大きさ・高さ・色などは、誰でも直せるように設定のアセットに持つ（RequestBubbleSettings）。
+        RequestBubbleSettings _settings;
+        RequestBubbleSettings Settings => _settings != null ? _settings : _settings = RequestBubbleSettings.Load();
 
         // 文字の大きさの目安（TextMesh: fontSize 64 × characterSize 0.1 のとき）。Play で見て直す。
         const float CharWidth = 0.35f;
         const float LineHeight = 0.7f;
         const float Padding = 0.3f;
         const float IconSize = 1.2f; // アイコンの一辺（吹き出しの中の大きさ。文字 1 行の高さの約 2 倍）
-        const float IconPadding = 0.08f; // アイコンと吹き出しの縁のあいだ
-        const float CornerRadius = 0.25f; // 吹き出しの角の丸み
         const int CornerSegments = 6; // 角の丸みを何本の線で作るか
         const float TailWidth = 0.4f; // しっぽ（話している人を指す三角）の幅
         const float TailHeight = 0.35f;
@@ -206,8 +192,8 @@ namespace MouthOfGod.UI
         {
             if (!_open.TryGetValue(closed.Field, out Bubble bubble)) return;
             _open.Remove(closed.Field);
-            if (bubble.BackgroundMaterial != null) bubble.BackgroundMaterial.color = Faded(closed.Resolved ? ResolvedColor : UnresolvedColor);
-            bubble.DestroyAt = Time.time + _closedHoldSeconds;
+            if (bubble.BackgroundMaterial != null) bubble.BackgroundMaterial.color = Faded(closed.Resolved ? Settings.ResolvedColor : Settings.UnresolvedColor);
+            bubble.DestroyAt = Time.time + Settings.ClosedHoldSeconds;
             _closing.Add(bubble);
         }
 
@@ -242,15 +228,15 @@ namespace MouthOfGod.UI
             else UnityEngine.Object.DestroyImmediate(obj);
         }
 
-        Color Faded(Color color) => new Color(color.r, color.g, color.b, _backgroundOpacity);
+        Color Faded(Color color) => new Color(color.r, color.g, color.b, Settings.BackgroundOpacity);
 
         /// <summary>
         /// 吹き出しの形（角の丸い四角と、下の辺の真ん中から出るしっぽ）の Mesh を作る。中心が原点。
         /// しっぽを別の物にすると、透けたときに四角との重なりが濃く見えるので、重ならない 1 つの形にする。
         /// </summary>
-        internal static Mesh BuildShape(float width, float height)
+        internal static Mesh BuildShape(float width, float height, float cornerRadius)
         {
-            float radius = Mathf.Min(CornerRadius, width / 2f, height / 2f);
+            float radius = Mathf.Min(cornerRadius, width / 2f, height / 2f);
             float halfW = width / 2f - radius;
             float halfH = height / 2f - radius;
             var vertices = new List<Vector3> { Vector3.zero };
@@ -296,13 +282,12 @@ namespace MouthOfGod.UI
 
             var root = new GameObject($"Bubble {request.Field}");
             root.transform.SetParent(transform, false); // Anchor の子にしない（ミニチュアの拡大縮小を受けないため）
-            root.transform.localScale = Vector3.one * _size;
-
+            
             // 背景（角の丸い四角としっぽ）。アイコンなら正方形、文字なら文字の長さに合わせる。
             Vector2 backSize = icon != null
-                ? new Vector2(IconSize + IconPadding * 2f, IconSize + IconPadding * 2f)
+                ? new Vector2(IconSize + Settings.IconPadding * 2f, IconSize + Settings.IconPadding * 2f)
                 : new Vector2(text.Length * CharWidth + Padding * 2f, LineHeight + Padding);
-            Mesh shape = BuildShape(backSize.x, backSize.y);
+            Mesh shape = BuildShape(backSize.x, backSize.y, Settings.CornerRadius);
             var back = new GameObject("Background");
             back.transform.SetParent(root.transform, false);
             back.transform.localPosition = new Vector3(0f, 0f, 0.01f); // 文字の奥
@@ -311,7 +296,7 @@ namespace MouthOfGod.UI
             Material backMaterial = null;
             if (shader != null)
             {
-                backMaterial = new Material(shader) { color = Faded(OpenColor), renderQueue = 3000 };
+                backMaterial = new Material(shader) { color = Faded(Settings.OpenColor), renderQueue = 3000 };
                 backRenderer.sharedMaterial = backMaterial;
             }
             else
@@ -391,8 +376,9 @@ namespace MouthOfGod.UI
                 bubble.Root.SetActive(false);
                 return;
             }
-            Vector3 position = bubble.Anchor.position + Vector3.up * _height;
+            Vector3 position = bubble.Anchor.position + Vector3.up * Settings.Height;
             bubble.Root.transform.position = position;
+            bubble.Root.transform.localScale = Vector3.one * Settings.Size; // 毎フレーム読むので、Play 中に設定を直しても効く
             if (cam != null)
             {
                 Vector3 away = position - cam.transform.position;

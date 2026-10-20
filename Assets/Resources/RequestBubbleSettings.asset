@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be995da02cd144809a0e2d5c5aeb3d88, type: 3}
+  m_Name: RequestBubbleSettings
+  m_EditorClassIdentifier: 
+  _size: 0.1
+  _height: 0.15
+  _backgroundOpacity: 0.75
+  _closedHoldSeconds: 0.6
+  _cornerRadius: 0.25
+  _iconPadding: 0.08
+  _openColor: {r: 1, g: 0.95, b: 0.7, a: 1}
+  _resolvedColor: {r: 0.6, g: 0.95, b: 0.6, a: 1}
+  _unresolvedColor: {r: 0.8, g: 0.8, b: 0.8, a: 1}

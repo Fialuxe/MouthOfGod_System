@@ -100,7 +100,7 @@ namespace MouthOfGod.UI.Tests
         [Test]
         public void BuildShape_FitsTheSize_AndHasATailBelow()
         {
-            Mesh shape = RequestBubbles.BuildShape(2f, 1f);
+            Mesh shape = RequestBubbles.BuildShape(2f, 1f, 0.25f);
             try
             {
                 Bounds bounds = shape.bounds;
