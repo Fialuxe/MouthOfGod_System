@@ -43,6 +43,7 @@
 ## まだ確かめていないこと
 - Quest + Link での動作（右トリガー・右 A ボタン・握り）。
 - OpenXR の Hand Interaction Profile を有効にしたときの `<HandInteraction>{RightHand}/graspValue` の名前。違えば Inspector で直す。
-- ボタンがデバイスに付くか、Quest コントローラにするか（#7 で人に確認していた点）。噛む動きは検出しないと決まりました（10/14）。
+- ボタンをデバイスに付けるか、Quest コントローラにするかは、まだ決まっていません。以前に #7 で人に確かめていた点です。
+- 噛む動きは検出しないと、10/14 に決まりました。
 
 コードは [Assets/Scripts/Device/README.md](../Assets/Scripts/Device/README.md)。入力の流れは [architecture.md](architecture.md) の「デバイス連携」。

@@ -71,4 +71,4 @@ Play 時に次の警告が大量に出る。いずれも `LogWarning` で、エ�
 - **アプリのビルド**: 今は PC 描画（Link）を前提にしている。Quest 単体ビルド（Android）にする場合は、別途設定が要る。
 
 ## 位置取得について
-体験者の頭の位置は Quest から取ります。フォークの位置は、手（ハンドトラッキング）と AprilTag から推定します。実装は `Assets/Scripts/Tracking/` に置く（CONTRIBUTING.md「6. スクリプト方針」）。旧プロジェクト MealBeBack は Vive トラッカーを使っていたが、今回は Quest が前提。
+体験者の頭の位置は Quest から取ります。フォークの位置は、手（ハンドトラッキング）と AprilTag から推定します。実装は `Assets/Scripts/Tracking/` に置きます。決まりは CONTRIBUTING.md の「6. スクリプト方針」にあります。旧プロジェクト MealBeBack は Vive トラッカーを使っていました。今回は Quest が前提です。
