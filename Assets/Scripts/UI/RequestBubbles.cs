@@ -109,28 +109,34 @@ namespace MouthOfGod.UI
         Camera _camera;
 
         /// <summary>いま出ている吹き出しの数（終わって消えるのを待っているものは数えない）。</summary>
-        public int OpenCount => _open.Count;
+        internal int OpenCount => _open.Count;
 
         /// <summary>終わって、色を変えたまま消えるのを待っている吹き出しの数。</summary>
-        public int ClosingCount => _closing.Count;
+        internal int ClosingCount => _closing.Count;
 
-        public bool HasBubble(FieldId field) => _open.ContainsKey(field);
+        internal bool HasBubble(FieldId field) => _open.ContainsKey(field);
 
         /// <summary>消えるのを待っている吹き出し（0 から数える）の背景の色。背景が無い（シェーダーが無い）ときは透明。</summary>
-        public Color GetClosingColor(int index)
+        internal Color GetClosingColor(int index)
         {
             Material m = _closing[index].BackgroundMaterial;
             return m != null ? m.color : default;
         }
 
-        void OnEnable()
+        void OnEnable() => Listen();
+
+        void OnDisable() => StopListening();
+
+        // フィールドの知らせを聞き始める。EditMode のテストでは OnEnable が呼ばれないので、テストから直接呼ぶ。
+        internal void Listen()
         {
             foreach (IFieldRequests field in new List<IFieldRequests>(Fields.All)) Attach(field);
             Fields.Added += Attach;
             Fields.Removed += Detach;
         }
 
-        void OnDisable()
+        // 聞くのをやめ、出ている吹き出しを消す。
+        internal void StopListening()
         {
             Fields.Added -= Attach;
             Fields.Removed -= Detach;
@@ -205,13 +211,13 @@ namespace MouthOfGod.UI
 
         static void DestroyBubble(Bubble bubble)
         {
-            if (bubble.BackgroundMaterial != null) DestroyObject(bubble.BackgroundMaterial);
-            if (bubble.TextMaterial != null) DestroyObject(bubble.TextMaterial);
-            if (bubble.Root != null) DestroyObject(bubble.Root);
+            if (bubble.BackgroundMaterial != null) DestroySafely(bubble.BackgroundMaterial);
+            if (bubble.TextMaterial != null) DestroySafely(bubble.TextMaterial);
+            if (bubble.Root != null) DestroySafely(bubble.Root);
         }
 
         // エディタの EditMode のテストでは Destroy が使えないので、DestroyImmediate に切り替える。
-        static void DestroyObject(UnityEngine.Object obj)
+        static void DestroySafely(UnityEngine.Object obj)
         {
             if (Application.isPlaying) UnityEngine.Object.Destroy(obj);
             else UnityEngine.Object.DestroyImmediate(obj);
@@ -229,7 +235,7 @@ namespace MouthOfGod.UI
             // 背景（文字の長さに合わせた Quad）
             var back = GameObject.CreatePrimitive(PrimitiveType.Quad);
             back.name = "Background";
-            DestroyObject(back.GetComponent<Collider>());
+            DestroySafely(back.GetComponent<Collider>());
             back.transform.SetParent(root.transform, false);
             back.transform.localPosition = new Vector3(0f, 0f, 0.01f); // 文字の奥
             back.transform.localScale = new Vector3(text.Length * CharWidth + Padding * 2f, LineHeight + Padding, 1f);

@@ -31,6 +31,7 @@ namespace MouthOfGod.UI.Tests
         }
 
         GameObject _host;
+        RequestBubbles _bubbles;
         GameObject _anchor;
         FakeField _field;
 
@@ -44,16 +45,21 @@ namespace MouthOfGod.UI.Tests
         [TearDown]
         public void TearDown()
         {
+            if (_bubbles != null) _bubbles.StopListening(); // EditMode では OnDisable も呼ばれないので、ここで外す
+            _bubbles = null;
             if (_host != null) UnityEngine.Object.DestroyImmediate(_host);
             UnityEngine.Object.DestroyImmediate(_anchor);
             Fields.Unregister(_field);
             RequestBubbleText.NameLookup = null;
         }
 
+        // EditMode なので OnEnable は呼ばれない。Listen を直接呼ぶ。
         RequestBubbles CreateBubbles()
         {
             _host = new GameObject("Bubbles");
-            return _host.AddComponent<RequestBubbles>();
+            _bubbles = _host.AddComponent<RequestBubbles>();
+            _bubbles.Listen();
+            return _bubbles;
         }
 
         [Test]
@@ -194,8 +200,9 @@ namespace MouthOfGod.UI.Tests
             Fields.Register(_field);
             var bubbles = CreateBubbles();
             _field.RaiseIssued(_anchor.transform);
+            Assert.AreEqual(1, bubbles.OpenCount);
 
-            bubbles.enabled = false;
+            bubbles.StopListening(); // OnDisable が呼ぶもの。EditMode では enabled を外しても OnDisable が呼ばれない
             Assert.AreEqual(0, bubbles.OpenCount);
 
             _field.RaiseIssued(_anchor.transform);
