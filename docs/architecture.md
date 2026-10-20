@@ -51,7 +51,7 @@
 - シーンを編集するのは、**Scene Fusion のセッションの中だけ**。セッションの外で、別々の人が別々の時間に同じシーンを編集してコミットしない（Git ではマージできない）。セッションのホストだけがコミットする（CONTRIBUTING 第 2 章 B・第 3 章）。
 - 機能を作るときの動作確認は、自分のサンドボックスのシーン（`Assets/Scenes/Sandbox/`）で行い、共有シーンには入れない。
 - フィールドは、AprilTag で合わせた村の基準（`VillageRoot`）の子として置く。同じシーンなので、エディタで普通に親子にできる。
-- Scene Fusion が使えなくなったとき（席が足りない、不安定）の対処は、CONTRIBUTING「席が足りない・接続できない場合」に従う。シーンを分けるのは、その時に決める。採用しなかった「フィールドごとにシーンを分ける案」（加算ロード、実行時に村の基準へつなぐ方法、利点とコスト）は [決めたことの記録](decisions.md) に残してある。
+- Scene Fusion が使えなくなったとき（席が足りない、不安定）の対処は、CONTRIBUTING「席が足りない・接続できない場合」に従う。シーンを分けるのは、その時に決める。フィールドごとにシーンを分ける案は、採用しませんでした。この案の中身は [決めたことの記録](decisions.md) に残してあります。加算ロードのしかた、実行時に村の基準へつなぐ方法、利点とコストです。
 
 ## 2. 機能と依存の向き
 
@@ -60,6 +60,7 @@ Core        型（TextureId / FoodId / FieldId）、小さな interface、イベ
  ↑
 Device      IDevice の実装（Serial / Mock）                      Core のみ
 Tracking    AprilTag・位置                                       Core のみ（現状は Core も不要）
+Fork        フォークで雲を刺す・口に含む判定（ForkTip / Cloud）     Core のみ
 Food        食感→食べ物の対応、生成（FoodTable / FoodSpawner）     Core のみ
 Village     Field・DeliveryZone・村人の要求・村の変化              Core のみ（位置合わせは「親 Transform が動く」ことにだけ依存）
 UI          表示。Core のイベントを購読                           Core のみ
@@ -72,7 +73,7 @@ Game        本編（時間・スコア）                                  Core
 
 - 横の機能どうし（Device ↔ Food ↔ Village ↔ UI）は**相互参照を禁止**し、asmdef で強制する。
 - 参照できるのは「下の層だけ」。Tutorial が Device や Village のクラスを直接叩かない。
-- 機能どうしは、Core の置き場でつながる。**機能をまたいで使う「もの」（デバイス・フィールドなど）は、Core の置き場に自分で登録し、使う側はそこから受け取る。** やりとりの中身は、その「もの」の interface とイベントで行う。置き場は「もの」にだけ作り、知らせ 1 つ 1 つには作らない。いまある置き場は `Devices` と `Fields`（一覧は Core の README）。 Inspector での手配線に頼らない（CONTRIBUTING「最終的に Inspector／Editor の操作が要らないシステムにする」）。
+- 機能どうしは、Core の置き場でつながる。**機能をまたいで使う「もの」（デバイス・フィールドなど）は、Core の置き場に自分で登録し、使う側はそこから受け取る。** やりとりの中身は、その「もの」の interface とイベントで行う。置き場は「もの」にだけ作り、知らせ 1 つ 1 つには作らない。いまある置き場は `Devices`・`Forks`・`Fields` など（一覧は Core の README）。 Inspector での手配線に頼らない（CONTRIBUTING「最終的に Inspector／Editor の操作が要らないシステムにする」）。
 
 ## 3. 流れはイベントの連鎖にする
 
@@ -86,11 +87,11 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 
 - Tutorial は Device を直接見ない（`MockDevice` に差し替えても動く）。
 - 欲しい物は、フィールドが「何が欲しいか・届いたら何が変わるか」を持ち、「いつ・どこに出すか」は Game（本編）と Tutorial が決める。分担と流れは [requests.md](requests.md)。
-- Tutorial から村や UI への指示（「この場所を光らせる」など）は、Tutorial が Core の `Cues.Request(CueId)` で合図を出し、Village や UI が `Cues.Requested` を購読する（依存の向きを保つため）。見せ方は、受けた側が決める。合図の名前はフィールド名から始める（[requests.md](requests.md)）。
+- Tutorial から村や UI に「この場所を光らせる」などと指示するときは、Tutorial が Core の `Cues.Request(CueId)` で合図を出します。Village と UI は、`Cues.Requested` を購読して受け取ります。こうするのは、依存の向きを保つためです。見せ方は、受けた側が決めます。合図の名前は、フィールド名から始めます（[requests.md](requests.md)）。
 - フィールドや UI が「いまのチュートリアル」で動きを分けたいときは、Core の `Phases.Current`（`PhaseId`。`fork` `spawn` のような名前）を読んでよい。番号ではなく名前にする。ふつうの反応は合図で足りるので、`if` はそのフィールドだけの特別な反応に使う。
 - 機能の中は C# の `event`。機能をまたぐものは、Core の interface とイベントで、相手は Core の置き場から受け取る。ScriptableObject のイベントチャンネルや、知らせの通り道（イベントバス）は採用しない（流れが追えなくなり、返事や順番の約束を守らせにくい）。
-- `IDevice` は `Devices` から（`Devices.WhenReady`。どのデバイスを登録するかは Device 側が決める）、フィールドは `Fields` から（`Fields.All`・`Fields.Added`）受け取る。どのシーンでも、置くだけでつながる。
-- 置き場を足してよいのは、機能をまたいで使う「もの」が増えたときだけ。いまある置き場は `Devices`・`Fields`・`Cues`・`Phases`（いまの場面）。候補は「体験者がいまいるフィールド」で、使う側を作るときに足す。置き場が膨らんだら、持ち主に聞くだけの窓口（ファサード）で包んでもよい。ただし、状態や判断は持たせない（`GameFlow` と同じになる）。置き場は static なので、Play のたびに空にする（`Reset`、`RuntimeInitializeOnLoadMethod`）。
+- `IDevice` は、`Devices.WhenReady` で受け取ります。どのデバイスを登録するかは、Device 側が決めます。`IFork` も同じ形で、`Forks.WhenReady` で受け取ります。フィールドは、`Fields.All` と `Fields.Added` で受け取ります。どのシーンでも、置くだけでつながります。
+- 置き場を足してよいのは、機能をまたいで使う「もの」が増えたときだけ。いまある置き場は `Devices`・`Forks`・`Fields`・`Cues`・`Phases`（いまの場面）。候補は「体験者がいまいるフィールド」で、使う側を作るときに足す。置き場が膨らんだら、持ち主に聞くだけの窓口（ファサード）で包んでもよい。ただし、状態や判断は持たせない（`GameFlow` と同じになる）。置き場は static なので、Play のたびに空にする（`Reset`、`RuntimeInitializeOnLoadMethod`）。
 
 ### 型とイベント（案。名前は仮）
 
@@ -98,6 +99,7 @@ Village(FieldStages) --RequestClosed(Resolved?)--> UI(吹き出しを消す) / T
 |---|---|---|
 | 食感 | `TextureId`（論理 ID。物理量は Device の内側で ID に変換する） | Core |
 | 入力 | `IDevice`: `Current`、`TextureChanged`、`Confirmed`（決定したときの食感を運ぶ）、`Bitten` | Core（interface）／ Device（実装） |
+| フォーク | `Forks`（置き場）、`IFork`: `IsLoaded`・`InMouth`、`Pierced`・`MouthEntered`・`MouthLeft`・`Emptied` | Core（interface）／ Fork（`ForkTip`・`Cloud`） |
 | 食べ物 | `FoodId`、`FoodTables.Resolve(FieldId, TextureId)` → 食べ物の Prefab、`FoodSpawner.Spawned`、生んだ物の `IFoodItem`（どの食べ物かを渡す） | Core（`FoodId`・`Spawned`・`IFoodItem`）／ Food |
 | 届け先 | `FieldId`、`IFieldRequests.Receive(FoodId)` → `DeliveryKind`、`Delivered`（`Kind` 付き） | Core ／ Village |
 | 欲しい物（要求） | `Fields`（置き場）、`IFieldRequests`（`Open`・`Receive`・`Expire`・`Restart`）、`RequestIssued`（`Anchor` 付き）、`RequestClosed` | Core（interface・イベント）／ Village（`FieldStages`・`FieldStep`） |
@@ -160,7 +162,7 @@ ScriptableObject や Prefab の `.asset` / `.prefab` は、GUID と参照を含�
 2. 噛んでいる間: 一定間隔で `TextureChanged(TextureId)`（噛み始めの直後に最初の食感も出る）
 3. ボタンで決定: `Confirmed(TextureId)`。決定したときの食感を運ぶ（キャンセルはない）
 
-`MockDevice`（`Device/`）では、Quest 右コントローラのトリガー（キーボードなら Space）を押し続けると噛み、右 A ボタン（Enter）で決定する（暫定。操作の割り当て・間隔・食感 ID は `Device/README.md` と Inspector）。手順は [device-mock.md](device-mock.md)。
+`MockDevice`（`Device/`）では、Quest 右コントローラのトリガーを押し続けると噛めます。キーボードなら Space です。決定は右 A ボタンで、キーボードなら Enter です。操作の割り当て・間隔・食感 ID は暫定で、`Device/README.md` と Inspector に書いてあります。手順は [device-mock.md](device-mock.md)。
 
 ## 6. 避けること（アンチパターン）
 

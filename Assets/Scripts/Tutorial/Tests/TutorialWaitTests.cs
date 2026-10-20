@@ -49,8 +49,33 @@ namespace MouthOfGod.Tutorial.Tests
             }
         }
 
+        sealed class FakeFork : IFork
+        {
+            public bool IsLoaded { get; private set; }
+            public bool InMouth { get; private set; }
+            public event Action Pierced;
+            public event Action MouthEntered;
+            public event Action MouthLeft { add { } remove { } }
+            public event Action Emptied { add { } remove { } }
+
+            public int Subscribers => Pierced == null ? 0 : Pierced.GetInvocationList().Length;
+
+            public void Pierce()
+            {
+                IsLoaded = true;
+                Pierced?.Invoke();
+            }
+
+            public void EnterMouth()
+            {
+                InMouth = true;
+                MouthEntered?.Invoke();
+            }
+        }
+
         readonly List<FakeField> _fields = new List<FakeField>();
         FakeDevice _device;
+        FakeFork _fork;
         float _now;
 
         [SetUp]
@@ -58,6 +83,7 @@ namespace MouthOfGod.Tutorial.Tests
         {
             _fields.Clear(); // NUnit は同じインスタンスで全テストを走らせるので、前のテストの分を消す
             _device = null;
+            _fork = null;
             _now = 0f;
         }
 
@@ -66,6 +92,7 @@ namespace MouthOfGod.Tutorial.Tests
         {
             foreach (FakeField field in _fields) Fields.Unregister(field);
             if (_device != null) Devices.Unregister(_device);
+            if (_fork != null) Forks.Unregister(_fork);
         }
 
         FakeField AddField(string id)
@@ -79,6 +106,14 @@ namespace MouthOfGod.Tutorial.Tests
         DeliveryWait Delivery(string only = "", float timeout = 0f) => new DeliveryWait(new FieldId(only), timeout, () => _now);
 
         ConfirmWait Confirm(float timeout = 0f) => new ConfirmWait(timeout, () => _now);
+        ForkWait ForkUntil(ForkGoal goal, float timeout = 0f) => new ForkWait(goal, timeout, () => _now);
+
+        FakeFork AddFork()
+        {
+            _fork = new FakeFork();
+            Forks.Register(_fork);
+            return _fork;
+        }
 
         // ---- DeliveryWait
 
@@ -283,6 +318,65 @@ namespace MouthOfGod.Tutorial.Tests
             var any = new AnyWait(new TutorialWait[0]);
 
             Assert.IsFalse(any.keepWaiting);
+        }
+
+        // ---- ForkWait
+
+        [Test]
+        public void ForkWait_Pierce_CompletesWhenPierced()
+        {
+            FakeFork fork = AddFork();
+            ForkWait wait = ForkUntil(ForkGoal.Pierce);
+            Assert.IsTrue(wait.keepWaiting);
+
+            fork.Pierce();
+            Assert.IsFalse(wait.keepWaiting);
+            Assert.IsFalse(wait.TimedOut);
+        }
+
+        [Test]
+        public void ForkWait_Pierce_AlreadyLoaded_CompletesAtOnce()
+        {
+            FakeFork fork = AddFork();
+            fork.Pierce();
+
+            Assert.IsFalse(ForkUntil(ForkGoal.Pierce).keepWaiting);
+        }
+
+        [Test]
+        public void ForkWait_Mouth_NeedsAPieceOnTheTip()
+        {
+            FakeFork fork = AddFork();
+            ForkWait wait = ForkUntil(ForkGoal.Mouth);
+
+            fork.EnterMouth(); // かけらなしで口に入れても、数えない
+            Assert.IsTrue(wait.keepWaiting);
+
+            fork.Pierce(); // 口の中で刺した状態になった
+            Assert.IsFalse(wait.keepWaiting);
+        }
+
+        [Test]
+        public void ForkWait_ListensToAForkRegisteredLater()
+        {
+            ForkWait wait = ForkUntil(ForkGoal.Pierce);
+
+            FakeFork fork = AddFork();
+            fork.Pierce();
+            Assert.IsFalse(wait.keepWaiting);
+        }
+
+        [Test]
+        public void ForkWait_TimesOut_AndStopsListening()
+        {
+            FakeFork fork = AddFork();
+            ForkWait wait = ForkUntil(ForkGoal.Pierce, timeout: 10f);
+            Assert.AreEqual(1, fork.Subscribers);
+
+            _now = 10f;
+            Assert.IsFalse(wait.keepWaiting);
+            Assert.IsTrue(wait.TimedOut);
+            Assert.AreEqual(0, fork.Subscribers);
         }
     }
 }
