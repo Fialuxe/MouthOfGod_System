@@ -16,6 +16,7 @@ namespace MouthOfGod.Core.Tests
             public bool Open(FoodId food) => false;
             public DeliveryKind Receive(FoodId food) => DeliveryKind.Foreign;
             public void Expire() { }
+            public void Expire(int request) { }
             public void Restart() { }
             public event Action<RequestIssued> Issued { add { } remove { } }
             public event Action<RequestClosed> Closed { add { } remove { } }

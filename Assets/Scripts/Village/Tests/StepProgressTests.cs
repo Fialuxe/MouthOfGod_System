@@ -176,5 +176,74 @@ namespace MouthOfGod.Village.Tests
             Assert.IsFalse(progress.CanOpen);
             Assert.IsTrue(progress.IsComplete);
         }
+
+        // ---- 同時に複数出す（maxOpen が 2 以上）
+
+        [Test]
+        public void MaxOpenTwo_OpensTwoDifferentSteps_ThenStops()
+        {
+            var progress = new StepProgress(new[] { Carrot, Pumpkin, new FoodId("test-sheep") }, maxOpen: 2);
+
+            Assert.IsTrue(progress.TryOpen(out var first));
+            Assert.IsTrue(progress.TryOpen(out var second));
+            Assert.IsFalse(progress.TryOpen(out _));
+
+            Assert.AreEqual(0, first);
+            Assert.AreEqual(1, second);
+            CollectionAssert.AreEqual(new[] { 0, 1 }, progress.OpenIndices);
+            Assert.AreEqual(Carrot, progress.Current, "一番古いもの");
+        }
+
+        [Test]
+        public void MaxOpenTwo_ResolvesTheOldestWithTheSameFood()
+        {
+            var progress = new StepProgress(new[] { Pumpkin, Carrot, Pumpkin }, maxOpen: 3);
+            progress.TryOpen(out _);
+            progress.TryOpen(out _);
+            progress.TryOpen(out _);
+
+            Assert.IsTrue(progress.TryResolve(Pumpkin, out var index));
+            Assert.AreEqual(0, index);
+            Assert.IsTrue(progress.TryResolve(Pumpkin, out index));
+            Assert.AreEqual(2, index);
+            CollectionAssert.AreEqual(new[] { 1 }, progress.OpenIndices);
+        }
+
+        [Test]
+        public void MaxOpenTwo_CloseOne_AndCloseAll()
+        {
+            var progress = new StepProgress(new[] { Carrot, Pumpkin }, maxOpen: 2);
+            progress.TryOpen(out _);
+            progress.TryOpen(out _);
+
+            Assert.IsTrue(progress.Close(1));
+            Assert.IsFalse(progress.Close(1));
+            CollectionAssert.AreEqual(new[] { 0 }, progress.OpenIndices);
+
+            progress.TryOpen(out _);
+            CollectionAssert.AreEqual(new[] { 0, 1 }, progress.CloseAll());
+            Assert.IsFalse(progress.IsOpen);
+            Assert.AreEqual(0, progress.DoneCount);
+        }
+
+        [Test]
+        public void MaxOpenTwo_RandomNeverPicksAnOpenStep()
+        {
+            var progress = new StepProgress(new[] { Carrot, Pumpkin }, maxOpen: 2);
+            var random = new System.Random(3);
+            for (var i = 0; i < 30; i++)
+            {
+                Assert.IsTrue(progress.TryOpen(out var a, random));
+                Assert.IsTrue(progress.TryOpen(out var b, random));
+                Assert.AreNotEqual(a, b);
+                progress.CloseAll();
+            }
+        }
+
+        [Test]
+        public void MaxOpenBelowOne_IsOne()
+        {
+            Assert.AreEqual(1, new StepProgress(new[] { Carrot }, maxOpen: 0).MaxOpen);
+        }
     }
 }

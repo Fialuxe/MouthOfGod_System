@@ -19,12 +19,18 @@ namespace MouthOfGod.Village
         [Tooltip("欲しい物を出す順番。InOrder: Steps の並び順。Random: まだのステップからランダム")]
         [SerializeField] RequestOrder requestOrder = RequestOrder.InOrder;
 
+        [Tooltip("このフィールドに、同時に出せる欲しい物の数。別々の村人が、それぞれ別の物を欲しがれる。仮の値。全体で同時にいくつ出すかは、本編（Game）が決める")]
+        [SerializeField, Min(1)] int maxOpenRequests = 2;
+
         public enum RequestOrder { InOrder, Random }
 
         static readonly System.Random Rng = new System.Random();
 
         FieldStep[] _steps;
         StepProgress _progress;
+        // 出ている欲しい物の番号（ステップ → 番号）。出すたびに 1 つずつ増やす。
+        readonly Dictionary<int, int> _requests = new Dictionary<int, int>();
+        int _lastRequest;
         // 見た目を写し直してから Closed を出すまでの間。ここで Open されると Issued が Closed より先に出るので、出させない。
         bool _closing;
 
@@ -59,8 +65,14 @@ namespace MouthOfGod.Village
         public bool IsOpen => Progress.IsOpen;
         public bool CanOpen => !_closing && Progress.CanOpen;
 
-        /// <summary>出ている欲しい物（出ていなければ FoodId.None）。</summary>
+        /// <summary>出ている欲しい物のうち、一番古いもの（出ていなければ FoodId.None）。</summary>
         public FoodId Current => Progress.Current;
+
+        /// <summary>出ている欲しい物の数。</summary>
+        public int OpenCount => Progress.OpenIndices.Count;
+
+        /// <summary>同時に出せる欲しい物の数。Play の前に決める（出し始めたあとに変えても、効かない）。</summary>
+        public int MaxOpenRequests { get => maxOpenRequests; set => maxOpenRequests = Mathf.Max(1, value); }
 
         public bool IsDone(FieldStep step) => Progress.IsDone(Array.IndexOf(StepsInOrder, step));
 
@@ -73,7 +85,7 @@ namespace MouthOfGod.Village
                 if (_progress != null) return _progress;
                 var foods = new FoodId[StepsInOrder.Length];
                 for (var i = 0; i < foods.Length; i++) foods[i] = new FoodId(StepsInOrder[i].Food);
-                return _progress = new StepProgress(foods);
+                return _progress = new StepProgress(foods, maxOpenRequests);
             }
         }
 
@@ -104,7 +116,7 @@ namespace MouthOfGod.Village
             }
         }
 
-        /// <summary>次の欲しい物を出す（Issued）。出ているものがある・全部済んだなら false。</summary>
+        /// <summary>次の欲しい物を出す（Issued）。上限まで出ている・出せる物が残っていないなら false。</summary>
         public bool Open()
         {
             if (_closing || !Progress.TryOpen(out var index, requestOrder == RequestOrder.Random ? Rng : null)) return false;
@@ -122,10 +134,20 @@ namespace MouthOfGod.Village
 
         bool Issue(int index)
         {
-            var food = Progress.Current;
-            Debug.Log($"[FieldStages] {fieldId} wants {food} ({StepsInOrder[index].name})");
-            Issued?.Invoke(new RequestIssued(food, Field, StepsInOrder[index].Anchor));
+            var food = Progress.WantOf(index);
+            var request = ++_lastRequest;
+            _requests[index] = request;
+            Debug.Log($"[FieldStages] {fieldId} wants {food} ({StepsInOrder[index].name}, #{request})");
+            Issued?.Invoke(new RequestIssued(food, Field, StepsInOrder[index].Anchor, request));
             return true;
+        }
+
+        // 閉じたステップの欲しい物と番号。番号は、もう使わないので外す。
+        (FoodId Food, int Request) Take(int index)
+        {
+            _requests.TryGetValue(index, out var request);
+            _requests.Remove(index);
+            return (Progress.WantOf(index), request);
         }
 
         /// <summary>
@@ -144,37 +166,51 @@ namespace MouthOfGod.Village
             }
 
             // 見た目を先に変えてから知らせる（Closed を受けてすぐ Open しても、次のステップの欲しい物が出るように）
-            ApplyThenClose(food, wasOpen: true, resolved: true, celebrate: true);
+            ApplyThenClose(new[] { Take(index) }, resolved: true, celebrate: true);
             Received?.Invoke(new Delivered(food, Field, DeliveryKind.Requested));
             RaiseStepDone(index);
             return DeliveryKind.Requested;
         }
 
+        /// <summary>出ている欲しい物を、すべて届かないまま終える（出した順に Closed）。</summary>
         public void Expire()
         {
-            var food = Progress.Current;
-            if (Progress.Close() < 0) return;
-            Closed?.Invoke(new RequestClosed(food, Field, resolved: false));
+            foreach (var index in Progress.CloseAll())
+            {
+                var (food, request) = Take(index);
+                Closed?.Invoke(new RequestClosed(food, Field, resolved: false, request));
+            }
+        }
+
+        /// <summary>その番号の欲しい物だけを、届かないまま終える。出ていなければ何もしない。</summary>
+        public void Expire(int request)
+        {
+            var index = -1;
+            foreach (var pair in _requests)
+                if (pair.Value == request) index = pair.Key;
+            if (index < 0 || !Progress.Close(index)) return;
+            var (food, _) = Take(index);
+            Closed?.Invoke(new RequestClosed(food, Field, resolved: false, request));
         }
 
         /// <summary>はじめ（全部まだ）に戻す。出ていた欲しい物も終える（体験の終わりのリセット）。</summary>
         public void Restart()
         {
             // 状態を先に変えてから知らせる（Closed を受けてすぐ Open しても、はじめのステップから出るように）
-            var food = Progress.Current;
-            var wasOpen = Progress.IsOpen;
+            var closes = new List<(FoodId, int)>();
+            foreach (var index in Progress.CloseAll()) closes.Add(Take(index));
             Progress.Reset();
-            ApplyThenClose(food, wasOpen, resolved: false, celebrate: false);
+            ApplyThenClose(closes, resolved: false, celebrate: false);
             Restarted?.Invoke();
         }
 
-        // 見た目を写し直し、出ていた欲しい物があれば Closed を出す。その間（出し入れした物の OnEnable など）に Open されないようにする。
-        void ApplyThenClose(FoodId food, bool wasOpen, bool resolved, bool celebrate)
+        // 見た目を写し直し、閉じた欲しい物の Closed を出す。その間（出し入れした物の OnEnable など）に Open されないようにする。
+        void ApplyThenClose(IReadOnlyList<(FoodId Food, int Request)> closes, bool resolved, bool celebrate)
         {
-            _closing = wasOpen;
+            _closing = closes.Count > 0;
             try { Apply(celebrate); }
             finally { _closing = false; }
-            if (wasOpen) Closed?.Invoke(new RequestClosed(food, Field, resolved));
+            foreach (var (food, request) in closes) Closed?.Invoke(new RequestClosed(food, Field, resolved, request));
         }
 
         void RaiseStepDone(int index)
@@ -211,9 +247,10 @@ namespace MouthOfGod.Village
         [ContextMenu("Open Next Want")]
         void OpenFromMenu()
         {
-            if (!Open()) Debug.Log($"[FieldStages] {fieldId}: nothing to open (open: {IsOpen}, done: {DoneCount}/{StepsInOrder.Length}).", this);
+            if (!Open()) Debug.Log($"[FieldStages] {fieldId}: nothing to open (open: {OpenCount}/{maxOpenRequests}, done: {DoneCount}/{StepsInOrder.Length}).", this);
         }
 
+        // 出ている欲しい物のうち、一番古いものを届ける
         [ContextMenu("Deliver Wanted Food")]
         void ReceiveFromMenu() => Receive(Current);
 
@@ -229,10 +266,10 @@ namespace MouthOfGod.Village
                 for (var i = 0; i < StepsInOrder.Length && index < 0; i++)
                     if (!Progress.IsDone(i)) index = i; // 欲しい物が空のステップも済ませられる
             if (index < 0) return;
-            var food = Progress.Current;
-            var wasOpen = Progress.OpenIndex == index;
+            var wasOpen = Progress.IsOpenAt(index);
+            var closes = wasOpen ? new[] { Take(index) } : new (FoodId, int)[0];
             Progress.Complete(index);
-            ApplyThenClose(food, wasOpen, resolved: true, celebrate: true);
+            ApplyThenClose(closes, resolved: true, celebrate: true);
             RaiseStepDone(index);
         }
 

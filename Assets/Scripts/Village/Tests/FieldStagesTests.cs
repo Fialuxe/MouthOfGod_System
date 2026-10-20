@@ -60,7 +60,6 @@ namespace MouthOfGod.Village.Tests
             Assert.AreEqual(new FoodId("test-carrot"), got[0].Food);
             Assert.AreEqual(new FieldId("village"), got[0].Field);
             Assert.AreEqual(_farmer.transform, got[0].Anchor);
-            Assert.IsFalse(_field.Open());
         }
 
         [Test]
@@ -187,9 +186,10 @@ namespace MouthOfGod.Village.Tests
             var issued = new List<RequestIssued>();
             _field.Issued += issued.Add;
 
+            _field.MaxOpenRequests = 1;
             Assert.IsFalse(_field.Open(new FoodId("test-fish")));
             Assert.IsTrue(_field.Open(new FoodId("test-pumpkin")));
-            Assert.IsFalse(_field.Open(new FoodId("test-carrot")), "出ている間は出せない");
+            Assert.IsFalse(_field.Open(new FoodId("test-carrot")), "上限（1）まで出ている間は出せない");
 
             Assert.AreEqual(1, issued.Count);
             Assert.AreEqual(new FoodId("test-pumpkin"), issued[0].Food);
@@ -281,6 +281,108 @@ namespace MouthOfGod.Village.Tests
             Assert.IsFalse(_sproutChild.activeSelf);
             Assert.IsTrue(_withered.activeSelf);
             Assert.IsTrue(_farmer.IsWorried);
+        }
+
+        // ---- 同時に複数出す
+
+        [Test]
+        public void Open_Twice_IssuesBothWithDifferentNumbersAndPeople_UpToTheLimit()
+        {
+            var got = new List<RequestIssued>();
+            _field.Issued += got.Add;
+
+            Assert.IsTrue(_field.Open());
+            Assert.IsTrue(_field.Open());
+            Assert.IsFalse(_field.Open(), "ステップは 2 つしかない");
+
+            Assert.AreEqual(2, _field.OpenCount);
+            Assert.AreEqual(new FoodId("test-carrot"), got[0].Food);
+            Assert.AreEqual(new FoodId("test-pumpkin"), got[1].Food);
+            Assert.AreNotEqual(got[0].Request, got[1].Request);
+            Assert.AreEqual(_farmer.transform, got[0].Anchor);
+            Assert.AreEqual(_elder.transform, got[1].Anchor);
+        }
+
+        [Test]
+        public void MaxOpenRequests_LimitsHowManyAreOpen()
+        {
+            _field.MaxOpenRequests = 1;
+
+            Assert.IsTrue(_field.Open());
+            Assert.IsFalse(_field.CanOpen);
+            Assert.IsFalse(_field.Open());
+        }
+
+        [Test]
+        public void Receive_ResolvesOnlyTheMatchingRequest_AndKeepsTheOther()
+        {
+            var issued = new List<RequestIssued>();
+            var closed = new List<RequestClosed>();
+            _field.Issued += issued.Add;
+            _field.Closed += closed.Add;
+            _field.Open();
+            _field.Open();
+
+            Assert.AreEqual(DeliveryKind.Requested, _field.Receive(new FoodId("test-pumpkin")));
+
+            Assert.AreEqual(1, closed.Count);
+            Assert.AreEqual(issued[1].Request, closed[0].Request);
+            Assert.IsTrue(closed[0].Resolved);
+            Assert.IsTrue(_field.IsDone(_crops));
+            Assert.IsFalse(_field.IsDone(_sprout));
+            Assert.AreEqual(1, _field.OpenCount);
+            Assert.AreEqual(new FoodId("test-carrot"), _field.Current);
+        }
+
+        [Test]
+        public void ExpireOne_ClosesOnlyThatRequest()
+        {
+            var issued = new List<RequestIssued>();
+            var closed = new List<RequestClosed>();
+            _field.Issued += issued.Add;
+            _field.Closed += closed.Add;
+            _field.Open();
+            _field.Open();
+
+            _field.Expire(issued[0].Request);
+            _field.Expire(issued[0].Request); // もう出ていない
+
+            Assert.AreEqual(1, closed.Count);
+            Assert.AreEqual(issued[0].Request, closed[0].Request);
+            Assert.IsFalse(closed[0].Resolved);
+            Assert.AreEqual(1, _field.OpenCount);
+            Assert.AreEqual(new FoodId("test-pumpkin"), _field.Current);
+        }
+
+        [Test]
+        public void ExpireAll_ClosesEveryRequest_InTheOrderTheyWereIssued()
+        {
+            var issued = new List<RequestIssued>();
+            var closed = new List<RequestClosed>();
+            _field.Issued += issued.Add;
+            _field.Closed += closed.Add;
+            _field.Open();
+            _field.Open();
+
+            _field.Expire();
+
+            CollectionAssert.AreEqual(new[] { issued[0].Request, issued[1].Request }, closed.ConvertAll(c => c.Request));
+            Assert.IsFalse(_field.IsOpen);
+        }
+
+        [Test]
+        public void Restart_ClosesEveryOpenRequest()
+        {
+            var closed = new List<RequestClosed>();
+            _field.Open();
+            _field.Open();
+            _field.Closed += closed.Add;
+
+            _field.Restart();
+
+            Assert.AreEqual(2, closed.Count);
+            Assert.IsTrue(closed.TrueForAll(c => !c.Resolved));
+            Assert.IsFalse(_field.IsOpen);
         }
     }
 }
