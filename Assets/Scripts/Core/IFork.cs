@@ -6,7 +6,7 @@ namespace MouthOfGod.Core
     /// 体験者が持つフォーク。雲を刺したか（先に雲のかけらが付いているか）と、先が口の中にあるかを知らせる。実装は Fork の ForkTip。
     /// </summary>
     /// <remarks>
-    /// - 使う側（Tutorial・UI など）は <see cref="Forks.WhenReady"/> で受け取り、位置の取り方（コントローラー・キーボード）を知らない。
+    /// - 使う側（Tutorial・UI など）は <see cref="Forks.WhenReady"/> で受け取り、位置の取り方（ハンドトラッキング・AprilTag・キーボード）を知らない。
     /// - 約束: 刺したら <see cref="Pierced"/>、先が口に入ったら <see cref="MouthEntered"/>、出たら <see cref="MouthLeft"/>、
     ///   かけらがなくなったら <see cref="Emptied"/>。状態（<see cref="IsLoaded"/>・<see cref="InMouth"/>）を更新してから出す。
     /// - イベントはメインスレッドで出す。
