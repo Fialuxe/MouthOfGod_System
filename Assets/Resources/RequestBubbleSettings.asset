@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be995da02cd144809a0e2d5c5aeb3d88, type: 3}
   m_Name: RequestBubbleSettings
   m_EditorClassIdentifier: 
-  _size: 0.1
+  _size: 0.07
   _height: 0.15
   _backgroundOpacity: 0.75
   _closedHoldSeconds: 0.6

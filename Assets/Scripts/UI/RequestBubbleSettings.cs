@@ -13,7 +13,7 @@ namespace MouthOfGod.UI
         public const string ResourceName = "RequestBubbleSettings";
 
         [Tooltip("吹き出し全体の大きさ（ワールドでの倍率）。1 で、アイコンの一辺が約 1.2 m。ミニチュアに合わせて直す")]
-        [SerializeField, Min(0.001f)] float _size = 0.1f;
+        [SerializeField, Min(0.001f)] float _size = 0.07f;
 
         [Tooltip("村人の頭の目印（Anchor）から、吹き出しの中心までの高さ（m）")]
         [SerializeField] float _height = 0.15f;
