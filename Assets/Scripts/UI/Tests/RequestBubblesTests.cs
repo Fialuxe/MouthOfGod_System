@@ -98,6 +98,19 @@ namespace MouthOfGod.UI.Tests
         }
 
         [Test]
+        public void Issued_BubbleHasATail_WhenTheBackgroundIsDrawn()
+        {
+            Fields.Register(_field);
+            CreateBubbles();
+            _field.RaiseIssued(_anchor.transform);
+
+            Transform bubble = _host.transform.Find("Bubble sea");
+            Assert.IsNotNull(bubble);
+            if (!bubble.Find("Background").GetComponent<Renderer>().enabled) return; // シェーダーが無い環境では、背景もしっぽも出さない
+            Assert.IsNotNull(bubble.Find("Tail"));
+        }
+
+        [Test]
         public void Issued_ShowsBubble_AndClosed_RemovesIt()
         {
             Fields.Register(_field);

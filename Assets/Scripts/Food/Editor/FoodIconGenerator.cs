@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -9,7 +10,9 @@ namespace MouthOfGod.Food.Editor
     /// <summary>
     /// 食べ物の Prefab を、遠近のあるカメラで斜め前から写し、背景が透明な PNG にする。村人の吹き出しのアイコンに使う。
     /// Assets/Resources/Prefabs/Food/ のすべての Prefab から、Assets/Resources/Icons/Food/&lt;食べ物の ID&gt;.png を作る。
-    /// 1 回実行して、できた PNG をコミットする（Play 時には使わない）。毎回すべて作り直す（Prefab を直したら、もう一度実行する）。
+    /// 1 回実行して、できた PNG をコミットする（Play 時には使わない）。
+    /// 既にある PNG は上書きしない。手で描いたアイコンを同じ名前で置けば、そちらが使われる。
+    /// 作り直すときは、Project で食べ物の Prefab を選び、右クリックの「MouthOfGod/Food/Generate Icon From Selected」を使う（上書きする）。
     /// </summary>
     public static class FoodIconGenerator
     {
@@ -25,6 +28,42 @@ namespace MouthOfGod.Food.Editor
         [MenuItem("MouthOfGod/Food/Generate Icons")]
         public static void Generate()
         {
+            var prefabs = new List<GameObject>();
+            int skipped = 0;
+            foreach (string path in Directory.GetFiles(PrefabFolder, "*.prefab"))
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path.Replace('\\', '/'));
+                if (prefab == null) continue;
+                if (File.Exists(OutputFolder + prefab.name + ".png")) { skipped++; continue; }
+                prefabs.Add(prefab);
+            }
+            int created = Render(prefabs);
+            Debug.Log($"[Food] アイコンを {created} 件作りました（既にあって飛ばした: {skipped} 件）→ {OutputFolder}");
+        }
+
+        // Project で選んだ食べ物の Prefab だけ、アイコンを作り直す（上書きする）。
+        [MenuItem("Assets/MouthOfGod/Food/Generate Icon From Selected")]
+        static void GenerateSelected()
+        {
+            int created = Render(SelectedFoodPrefabs());
+            Debug.Log($"[Food] 選んだ Prefab のアイコンを {created} 件作り直しました → {OutputFolder}");
+        }
+
+        [MenuItem("Assets/MouthOfGod/Food/Generate Icon From Selected", true)]
+        static bool CanGenerateSelected() => SelectedFoodPrefabs().Count > 0;
+
+        static List<GameObject> SelectedFoodPrefabs()
+        {
+            var prefabs = new List<GameObject>();
+            foreach (GameObject prefab in Selection.GetFiltered<GameObject>(SelectionMode.Assets))
+                if (AssetDatabase.GetAssetPath(prefab).StartsWith(PrefabFolder)) prefabs.Add(prefab);
+            return prefabs;
+        }
+
+        // 渡した Prefab を写して PNG にする。作った数を返す。
+        static int Render(List<GameObject> prefabs)
+        {
+            if (prefabs.Count == 0) return 0;
             Directory.CreateDirectory(OutputFolder);
             Scene scene = EditorSceneManager.NewPreviewScene();
             RenderTexture target = RenderTexture.GetTemporary(Size, Size, 24, RenderTextureFormat.ARGB32);
@@ -36,10 +75,8 @@ namespace MouthOfGod.Food.Editor
                 AddLight(scene, new Vector3(50f, -30f, 0f), 1.1f);
                 AddLight(scene, new Vector3(20f, 150f, 0f), 0.5f); // 影の側を明るくする
 
-                foreach (string path in Directory.GetFiles(PrefabFolder, "*.prefab"))
+                foreach (GameObject prefab in prefabs)
                 {
-                    var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path.Replace('\\', '/'));
-                    if (prefab == null) continue;
                     var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
                     if (!Frame(camera, instance))
                     {
@@ -67,8 +104,8 @@ namespace MouthOfGod.Food.Editor
             }
 
             AssetDatabase.Refresh();
-            foreach (string path in Directory.GetFiles(OutputFolder, "*.png")) SetImportSettings(path.Replace('\\', '/'));
-            Debug.Log($"[Food] アイコンを {created} 件作りました → {OutputFolder}");
+            foreach (GameObject prefab in prefabs) SetImportSettings(OutputFolder + prefab.name + ".png");
+            return created;
         }
 
         static Camera CreateCamera(Scene scene, RenderTexture target)

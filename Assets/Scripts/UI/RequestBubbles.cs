@@ -62,6 +62,9 @@ namespace MouthOfGod.UI
         [Tooltip("終わったあと、色を変えて残す秒数")]
         [SerializeField] float _closedHoldSeconds = 0.6f;
 
+        [Tooltip("背景としっぽの不透明度。下げると、吹き出しの後ろの物が透けて見える。アイコンと文字は透けない。仮の値")]
+        [SerializeField, Range(0f, 1f)] float _backgroundOpacity = 0.75f;
+
         static readonly Color OpenColor = new Color(1f, 0.95f, 0.7f, 0.95f);
         static readonly Color ResolvedColor = new Color(0.6f, 0.95f, 0.6f, 0.95f);
         static readonly Color UnresolvedColor = new Color(0.8f, 0.8f, 0.8f, 0.95f);
@@ -71,6 +74,10 @@ namespace MouthOfGod.UI
         const float LineHeight = 0.7f;
         const float Padding = 0.3f;
         const float IconSize = 1.2f; // アイコンの一辺（吹き出しの中の大きさ。文字 1 行の高さの約 2 倍）
+        const float TailWidth = 0.4f; // しっぽ（話している人を指す三角）の幅
+        const float TailHeight = 0.35f;
+
+        static Mesh _tailMesh;
 
         static bool _placed;
 
@@ -197,7 +204,7 @@ namespace MouthOfGod.UI
         {
             if (!_open.TryGetValue(closed.Field, out Bubble bubble)) return;
             _open.Remove(closed.Field);
-            if (bubble.BackgroundMaterial != null) bubble.BackgroundMaterial.color = closed.Resolved ? ResolvedColor : UnresolvedColor;
+            if (bubble.BackgroundMaterial != null) bubble.BackgroundMaterial.color = Faded(closed.Resolved ? ResolvedColor : UnresolvedColor);
             bubble.DestroyAt = Time.time + _closedHoldSeconds;
             _closing.Add(bubble);
         }
@@ -233,6 +240,34 @@ namespace MouthOfGod.UI
         }
 
         // アイコンがあれば絵だけ、無ければ文字を出す。
+        Color Faded(Color color) => new Color(color.r, color.g, color.b, _backgroundOpacity);
+
+        // しっぽ: 背景の下の辺から、村人の方へ向く三角。背景と同じマテリアルなので、色も一緒に変わる。
+        // 四角を回して作ると背景と重なって、透けたときに重なりが濃く見えるので、三角の形を作る。
+        static void AddTail(Transform root, float backHeight, Material material)
+        {
+            var tail = new GameObject("Tail");
+            tail.transform.SetParent(root, false);
+            tail.transform.localPosition = new Vector3(0f, -backHeight / 2f, 0.01f);
+            tail.AddComponent<MeshFilter>().sharedMesh = TailMesh();
+            tail.AddComponent<MeshRenderer>().sharedMaterial = material;
+        }
+
+        static Mesh TailMesh()
+        {
+            if (_tailMesh != null) return _tailMesh;
+            _tailMesh = new Mesh { name = "Bubble Tail", hideFlags = HideFlags.DontSave };
+            _tailMesh.vertices = new[]
+            {
+                new Vector3(-TailWidth / 2f, 0f, 0f),
+                new Vector3(TailWidth / 2f, 0f, 0f),
+                new Vector3(0f, -TailHeight, 0f),
+            };
+            _tailMesh.triangles = new[] { 0, 1, 2 }; // カメラ側（-Z）から見て時計回り
+            _tailMesh.RecalculateBounds();
+            return _tailMesh;
+        }
+
         Bubble Create(RequestIssued request)
         {
             Shader shader = Shader.Find("Sprites/Default");
@@ -260,8 +295,9 @@ namespace MouthOfGod.UI
             Material backMaterial = null;
             if (shader != null)
             {
-                backMaterial = new Material(shader) { color = OpenColor, renderQueue = 3000 };
+                backMaterial = new Material(shader) { color = Faded(OpenColor), renderQueue = 3000 };
                 backRenderer.sharedMaterial = backMaterial;
+                AddTail(root.transform, back.transform.localScale.y, backMaterial);
             }
             else
             {
