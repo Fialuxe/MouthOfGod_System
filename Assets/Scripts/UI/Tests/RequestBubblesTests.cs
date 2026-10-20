@@ -98,16 +98,22 @@ namespace MouthOfGod.UI.Tests
         }
 
         [Test]
-        public void Issued_BubbleHasATail_WhenTheBackgroundIsDrawn()
+        public void BuildShape_FitsTheSize_AndHasATailBelow()
         {
-            Fields.Register(_field);
-            CreateBubbles();
-            _field.RaiseIssued(_anchor.transform);
-
-            Transform bubble = _host.transform.Find("Bubble sea");
-            Assert.IsNotNull(bubble);
-            if (!bubble.Find("Background").GetComponent<Renderer>().enabled) return; // シェーダーが無い環境では、背景もしっぽも出さない
-            Assert.IsNotNull(bubble.Find("Tail"));
+            Mesh shape = RequestBubbles.BuildShape(2f, 1f);
+            try
+            {
+                Bounds bounds = shape.bounds;
+                Assert.AreEqual(-1f, bounds.min.x, 0.0001f);
+                Assert.AreEqual(1f, bounds.max.x, 0.0001f);
+                Assert.AreEqual(0.5f, bounds.max.y, 0.0001f);
+                Assert.Less(bounds.min.y, -0.5f); // しっぽが下の辺より下に出る
+                Assert.AreEqual(0, shape.triangles.Length % 3);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(shape);
+            }
         }
 
         [Test]

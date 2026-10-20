@@ -20,7 +20,7 @@ namespace MouthOfGod.Food.Editor
         const string OutputFolder = "Assets/Resources/Icons/Food/";
         const int Size = 256; // px
         const float FieldOfView = 30f;
-        const float Margin = 1.15f; // 物の周りに残す余白の割合
+        const float Fill = 0.92f; // 物の箱が、画像の幅（高さ）のどれだけを占めるか。1 に近いほど余白が狭い
 
         // 写す向き（物の中心から見たカメラの方向）。斜め前・少し上から。
         static readonly Vector3 ViewDirection = new Vector3(0.55f, 0.45f, 1f).normalized;
@@ -118,6 +118,7 @@ namespace MouthOfGod.Food.Editor
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0f, 0f, 0f, 0f); // 背景は透明
             camera.fieldOfView = FieldOfView;
+            camera.aspect = 1f; // 正方形の画像
             camera.nearClipPlane = 0.01f;
             camera.farClipPlane = 100f;
             camera.targetTexture = target;
@@ -143,11 +144,39 @@ namespace MouthOfGod.Food.Editor
             Bounds bounds = renderers[0].bounds;
             foreach (Renderer r in renderers) bounds.Encapsulate(r.bounds);
 
+            // まず外側を囲む球が収まる距離に置き、箱の角の写り方を見て、Fill に合うまで近づける。
+            // 遠近があるので 1 回では合わない。数回くり返す。
             float radius = bounds.extents.magnitude;
-            float distance = radius * Margin / Mathf.Sin(FieldOfView * 0.5f * Mathf.Deg2Rad);
-            camera.transform.position = bounds.center + ViewDirection * distance;
-            camera.transform.LookAt(bounds.center);
+            float distance = radius / Mathf.Sin(FieldOfView * 0.5f * Mathf.Deg2Rad);
+            for (int i = 0; i < 4; i++)
+            {
+                Place(camera, bounds.center, distance);
+                float extent = ViewportExtent(camera, bounds);
+                if (extent <= 0f) break;
+                distance = Mathf.Max(distance * extent / Fill, radius * 1.05f); // 箱の中に入らない
+            }
+            Place(camera, bounds.center, distance);
             return true;
+        }
+
+        static void Place(Camera camera, Vector3 center, float distance)
+        {
+            camera.transform.position = center + ViewDirection * distance;
+            camera.transform.LookAt(center);
+        }
+
+        // 箱の 8 つの角が、画像のどこまで広がるか。画像の幅（高さ）に対する割合（1 でちょうど端）。
+        static float ViewportExtent(Camera camera, Bounds bounds)
+        {
+            float extent = 0f;
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 corner = bounds.center + Vector3.Scale(bounds.extents,
+                    new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
+                Vector3 v = camera.WorldToViewportPoint(corner);
+                extent = Mathf.Max(extent, Mathf.Abs(v.x - 0.5f) * 2f, Mathf.Abs(v.y - 0.5f) * 2f);
+            }
+            return extent;
         }
 
         static void SetImportSettings(string path)

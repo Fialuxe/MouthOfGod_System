@@ -74,10 +74,11 @@ namespace MouthOfGod.UI
         const float LineHeight = 0.7f;
         const float Padding = 0.3f;
         const float IconSize = 1.2f; // アイコンの一辺（吹き出しの中の大きさ。文字 1 行の高さの約 2 倍）
+        const float IconPadding = 0.08f; // アイコンと吹き出しの縁のあいだ
+        const float CornerRadius = 0.25f; // 吹き出しの角の丸み
+        const int CornerSegments = 6; // 角の丸みを何本の線で作るか
         const float TailWidth = 0.4f; // しっぽ（話している人を指す三角）の幅
         const float TailHeight = 0.35f;
-
-        static Mesh _tailMesh;
 
         static bool _placed;
 
@@ -107,6 +108,7 @@ namespace MouthOfGod.UI
             public Material BackgroundMaterial;
             public Material TextMaterial;
             public Material IconMaterial;
+            public Mesh Shape;
             public float DestroyAt;
         }
 
@@ -229,6 +231,7 @@ namespace MouthOfGod.UI
             if (bubble.BackgroundMaterial != null) DestroySafely(bubble.BackgroundMaterial);
             if (bubble.TextMaterial != null) DestroySafely(bubble.TextMaterial);
             if (bubble.IconMaterial != null) DestroySafely(bubble.IconMaterial);
+            if (bubble.Shape != null) DestroySafely(bubble.Shape);
             if (bubble.Root != null) DestroySafely(bubble.Root);
         }
 
@@ -239,35 +242,48 @@ namespace MouthOfGod.UI
             else UnityEngine.Object.DestroyImmediate(obj);
         }
 
-        // アイコンがあれば絵だけ、無ければ文字を出す。
         Color Faded(Color color) => new Color(color.r, color.g, color.b, _backgroundOpacity);
 
-        // しっぽ: 背景の下の辺から、村人の方へ向く三角。背景と同じマテリアルなので、色も一緒に変わる。
-        // 四角を回して作ると背景と重なって、透けたときに重なりが濃く見えるので、三角の形を作る。
-        static void AddTail(Transform root, float backHeight, Material material)
+        /// <summary>
+        /// 吹き出しの形（角の丸い四角と、下の辺の真ん中から出るしっぽ）の Mesh を作る。中心が原点。
+        /// しっぽを別の物にすると、透けたときに四角との重なりが濃く見えるので、重ならない 1 つの形にする。
+        /// </summary>
+        internal static Mesh BuildShape(float width, float height)
         {
-            var tail = new GameObject("Tail");
-            tail.transform.SetParent(root, false);
-            tail.transform.localPosition = new Vector3(0f, -backHeight / 2f, 0.01f);
-            tail.AddComponent<MeshFilter>().sharedMesh = TailMesh();
-            tail.AddComponent<MeshRenderer>().sharedMaterial = material;
-        }
-
-        static Mesh TailMesh()
-        {
-            if (_tailMesh != null) return _tailMesh;
-            _tailMesh = new Mesh { name = "Bubble Tail", hideFlags = HideFlags.DontSave };
-            _tailMesh.vertices = new[]
+            float radius = Mathf.Min(CornerRadius, width / 2f, height / 2f);
+            float halfW = width / 2f - radius;
+            float halfH = height / 2f - radius;
+            var vertices = new List<Vector3> { Vector3.zero };
+            // 角の丸い四角の縁。右上の角から時計回り（カメラ側から見て）。
+            var corners = new[] { new Vector2(halfW, halfH), new Vector2(halfW, -halfH), new Vector2(-halfW, -halfH), new Vector2(-halfW, halfH) };
+            for (int c = 0; c < 4; c++)
             {
-                new Vector3(-TailWidth / 2f, 0f, 0f),
-                new Vector3(TailWidth / 2f, 0f, 0f),
-                new Vector3(0f, -TailHeight, 0f),
-            };
-            _tailMesh.triangles = new[] { 0, 1, 2 }; // カメラ側（-Z）から見て時計回り
-            _tailMesh.RecalculateBounds();
-            return _tailMesh;
+                float start = 90f - 90f * c;
+                for (int i = 0; i <= CornerSegments; i++)
+                {
+                    float angle = (start - 90f * i / CornerSegments) * Mathf.Deg2Rad;
+                    vertices.Add(new Vector3(corners[c].x + Mathf.Cos(angle) * radius, corners[c].y + Mathf.Sin(angle) * radius, 0f));
+                }
+            }
+            var triangles = new List<int>();
+            int rim = vertices.Count - 1;
+            for (int i = 1; i <= rim; i++) triangles.AddRange(new[] { 0, i, i % rim + 1 });
+
+            // しっぽ（下の辺から、村人の方を指す三角）
+            int tail = vertices.Count;
+            vertices.Add(new Vector3(-TailWidth / 2f, -height / 2f, 0f));
+            vertices.Add(new Vector3(TailWidth / 2f, -height / 2f, 0f));
+            vertices.Add(new Vector3(0f, -height / 2f - TailHeight, 0f));
+            triangles.AddRange(new[] { tail, tail + 1, tail + 2 });
+
+            var mesh = new Mesh { name = "Bubble Shape", hideFlags = HideFlags.DontSave };
+            mesh.SetVertices(vertices);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateBounds();
+            return mesh;
         }
 
+        // アイコンがあれば絵だけ、無ければ文字を出す。
         Bubble Create(RequestIssued request)
         {
             Shader shader = Shader.Find("Sprites/Default");
@@ -282,22 +298,21 @@ namespace MouthOfGod.UI
             root.transform.SetParent(transform, false); // Anchor の子にしない（ミニチュアの拡大縮小を受けないため）
             root.transform.localScale = Vector3.one * _size;
 
-            // 背景（アイコンなら正方形、文字なら文字の長さに合わせた Quad）
-            var back = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            back.name = "Background";
-            DestroySafely(back.GetComponent<Collider>());
+            // 背景（角の丸い四角としっぽ）。アイコンなら正方形、文字なら文字の長さに合わせる。
+            Vector2 backSize = icon != null
+                ? new Vector2(IconSize + IconPadding * 2f, IconSize + IconPadding * 2f)
+                : new Vector2(text.Length * CharWidth + Padding * 2f, LineHeight + Padding);
+            Mesh shape = BuildShape(backSize.x, backSize.y);
+            var back = new GameObject("Background");
             back.transform.SetParent(root.transform, false);
             back.transform.localPosition = new Vector3(0f, 0f, 0.01f); // 文字の奥
-            back.transform.localScale = icon != null
-                ? new Vector3(IconSize + Padding, IconSize + Padding, 1f)
-                : new Vector3(text.Length * CharWidth + Padding * 2f, LineHeight + Padding, 1f);
-            var backRenderer = back.GetComponent<Renderer>();
+            back.AddComponent<MeshFilter>().sharedMesh = shape;
+            var backRenderer = back.AddComponent<MeshRenderer>();
             Material backMaterial = null;
             if (shader != null)
             {
                 backMaterial = new Material(shader) { color = Faded(OpenColor), renderQueue = 3000 };
                 backRenderer.sharedMaterial = backMaterial;
-                AddTail(root.transform, back.transform.localScale.y, backMaterial);
             }
             else
             {
@@ -340,6 +355,7 @@ namespace MouthOfGod.UI
                 Root = root,
                 Anchor = request.Anchor,
                 Background = backRenderer,
+                Shape = shape,
                 BackgroundMaterial = backMaterial,
                 TextMaterial = textMaterial,
                 IconMaterial = iconMaterial,
