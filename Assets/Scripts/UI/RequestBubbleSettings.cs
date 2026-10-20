@@ -53,7 +53,10 @@ namespace MouthOfGod.UI
         public static RequestBubbleSettings Load()
         {
             var asset = Resources.Load<RequestBubbleSettings>(ResourceName);
-            return asset != null ? asset : CreateInstance<RequestBubbleSettings>();
+            if (asset != null) return asset;
+            var defaults = CreateInstance<RequestBubbleSettings>();
+            defaults.hideFlags = HideFlags.DontSave; // アセットが無いときの既定値。保存しない
+            return defaults;
         }
     }
 }

@@ -90,7 +90,6 @@ namespace MouthOfGod.UI
         {
             public GameObject Root;
             public Transform Anchor;
-            public Renderer Background;
             public Material BackgroundMaterial;
             public Material TextMaterial;
             public Material IconMaterial;
@@ -339,7 +338,6 @@ namespace MouthOfGod.UI
             {
                 Root = root,
                 Anchor = request.Anchor,
-                Background = backRenderer,
                 Shape = shape,
                 BackgroundMaterial = backMaterial,
                 TextMaterial = textMaterial,
