@@ -306,6 +306,8 @@ Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで
 - **データ（ScriptableObject）の置き場所は `Assets/Resources/Data/<種類>/`**。種類は `Fields/`。起動時に、フォルダごと `Resources` から読み込む。1 件 = 1 アセットで、全部を入れた 1 つのリストは作らない。
 - 全員で触る 1 つのリストは作らない。「食感 → 食べ物」の対応は、共通の表と、フィールドごとの専用の表（`FoodTable`）に分ける（2026-10-19 の [決めたことの記録](docs/decisions.md)）。
 - **`Resources/` には、起動時に読むデータと Prefab だけを置く**。`Resources/` の中身は、使わなくてもビルドに入り、起動時間とビルドの大きさに効く。素材（モデル、テクスチャ、音）は `Assets/ArtisticResources/` など `Resources/` の外に置き、Prefab から参照する。置き場所は、上の `Data/<種類>/` と `Prefabs/<Feature>/` のどちらかにそろえる。新しいフォルダを足すときは、ここに 1 行足す。
+- **`Resources/Icons/<Feature>/`** には、起動時に読むアイコンの画像を置きます。いまあるのは `Icons/Food/` だけです。食べ物の Prefab を写した PNG で、ファイル名が食べ物の ID です。村人の吹き出しが読みます。作り方は、メニューの **MouthOfGod > Food > Generate Icons** です。
+- **`Resources/` の直下**には、機能ごとの設定のアセットを 1 つずつ置きます（`AprilTagSettings.asset`・`RequestBubbleSettings.asset`）。アセットが無ければ、コードの既定値で動きます。
 
 ### 書き方
 - **既定は `private`**。他の機能から呼ばせるものだけを `public` にする。Inspector に出したいだけなら `[SerializeField] private` を使う。

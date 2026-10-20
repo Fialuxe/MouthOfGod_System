@@ -32,6 +32,12 @@ namespace MouthOfGod.UI
             return string.IsNullOrEmpty(name) ? DisplayName(food) : name;
         }
 
+        /// <summary>
+        /// 食べ物のアイコンの Resources の場所（"Icons/Food/fish"）。アイコンは、Food のメニュー「MouthOfGod/Food/Generate Icons」で作る。
+        /// ファイル名が食べ物の ID なのは、食べ物の Prefab と同じ決まり。空 ID は null。
+        /// </summary>
+        public static string IconPath(FoodId food) => food.IsEmpty ? null : "Icons/Food/" + food.Value;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics()
         {
@@ -40,30 +46,25 @@ namespace MouthOfGod.UI
     }
 
     /// <summary>
-    /// 村人の欲しい物を、頭の上の吹き出し（文字だけ）で見せる（#59）。Play で自動で置かれるので、手で置かなくてよい。
+    /// 村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。食べ物のアイコンがあれば絵を、無ければ英語の名前を出す。Play で自動で置かれるので、手で置かなくてよい。
     /// <see cref="Fields"/> のフィールドの Issued で <see cref="RequestIssued.Anchor"/> の上に出し、Closed で消す（届いたか・待ちきれなかったかで色を変えて、少しだけ見せてから消す）。
     /// Village の型は参照しない。Prefab もシーンも使わず、子の物をコードで作る。
     /// 遠くの村人への気づき方（見えない位置の村人をどう知らせるか）は別 Issue。
     /// </summary>
     public class RequestBubbles : MonoBehaviour
     {
-        [Tooltip("吹き出し全体の大きさ（ワールドでの倍率）。ミニチュアに合わせて直す")]
-        [SerializeField] float _size = 0.1f;
-
-        [Tooltip("Anchor からの高さ（m）")]
-        [SerializeField] float _height = 0.15f;
-
-        [Tooltip("終わったあと、色を変えて残す秒数")]
-        [SerializeField] float _closedHoldSeconds = 0.6f;
-
-        static readonly Color OpenColor = new Color(1f, 0.95f, 0.7f, 0.95f);
-        static readonly Color ResolvedColor = new Color(0.6f, 0.95f, 0.6f, 0.95f);
-        static readonly Color UnresolvedColor = new Color(0.8f, 0.8f, 0.8f, 0.95f);
+        // 大きさ・高さ・色などは、誰でも直せるように設定のアセットに持つ（RequestBubbleSettings）。
+        RequestBubbleSettings _settings;
+        RequestBubbleSettings Settings => _settings != null ? _settings : _settings = RequestBubbleSettings.Load();
 
         // 文字の大きさの目安（TextMesh: fontSize 64 × characterSize 0.1 のとき）。Play で見て直す。
         const float CharWidth = 0.35f;
         const float LineHeight = 0.7f;
         const float Padding = 0.3f;
+        const float IconSize = 1.2f; // アイコンの一辺（吹き出しの中の大きさ。文字 1 行の高さの約 2 倍）
+        const int CornerSegments = 6; // 角の丸みを何本の線で作るか
+        const float TailWidth = 0.4f; // しっぽ（話している人を指す三角）の幅
+        const float TailHeight = 0.35f;
 
         static bool _placed;
 
@@ -89,9 +90,10 @@ namespace MouthOfGod.UI
         {
             public GameObject Root;
             public Transform Anchor;
-            public Renderer Background;
             public Material BackgroundMaterial;
             public Material TextMaterial;
+            public Material IconMaterial;
+            public Mesh Shape;
             public float DestroyAt;
         }
 
@@ -189,8 +191,8 @@ namespace MouthOfGod.UI
         {
             if (!_open.TryGetValue(closed.Field, out Bubble bubble)) return;
             _open.Remove(closed.Field);
-            if (bubble.BackgroundMaterial != null) bubble.BackgroundMaterial.color = closed.Resolved ? ResolvedColor : UnresolvedColor;
-            bubble.DestroyAt = Time.time + _closedHoldSeconds;
+            if (bubble.BackgroundMaterial != null) bubble.BackgroundMaterial.color = Faded(closed.Resolved ? Settings.ResolvedColor : Settings.UnresolvedColor);
+            bubble.DestroyAt = Time.time + Settings.ClosedHoldSeconds;
             _closing.Add(bubble);
         }
 
@@ -213,6 +215,8 @@ namespace MouthOfGod.UI
         {
             if (bubble.BackgroundMaterial != null) DestroySafely(bubble.BackgroundMaterial);
             if (bubble.TextMaterial != null) DestroySafely(bubble.TextMaterial);
+            if (bubble.IconMaterial != null) DestroySafely(bubble.IconMaterial);
+            if (bubble.Shape != null) DestroySafely(bubble.Shape);
             if (bubble.Root != null) DestroySafely(bubble.Root);
         }
 
@@ -223,29 +227,75 @@ namespace MouthOfGod.UI
             else UnityEngine.Object.DestroyImmediate(obj);
         }
 
+        Color Faded(Color color) => new Color(color.r, color.g, color.b, Settings.BackgroundOpacity);
+
+        /// <summary>
+        /// 吹き出しの形（角の丸い四角と、下の辺の真ん中から出るしっぽ）の Mesh を作る。中心が原点。
+        /// しっぽを別の物にすると、透けたときに四角との重なりが濃く見えるので、重ならない 1 つの形にする。
+        /// </summary>
+        internal static Mesh BuildShape(float width, float height, float cornerRadius)
+        {
+            float radius = Mathf.Min(cornerRadius, width / 2f, height / 2f);
+            float halfW = width / 2f - radius;
+            float halfH = height / 2f - radius;
+            var vertices = new List<Vector3> { Vector3.zero };
+            // 角の丸い四角の縁。右上の角から時計回り（カメラ側から見て）。
+            var corners = new[] { new Vector2(halfW, halfH), new Vector2(halfW, -halfH), new Vector2(-halfW, -halfH), new Vector2(-halfW, halfH) };
+            for (int c = 0; c < 4; c++)
+            {
+                float start = 90f - 90f * c;
+                for (int i = 0; i <= CornerSegments; i++)
+                {
+                    float angle = (start - 90f * i / CornerSegments) * Mathf.Deg2Rad;
+                    vertices.Add(new Vector3(corners[c].x + Mathf.Cos(angle) * radius, corners[c].y + Mathf.Sin(angle) * radius, 0f));
+                }
+            }
+            var triangles = new List<int>();
+            int rim = vertices.Count - 1;
+            for (int i = 1; i <= rim; i++) triangles.AddRange(new[] { 0, i, i % rim + 1 });
+
+            // しっぽ（下の辺から、村人の方を指す三角）
+            int tail = vertices.Count;
+            vertices.Add(new Vector3(-TailWidth / 2f, -height / 2f, 0f));
+            vertices.Add(new Vector3(TailWidth / 2f, -height / 2f, 0f));
+            vertices.Add(new Vector3(0f, -height / 2f - TailHeight, 0f));
+            triangles.AddRange(new[] { tail, tail + 1, tail + 2 });
+
+            var mesh = new Mesh { name = "Bubble Shape", hideFlags = HideFlags.DontSave };
+            mesh.SetVertices(vertices);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        // アイコンがあれば絵だけ、無ければ文字を出す。
         Bubble Create(RequestIssued request)
         {
+            Shader shader = Shader.Find("Sprites/Default");
+            // アイコンは Sprites/Default でだけ描ける（代わりの Unlit/Color は絵を貼れない）。
+            string iconPath = shader != null ? RequestBubbleText.IconPath(request.Food) : null;
+            Texture2D icon = iconPath != null ? Resources.Load<Texture2D>(iconPath) : null;
+            if (shader == null) shader = Shader.Find("Unlit/Color");
             string text = RequestBubbleText.Resolve(request.Food);
             if (_font == null) _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             var root = new GameObject($"Bubble {request.Field}");
             root.transform.SetParent(transform, false); // Anchor の子にしない（ミニチュアの拡大縮小を受けないため）
-            root.transform.localScale = Vector3.one * _size;
-
-            // 背景（文字の長さに合わせた Quad）
-            var back = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            back.name = "Background";
-            DestroySafely(back.GetComponent<Collider>());
+            
+            // 背景（角の丸い四角としっぽ）。アイコンなら正方形、文字なら文字の長さに合わせる。
+            Vector2 backSize = icon != null
+                ? new Vector2(IconSize + Settings.IconPadding * 2f, IconSize + Settings.IconPadding * 2f)
+                : new Vector2(text.Length * CharWidth + Padding * 2f, LineHeight + Padding);
+            Mesh shape = BuildShape(backSize.x, backSize.y, Settings.CornerRadius);
+            var back = new GameObject("Background");
             back.transform.SetParent(root.transform, false);
             back.transform.localPosition = new Vector3(0f, 0f, 0.01f); // 文字の奥
-            back.transform.localScale = new Vector3(text.Length * CharWidth + Padding * 2f, LineHeight + Padding, 1f);
-            var backRenderer = back.GetComponent<Renderer>();
+            back.AddComponent<MeshFilter>().sharedMesh = shape;
+            var backRenderer = back.AddComponent<MeshRenderer>();
             Material backMaterial = null;
-            Shader shader = Shader.Find("Sprites/Default");
-            if (shader == null) shader = Shader.Find("Unlit/Color");
             if (shader != null)
             {
-                backMaterial = new Material(shader) { color = OpenColor, renderQueue = 3000 };
+                backMaterial = new Material(shader) { color = Faded(Settings.OpenColor), renderQueue = 3000 };
                 backRenderer.sharedMaterial = backMaterial;
             }
             else
@@ -254,27 +304,44 @@ namespace MouthOfGod.UI
                 backRenderer.enabled = false;
             }
 
-            // 文字
-            var label = new GameObject("Text");
-            label.transform.SetParent(root.transform, false);
-            var mesh = label.AddComponent<TextMesh>();
-            mesh.text = text;
-            mesh.font = _font;
-            mesh.fontSize = 64;
-            mesh.characterSize = 0.1f;
-            mesh.anchor = TextAnchor.MiddleCenter;
-            mesh.alignment = TextAlignment.Center;
-            mesh.color = Color.black;
-            var textMaterial = new Material(_font.material) { renderQueue = 3001 };
-            label.GetComponent<MeshRenderer>().sharedMaterial = textMaterial;
+            Material textMaterial = null;
+            Material iconMaterial = null;
+            if (icon != null)
+            {
+                // アイコン（背景の手前の Quad）
+                var picture = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                picture.name = "Icon";
+                DestroySafely(picture.GetComponent<Collider>());
+                picture.transform.SetParent(root.transform, false);
+                picture.transform.localScale = new Vector3(IconSize, IconSize, 1f);
+                iconMaterial = new Material(shader) { mainTexture = icon, color = Color.white, renderQueue = 3001 };
+                picture.GetComponent<Renderer>().sharedMaterial = iconMaterial;
+            }
+            else
+            {
+                // 文字
+                var label = new GameObject("Text");
+                label.transform.SetParent(root.transform, false);
+                var mesh = label.AddComponent<TextMesh>();
+                mesh.text = text;
+                mesh.font = _font;
+                mesh.fontSize = 64;
+                mesh.characterSize = 0.1f;
+                mesh.anchor = TextAnchor.MiddleCenter;
+                mesh.alignment = TextAlignment.Center;
+                mesh.color = Color.black;
+                textMaterial = new Material(_font.material) { renderQueue = 3001 };
+                label.GetComponent<MeshRenderer>().sharedMaterial = textMaterial;
+            }
 
             var bubble = new Bubble
             {
                 Root = root,
                 Anchor = request.Anchor,
-                Background = backRenderer,
+                Shape = shape,
                 BackgroundMaterial = backMaterial,
                 TextMaterial = textMaterial,
+                IconMaterial = iconMaterial,
             };
             Place(bubble, GetCamera());
             return bubble;
@@ -307,8 +374,9 @@ namespace MouthOfGod.UI
                 bubble.Root.SetActive(false);
                 return;
             }
-            Vector3 position = bubble.Anchor.position + Vector3.up * _height;
+            Vector3 position = bubble.Anchor.position + Vector3.up * Settings.Height;
             bubble.Root.transform.position = position;
+            bubble.Root.transform.localScale = Vector3.one * Settings.Size; // 毎フレーム読むので、Play 中に設定を直しても効く
             if (cam != null)
             {
                 Vector3 away = position - cam.transform.position;

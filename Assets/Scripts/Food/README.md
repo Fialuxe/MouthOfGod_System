@@ -18,7 +18,7 @@
 ## 使い方
 
 1. シーンの空のオブジェクトに `FoodSpawner` と `FoodTable` を付ける。`FoodTable` の Field Id は空のまま。
-2. 食べ物の Prefab を `Assets/Resources/Prefabs/Food/` に置く。**Prefab のファイル名が、食べ物の ID（`FoodId`）になる**。`FieldStep` の欲しい物（Food）と同じ文字にする。飛ばしたいときは、Prefab に Rigidbody を付ける（Mass・Drag で動きが変わる）。いまある `carrot`・`pumpkin`・`sheep`・`pig`・`apple`・`fish`・`cow` は、メニューの **MouthOfGod > Food > Generate Prefabs**（`Editor/FoodPrefabGenerator.cs`）で素材から作ったものです。大きさを変えるときは、そのスクリプトの表を直し、Prefab を消してから作り直します。
+2. 食べ物の Prefab を `Assets/Resources/Prefabs/Food/` に置く。**Prefab のファイル名が、食べ物の ID（`FoodId`）になる**。`FieldStep` の欲しい物（Food）と同じ文字にする。飛ばしたいときは、Prefab に Rigidbody を付ける（Mass・Drag で動きが変わる）。いまある `carrot`・`pumpkin`・`sheep`・`pig`・`apple`・`fish`・`cow` は、メニューの **MouthOfGod > Food > Generate Prefabs**（`Editor/FoodPrefabGenerator.cs`）で素材から作ったものです。大きさを変えるときは、そのスクリプトの表を直し、Prefab を消してから作り直します。村人の吹き出しに出すアイコンは、メニューの **MouthOfGod > Food > Generate Icons**（`Editor/FoodIconGenerator.cs`）で、Prefab を写して `Assets/Resources/Icons/Food/` に作ります。既にあるアイコンは上書きしません。手で描いたアイコンを使いたいときは、食べ物の ID と同じ名前の PNG を、そのフォルダに置きます。Prefab を直してアイコンを作り直すときは、Project でその Prefab を選び、右クリックの **MouthOfGod > Food > Generate Icon From Selected** を使います。
 3. `FoodTable` の Rows に、1 行ずつ足す。Texture に食感の ID、Food に Prefab をドラッグする。デバイスなしで試すときの食感は、`MockDevice` の `placeholder-a` `placeholder-b` `placeholder-c`。
 4. フィールドごとに変えたいときだけ、そのフィールドの Prefab に `FoodTable` を付け、Field Id にフィールドの ID を入れ、変えたい食感の行だけ足す。ほかの食感は共通の表が使われる。
 5. **共通の表はなくてもよい**（なければ、専用の表にない食感は何も生まれない）。
