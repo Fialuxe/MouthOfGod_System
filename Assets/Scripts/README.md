@@ -6,8 +6,9 @@
 
 | フォルダ | 役割 | 担当 |
 |---|---|---|
-| `Core/` | 全体で共有する小さな基盤（ID の型 `TextureId` `FoodId` `FieldId` `CueId`、イベントのデータ、約束（`IDevice`・`IFieldRequests`）と受け取り口（`Devices`・`Fields`））。他のフォルダに依存しない | |
+| `Core/` | 全体で共有する小さな基盤（ID の型 `TextureId` `FoodId` `FieldId` `CueId`、イベントのデータ、約束（`IDevice`・`IFork`・`IFieldRequests`）と受け取り口（`Devices`・`Forks`・`Fields`））。他のフォルダに依存しない | |
 | `Device/` | 触感デバイス・Arduino との通信。いまは、キーボードで動く `MockDevice`（`IDevice` の擬似実装） | |
+| `Fork/` | 体験者が持つフォークで、雲を刺したか・先を口に含んだかの判定（`ForkTip`）と、刺せる雲（`Cloud`・`CloudRing`）。フォークの位置の取り方は知らない | |
 | `Food/` | 食感 → 食べ物の対応（`FoodTable`）と、決定したときに食べ物を生んで飛ばす `FoodSpawner` | |
 | `Tracking/` | VR・位置取得 | |
 | `Tutorial/` | チュートリアル 1〜4 の進行。チュートリアルごとの人形劇スクリプト（`TutorialScript`）と、順に動かす `TutorialRunner` | |
@@ -31,7 +32,8 @@
 | `Fields` | **いまある場所の一覧**。場所は自分でここに名乗り出る。ほかの人は、ここから場所を受け取る | 使うだけ |
 | `IFieldRequests` | **場所に頼めることの約束**（「次の欲しい物を出して」「この物が届いた」「やり直して」）。`Fields` から受け取る場所は、すべてこの約束を守っている | 使うだけ（作るのは、場所の仕組みごと独自にする人だけ） |
 | `RequestIssued` / `RequestClosed` | **「吹き出しが出た」「吹き出しが終わった」の知らせ**の中身（何を・どこで・届いたか） | 受け取るだけ |
-| `Devices` / `IDevice` | **フォーク（触感デバイス）**。噛んだ・食感が変わった・決定した、を知らせる。実機が無ければ Mock が代わる | 使うだけ（作るのは Device の担当だけ） |
+| `Devices` / `IDevice` | **フォーク（触感デバイス）の中身**。噛んだ・食感が変わった・決定した、を知らせる。実機が無ければ Mock が代わる | 使うだけ（作るのは Device の担当だけ） |
+| `Forks` / `IFork` | **フォークの先の位置**。雲を刺した・先を口に含んだ、を知らせる。噛む・決定するは `IDevice` が知らせる | 使うだけ（作るのは Fork の担当だけ） |
 | `FoodId` / `FieldId` / `TextureId` / `CueId` | **名前札**（`carrot`、`sea` など）。文字列を、取り違えないように包んだもの | 使うだけ |
 
 `I` で始まる名前（`IFieldRequests`・`IDevice`）は「約束」（interface）。**ほとんどの人は使うだけで、自分で作らない。** 中身を知らなくても使えるようにするためにある（村の作りが変わっても、本編や吹き出しのコードは直さなくてよい）。
