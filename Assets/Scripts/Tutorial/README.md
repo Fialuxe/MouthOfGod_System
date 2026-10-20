@@ -13,7 +13,7 @@
 | `TutorialScript` | 人形劇スクリプトの土台。継いだクラスを、チュートリアルごとに 1 つ書く（`T1.cs` …）。`Phase`（場面の名前）と `Play()`（流れ。コルーチン）を書く |
 | `TutorialRunner` | 子の `TutorialScript` を Hierarchy の並び順に 1 つずつ動かす。無効にしたスクリプトは飛ばす（特定のチュートリアルだけを試せる）。例外が出たら、そのスクリプトだけをやめて次へ進む。`Begin()` で始め、`Stop()` でやめる |
 | `TutorialMemory` | チュートリアルのあいだで引き継ぐ「覚えたこと」。名前だけ。`Has(名前)`・`Set(名前)` |
-| `DeliveryWait` / `ConfirmWait` / `AnyWait` | `yield return` で待つもの。物の届き、デバイスでの決定、どれか早いほう。時間切れも付けられる |
+| `DeliveryWait` / `ConfirmWait` / `ForkWait` / `AnyWait` | `yield return` で待つもの。物の届き、デバイスでの決定、フォークで雲を刺す・口に含む（`WaitForPierce`・`WaitForMouth`）、どれか早いほう。時間切れも付けられる |
 
 ## 人形劇スクリプトの書き方
 
@@ -62,7 +62,7 @@ public sealed class SeaReaction : MonoBehaviour
 
 ## まだないもの
 
-- T1〜T4 の中身。待つ相手が未完成: 雲を刺す・口に含む判定（#40）、食べ物が生まれた知らせを受ける Core の置き場（`FoodSpawner.Spawned` は Food の中にある）。使う側ができたときに足す。
+- T1〜T4 の中身。待つ相手が未完成: 食べ物が生まれた知らせを受ける Core の置き場（`FoodSpawner.Spawned` は Food の中にある）。使う側ができたときに足す。
 - `Begin`・`Stop` の Unity での確認。
 
 ## テスト

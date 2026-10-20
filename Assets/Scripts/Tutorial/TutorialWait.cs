@@ -144,6 +144,58 @@ namespace MouthOfGod.Tutorial
     }
 
     /// <summary>
+    /// フォークで雲を刺すのを待つ（<see cref="ForkGoal.Pierce"/>）。または、雲のかけらが付いたフォークの先を、口に含むのを待つ（<see cref="ForkGoal.Mouth"/>）。
+    /// 待ち始めたときに、もうその状態なら、すぐ終わる。
+    /// </summary>
+    public sealed class ForkWait : TutorialWait
+    {
+        readonly ForkGoal _goal;
+        IFork _fork;
+
+        internal ForkWait(ForkGoal goal, float timeoutSeconds, Func<float> clock) : base(timeoutSeconds, clock)
+        {
+            _goal = goal;
+            Forks.WhenReady(Bind); // フォークがあとから用意されても聞く
+        }
+
+        void Bind(IFork fork)
+        {
+            if (IsDone) return;
+            _fork = fork;
+            _fork.Pierced += OnChanged;
+            _fork.MouthEntered += OnChanged;
+            OnChanged();
+        }
+
+        void OnChanged()
+        {
+            if (IsDone || _fork == null) return;
+            bool reached = _goal == ForkGoal.Pierce ? _fork.IsLoaded : _fork.IsLoaded && _fork.InMouth;
+            if (reached) Complete();
+        }
+
+        protected override void Unsubscribe()
+        {
+            Forks.CancelWhenReady(Bind);
+            if (_fork != null)
+            {
+                _fork.Pierced -= OnChanged;
+                _fork.MouthEntered -= OnChanged;
+            }
+            _fork = null;
+        }
+    }
+
+    /// <summary><see cref="ForkWait"/> が待つもの。</summary>
+    public enum ForkGoal
+    {
+        /// <summary>雲を刺して、先にかけらが付いた。</summary>
+        Pierce,
+        /// <summary>かけらが付いた先を、口に含んだ。</summary>
+        Mouth,
+    }
+
+    /// <summary>
     /// 渡した待ちのうち、どれかが終わるのを待つ。終わったら、ほかの待ちは取り消す。
     /// 終わったあとの <see cref="Index"/> が、最初に終わった待ちの番号（0 から）。
     /// 同じフレームに複数が終わったときは、先に渡したほうを選ぶ。

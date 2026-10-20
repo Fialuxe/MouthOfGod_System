@@ -41,6 +41,14 @@ namespace MouthOfGod.Tutorial
         protected ConfirmWait WaitForConfirm(float timeoutSeconds = 0f)
             => Track(new ConfirmWait(timeoutSeconds, null));
 
+        /// <summary>フォークで雲を刺すのを待つ。もう刺していれば、すぐ終わる。timeoutSeconds が 0 なら、時間切れはない。</summary>
+        protected ForkWait WaitForPierce(float timeoutSeconds = 0f)
+            => Track(new ForkWait(ForkGoal.Pierce, timeoutSeconds, null));
+
+        /// <summary>雲のかけらが付いたフォークの先を、口に含むのを待つ。もう含んでいれば、すぐ終わる。timeoutSeconds が 0 なら、時間切れはない。</summary>
+        protected ForkWait WaitForMouth(float timeoutSeconds = 0f)
+            => Track(new ForkWait(ForkGoal.Mouth, timeoutSeconds, null));
+
         /// <summary>渡した待ちのうち、どれかが終わるのを待つ。終わったら、ほかは取り消す。</summary>
         protected AnyWait WaitForAny(params TutorialWait[] waits) => new AnyWait(waits);
 
