@@ -13,7 +13,7 @@ PC に Quest を接続し、Unity の Play 中に PC 側で描画する構成。
 
 - どちらも Unity 6000.0 対応で、Unity のパッケージレジストリで取得できる（2026-10 時点で確認）。
 - **MRUK と Core のバージョンは必ず揃える**（MRUK 207.0.0 は Core 207.0.0 に依存）。上げるときは両方を同時に上げる。
-- OpenXR / XR Interaction Toolkit は、今は使わない。Meta XR SDK の機能（パススルー、MRUK）を使う方針のため。
+- XR Interaction Toolkit は、今は使いません。Meta XR SDK の機能（パススルー、MRUK）を使う方針のためです。OpenXR は、Core SDK を動かす経路として有効にします（手順 3）。
 
 ## 手順
 1. **PC 側**: Meta Quest Link アプリを入れ、Quest を接続する。
@@ -71,4 +71,4 @@ Play 時に次の警告が大量に出る。いずれも `LogWarning` で、エ�
 - **アプリのビルド**: 今は PC 描画（Link）を前提にしている。Quest 単体ビルド（Android）にする場合は、別途設定が要る。
 
 ## 位置取得について
-コントローラーや部屋の情報で、プレイヤーの位置や指す場所を取得する。実装は `Assets/Scripts/Tracking/` に置く（CONTRIBUTING.md「6. スクリプト方針」）。旧プロジェクト MealBeBack は Vive トラッカーを使っていたが、今回は Quest が前提。
+体験者の頭の位置は Quest から取ります。フォークの位置は、手（ハンドトラッキング）と AprilTag から推定します。実装は `Assets/Scripts/Tracking/` に置く（CONTRIBUTING.md「6. スクリプト方針」）。旧プロジェクト MealBeBack は Vive トラッカーを使っていたが、今回は Quest が前提。

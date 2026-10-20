@@ -25,7 +25,7 @@
 
 ## スキルは、リポジトリにある
 
-3 つのスキル（`mtg-agenda`・`mtg-sync`・`issue-hygiene`）は、リポジトリの `.claude/skills/` にある。ルーティンに**リポジトリを足せば、スキルは自動で読み込まれる**。ルーティンに入れるのは、上の指示文だけ。
+スキル（`mtg-agenda`・`mtg-sync`・`issue-hygiene`・`dev-loop`・`merge-check`・`clarify-reply` など）は、リポジトリの `.claude/skills/` にある。ルーティンに**リポジトリを足せば、スキルは自動で読み込まれる**。ルーティンに入れるのは、上の指示文だけ。
 
 ## 日本語チェックも、リポジトリにある
 

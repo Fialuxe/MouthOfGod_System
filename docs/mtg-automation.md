@@ -8,7 +8,7 @@ MTG の録音から、議事録・Issue の片づけ・議事録の PR までを
 水曜    ルーティン (mtg-agenda)   金曜 MTG の議題 Issue を作る
 MTG 前  余裕があれば各自          議題 Issue に、話したいことをひとことコメント
 金曜    MTG                       議題を上から話して、その場で決める。録音する
-金曜    録音 → inbox に置く → run.ps1 を実行して帰る
+金曜    録音 → Google ドライブの mtg-inbox に置く（あとはクラウドが進める。PC の run.ps1 は予備）
           ├ transcribe.ps1  音量の正規化 → faster-whisper (large-v3) で文字起こし
           ├ clean.py        幻覚・繰り返しの除去、corrections.tsv の置換
           └ Claude (mtg-sync)  校正 → 議事録コメント → Issue の片づけ → 議事録の PR
@@ -95,7 +95,7 @@ GitHub の Secrets `MTG_ROUTINE_URL`・`MTG_ROUTINE_TOKEN`（Claude のルーテ
 
 以下は PC が作る場合（予備）の説明。
 
-議事録の生成（`mtg-sync`、Claude）は、いまは PC で動く。クラウドが文字起こしを保存すると、`<名前>.minutes.pending` の印が残る。**PC の見張り（`watch.ps1`）は、10 分おきに非公開リポジトリを更新して、この印がある文字起こしから、議事録だけを作る**（`run.ps1 -FromTranscript <文字起こしのパス>`。録音と文字起こしはやり直さない）。
+PC が議事録を作るのは、ルーティンが動かないときだけです。クラウドが文字起こしを保存すると、`<名前>.minutes.pending` の印が残る。**PC の見張り（`watch.ps1`）は、10 分おきに非公開リポジトリを更新して、この印がある文字起こしから、議事録だけを作る**（`run.ps1 -FromTranscript <文字起こしのパス>`。録音と文字起こしはやり直さない）。
 
 - 成功すると、印は `.minutes.done` に変わる（コミットして push する）。失敗すると、`attempts` を増やして残し、次の回にやり直す。**3 回失敗すると `.minutes.failed` になり、もう試さない**（直したら、このファイルを消して `.minutes.pending` を作り直す）
 - 試運転（`-Real` なし）では、提案書（`*.proposal.md`）を作るだけで、印は変えない（同じ文字起こしでは、1 回だけ作る）

@@ -21,8 +21,9 @@
 | 魚 | Quaternius Animated Fish Pack | 入れた |
 | 村人 | Quaternius Ultimate Animated Character Pack（52 体、歩く・座る・物を運ぶなどのアニメーション付き） | 入れた |
 | 川・海の水 | Uber Stylized Water（MIT、URP）。`Prefabs/Water Template/` のテンプレートから選ぶ。暗い色のもの以外は使いやすい | 入れた |
-| 山・地面 | Unity の Terrain で作る案 | 案 |
-| 木 | 未決（候補: Kenney Nature Kit、CC0） | 未決 |
+| 山・地面 | Unity の Terrain で作ります。山のフィールドで使っています | 入れた |
+| 木 | `ThirdParty/appleTree.fbx`（リンゴの木） | 入れた |
+| 巫女 | `ThirdParty/Miko-san.fbx`（#272） | 入れた |
 | 人のアバター | 用意する案（素材は未定） | 案 |
 
 ### 重さについて
