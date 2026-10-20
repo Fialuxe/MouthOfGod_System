@@ -67,8 +67,8 @@ public sealed class SeaReaction : MonoBehaviour
 ## まだないもの
 
 - T1〜T4 の中身は、まだありません。待つ相手が、まだそろっていません。
-- 食べ物が生まれた知らせを受ける置き場は、Core にまだありません。いまは `FoodSpawner.Spawned` が Food の中にあります。使う側ができたときに足します。
+- 食べ物が生まれたことを知らせる仕組みは、まだ Core にありません。今は、Food の中の `FoodSpawner.Spawned` がその役をしています。使う側ができたときに足します。
 
 ## テスト
 
-`Tests/`（EditMode）にあります。`TutorialRunnerTests` は、順に動かす決まり・例外・覚えたこと・合図を確かめます。`TutorialWaitTests` は、待ちの決まりを確かめます。Core の `Phases`・`Cues` は `Core/Tests/` にあります。
+テストは `Tests/` にあります（EditMode）。`TutorialRunnerTests` は、順に動かす決まり・例外・覚えたこと・合図を確かめます。`TutorialWaitTests` は、待ちの決まりを確かめます。Core の `Phases`・`Cues` は `Core/Tests/` にあります。

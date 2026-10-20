@@ -10,7 +10,7 @@ VR と位置の取得です。いまは、パススルーカメラの映像か�
 
 | 型 | 役割 |
 |---|---|
-| `AprilTagDetectionService` | シーンに **1 つだけ**あります。`AprilTagPlace` が必要なときに自動で作るので、手で置かなくてよいです。カメラの RGB フレームから AprilTag を検出します。検出した姿勢は、ワールド座標で公開します（`IAprilTagSource`）。読み出しと検出は重いので、タグごとではなく、ここで 1 回だけ行います |
+| `AprilTagDetectionService` | シーンに **1 つだけ**あります。`AprilTagPlace` が必要なときに自動で作るので、手で置かなくてよいです。カメラの RGB フレームから AprilTag を検出します。検出した姿勢は、ワールド座標で公開します（`IAprilTagSource`）。カメラ映像の取り込みと検出は重いので、ここで 1 回だけ行います。タグごとには行いません |
 | `AprilTagSettings` | 検出の設定（タグのサイズなど）です。`Assets/Resources/AprilTagSettings.asset` に保存します。なければ、コードの既定値で動きます |
 | `AprilTagRecalibrateInput` | タグの位置を取り直す入力です。Quest の左コントローラーの Y ボタンを 2 秒長押しするか、キーボードの R です。サービスが自動で付けます |
 | `AprilTagPlace` | **タグ 1 枚につき 1 つ**、シーンに置きます。指定した ID のタグの位置に、対象の Transform を合わせます。対象の既定は自分自身です |
@@ -75,7 +75,7 @@ VR と位置の取得です。いまは、パススルーカメラの映像か�
 
 - Link では、Developer Runtime Features を有効にします。Meta Horizon Link は v85 以上が要ります。
 - 検出結果の向きの軸は、AprilTag ライブラリの規約に従います。向きが期待と違うときは、`Local Euler Offset` で合わせます。
-- `PassthroughCameraAccess.GetCameraPose()` は、ドキュメント上はワールド座標のカメラ姿勢を返します。`OVRCameraRig` を原点から動かす・回すシーンでは、タグの位置がずれないか、実機で確かめます。
+- `PassthroughCameraAccess.GetCameraPose()` は、ドキュメント上はワールド座標のカメラ姿勢を返します。`OVRCameraRig` を原点から動かしたり回したりするシーンもあります。そのときにタグの位置がずれないかを、実機で確かめます。
 - 診断ログ（`[AprilTag]`）に、検出回数・処理時間・検出した ID が出ます。
 - サービスと設定は自動で用意されます。シーンに検出用のオブジェクトを置く必要はありません。手で置いたものが残っていても、そのまま使われます。設定は `AprilTagSettings` から読みます。
 

@@ -30,7 +30,7 @@
 - いつ欲しい物を出すかは、Game と Tutorial が決めます。
 - Game や Tutorial は、Village を直接呼びません。Core の `Fields`（置き場）から、`IFieldRequests` として受け取ります。
 - 物が落ちた場所を決める所（DeliveryZone）は、何が落ちても `IFieldRequests.Receive(food)` を呼びます。頼まれた物なら、そのステップが済みます。
-- 頼まれていない物では、フィールドは戻りません。`Received`（`Own`・`Foreign`）の知らせだけが出ます。豊作やいびつな世界などの反応は、それを受けて足します。
+- 頼まれていない物では、フィールドは戻りません。`Received`（`Own`・`Foreign`）の知らせだけが出ます。この知らせを受けて、豊作やいびつな世界などの反応を足します。
 - フィールドごとの独自の演出は、共通の部品を直さずに足します。ステップの子の物に付けたスクリプト（出たときの `OnEnable`）か、`FieldStages.StepDone` を使います。
 
 ## シーンとのつながり
