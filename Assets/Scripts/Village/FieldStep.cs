@@ -23,6 +23,9 @@ namespace MouthOfGod.Village
         [Tooltip("このステップが済むと消える物")]
         [SerializeField] GameObject[] hideWhenDone = System.Array.Empty<GameObject>();
 
+        [Tooltip("子の物が出るとき、小さい所から「ぽんっ」と大きくする。物を置くだけで効く。出方を自分で作る物には、SkipPopIn を付ける。全部やめるなら外す")]
+        [SerializeField] bool popIn = true;
+
         [Tooltip("このステップが済んだとき（音・光など）。Inspector からつなぐ")]
         [SerializeField] UnityEvent onDone = new UnityEvent();
 
@@ -46,9 +49,16 @@ namespace MouthOfGod.Village
         public void SetHideWhenDone(params GameObject[] objects) => hideWhenDone = objects;
 
         /// <summary>子の物を出す・消す。消す物は <see cref="FieldStages"/> がまとめて扱う（あとのステップの「消す」が勝つように）。</summary>
-        internal void ShowChildren(bool done)
+        internal void ShowChildren(bool done, bool celebrate = false)
         {
-            foreach (Transform child in transform) child.gameObject.SetActive(done);
+            foreach (Transform child in transform)
+            {
+                var go = child.gameObject;
+                var wasActive = go.activeSelf;
+                go.SetActive(done);
+                if (done && !wasActive && celebrate && popIn && Application.isPlaying && !go.TryGetComponent<SkipPopIn>(out _))
+                    go.AddComponent<PopInEffect>();
+            }
         }
 
         internal void RaiseDone() => onDone.Invoke();
