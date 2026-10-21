@@ -37,6 +37,7 @@ namespace MouthOfGod.Village.Editor
             { "Carrot", Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Carrot.fbx" },
             { "Turnip", Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Turnip.fbx" },
             { "Pumpkin", Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Pumpkin.fbx" },
+            { "Tomato", Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Tomato.fbx" },
         };
 
         // 村人。同じパックの人物は骨組み（CharacterArmature）が同じなので、Casual_Male のクリップと Villager.controller を共有する。
@@ -64,7 +65,15 @@ namespace MouthOfGod.Village.Editor
             { "Tree_Bare", () => CreateTree("Tree_Bare", "Tree_LeavesDry", new Color(0.55f, 0.42f, 0.22f)) },
             { "Crop_Withered", CreateWitheredCrop },
             { "Crop_Sprout", CreateSprout },
+            { RuinedHouseName, CreateRuinedHouse },
+            { "Lantern", CreateLantern },
+            { "Flowerbed", CreateFlowerbed },
         };
+
+        // 屋根が無い家。House_Sample（既にある Prefab）から、屋根の部品（名前が Roof_ で始まる物）を外して作る。
+        // 飢饉の間の家で、ステップが進むと House_Sample に差し替わる（屋根が直る）。
+        const string RuinedHouseName = "House_Ruined";
+        const string HouseSamplePath = OutputFolder + "House_Sample.prefab";
         static readonly float[] RidgeX = { -0.375f, -0.125f, 0.125f, 0.375f };
 
         // 村人のアニメーション（TPO: 飢饉の村で、食べ物を待つ → 届いたら喜ぶ）。状態の切り替えは VillagerMood。
@@ -141,7 +150,7 @@ namespace MouthOfGod.Village.Editor
             mood.WorryMark = AddWorryMark(instance);
         }
 
-        // 悩んでいる印: 頭の上の、暗い縦線 3 本（漫画の「どんより」）。頭の骨に付けて、うなだれても頭に付いてくる。
+        // 悩んでいる印: 頭の上の、暗くて太い縦線 3 本（漫画の「どんより」）。頭の骨に付けて、うなだれても頭に付いてくる。
         // 大きさは人物の背の高さに合わせる。VillageBaker は、大きさを合わせるときにこの印を数えない。印の出し入れは VillagerMood。
         static GameObject AddWorryMark(GameObject instance)
         {
@@ -153,10 +162,10 @@ namespace MouthOfGod.Village.Editor
 
             var head = FindDeep(instance.transform, "Head") ?? instance.transform;
             var mark = new GameObject(WorryMarkName);
-            mark.transform.position = new Vector3(head.position.x, bounds.max.y + height * 0.2f, head.position.z);
+            mark.transform.position = new Vector3(head.position.x, bounds.max.y + height * 0.25f, head.position.z);
             var gloom = LoadOrCreateMaterial("WorryMark", new Color(0.25f, 0.22f, 0.45f));
             for (var i = -1; i <= 1; i++)
-                Add(PrimitiveType.Cube, mark.transform, gloom, new Vector3(i * height * 0.12f, 0f, 0f), new Vector3(0.045f, 0.28f, 0.045f) * height);
+                Add(PrimitiveType.Cube, mark.transform, gloom, new Vector3(i * height * 0.2f, 0f, 0f), new Vector3(0.09f, 0.45f, 0.09f) * height);
             mark.transform.SetParent(head, worldPositionStays: true);
             return mark;
         }
@@ -258,6 +267,50 @@ namespace MouthOfGod.Village.Editor
             return root;
         }
 
+        // ランタン: 木の支柱と、暖かく光る玉。家が直ったときに戸口に出る（光って見えるが、ライトは使わない）。高さ 1。
+        static GameObject CreateLantern()
+        {
+            var root = new GameObject("Lantern");
+            var wood = LoadOrCreateMaterial("Tree_Bark", new Color(0.40f, 0.27f, 0.16f));
+            var glow = LoadOrCreateGlowMaterial("Lantern_Glow", new Color(1f, 0.75f, 0.35f));
+            Add(PrimitiveType.Cylinder, root.transform, wood, new Vector3(0f, 0.35f, 0f), new Vector3(0.08f, 0.35f, 0.08f));
+            Add(PrimitiveType.Sphere, root.transform, glow, new Vector3(0f, 0.82f, 0f), new Vector3(0.28f, 0.28f, 0.28f));
+            return root;
+        }
+
+        // 花壇: 低い土の台に、色とりどりの花。家が直ったときに出る。一辺 1。
+        static GameObject CreateFlowerbed()
+        {
+            var root = new GameObject("Flowerbed");
+            var soil = LoadOrCreateMaterial("Farmland_Soil", new Color(0.33f, 0.22f, 0.13f));
+            var leaf = LoadOrCreateMaterial("Tree_Leaves", new Color(0.30f, 0.55f, 0.25f));
+            AddBox(root.transform, soil, new Vector3(0f, 0.06f, 0f), new Vector3(1f, 0.12f, 0.5f));
+            var colors = new[] { new Color(0.95f, 0.45f, 0.5f), new Color(0.98f, 0.85f, 0.35f), new Color(0.95f, 0.95f, 0.95f), new Color(0.65f, 0.5f, 0.9f) };
+            for (var i = 0; i < 6; i++)
+            {
+                var x = -0.4f + i * 0.16f;
+                var z = (i % 2 == 0 ? -0.1f : 0.1f);
+                Add(PrimitiveType.Sphere, root.transform, leaf, new Vector3(x, 0.17f, z), new Vector3(0.12f, 0.1f, 0.12f));
+                Add(PrimitiveType.Sphere, root.transform, LoadOrCreateMaterial("Flower_" + (i % colors.Length), colors[i % colors.Length]),
+                    new Vector3(x, 0.25f, z), new Vector3(0.1f, 0.1f, 0.1f));
+            }
+            return root;
+        }
+
+        // 光る色。URP の Lit に発光を足す（ライトは増やさないので、軽い）。
+        static Material LoadOrCreateGlowMaterial(string name, Color color)
+        {
+            var material = LoadOrCreateMaterial(name, color);
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.EnableKeyword("_EMISSION");
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+                material.SetColor("_EmissionColor", color * 1.5f);
+                EditorUtility.SetDirty(material);
+            }
+            return material;
+        }
+
         static void AddBox(Transform parent, Material material, Vector3 position, Vector3 scale)
             => Add(PrimitiveType.Cube, parent, material, position, scale);
 
@@ -285,6 +338,28 @@ namespace MouthOfGod.Village.Editor
             if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color);
             AssetDatabase.CreateAsset(material, path);
             return material;
+        }
+
+        static GameObject CreateRuinedHouse()
+        {
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(HouseSamplePath);
+            if (source == null)
+            {
+                Debug.LogWarning($"[Village] {HouseSamplePath} が無いので、{RuinedHouseName} は作れない");
+                return new GameObject(RuinedHouseName);
+            }
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(source);
+            PrefabUtility.UnpackPrefabInstance(instance, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+            instance.name = RuinedHouseName;
+            var removed = 0;
+            foreach (var t in instance.GetComponentsInChildren<Transform>(true))
+            {
+                if (t == null || t == instance.transform || !t.name.StartsWith("Roof_")) continue;
+                Object.DestroyImmediate(t.gameObject);
+                removed++;
+            }
+            if (removed == 0) Debug.LogWarning($"[Village] {RuinedHouseName}: 名前が Roof_ で始まる部品が見つからない。House_Sample の中の名前を確かめる");
+            return instance;
         }
 
         [MenuItem("MouthOfGod/Village/Generate Prefabs")]
@@ -321,6 +396,7 @@ namespace MouthOfGod.Village.Editor
                 Object.DestroyImmediate(instance);
                 created++;
             }
+            VillageFxGenerator.Generate();
             AssetDatabase.SaveAssets();
             Debug.Log($"[Village] Prefab を {created} 件作った（既にあって飛ばした: {skipped} 件）→ {OutputFolder}");
         }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using MouthOfGod.Food;
 
 namespace MouthOfGod.Village.Editor.Draft
 {
@@ -13,14 +14,23 @@ namespace MouthOfGod.Village.Editor.Draft
     ///   Village（<see cref="FieldStages"/>・<see cref="SurfaceAnchor"/>。シーンの Village の地面の子に置く）
     ///     ├ 置き物・村人（素材の Prefab のインスタンス。1 = 1 m。はじめからある物）
     ///     └ Steps
-    ///         ├ 1 Sprout（<see cref="FieldStep"/>: 欲しい物・困りごとが解ける人・消す物）
+    ///         ├ 1 Pumpkin（<see cref="FieldStep"/>: 欲しい物・困りごとが解ける人・消す物）
     ///         │   └ 済むと出る物
-    ///         └ 2 Crops …
+    ///         └ 2 Carrot …
     /// </summary>
     public static class VillageBaker
     {
         const string PartsFolder = "Assets/Resources/Prefabs/Village/";
         const string OutputPath = PartsFolder + "Village.prefab";
+        const string DoneClipPath = "Assets/ArtisticResources/ThirdParty/Kenney/Audio/jingles_PIZZI02.ogg";
+
+        const string FoodFolder = "Assets/Resources/Prefabs/Food/";
+        static readonly (string Texture, string FoodId)[] FoodTextures =
+        {
+            ("placeholder-a", "carrot"),
+            ("placeholder-b", "turnip"),
+            ("placeholder-c", "pumpkin"),
+        };
 
         [MenuItem("MouthOfGod/Village/Bake Draft Village Prefab")]
         public static void Bake()
@@ -35,6 +45,9 @@ namespace MouthOfGod.Village.Editor.Draft
             var root = new GameObject("Village");
             var stages = root.AddComponent<FieldStages>();
             root.AddComponent<SurfaceAnchor>();
+            AddStepDoneFx(root);
+            AddDeliveryZone(root);
+            AddFoodTable(root);
             var so = new SerializedObject(stages);
             so.FindProperty("fieldId").stringValue = field.Id;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -81,6 +94,42 @@ namespace MouthOfGod.Village.Editor.Draft
                       "シーンの Village（地面）の子に置く");
         }
 
+        // 食べ物が落ちる場所。村（0.54 m 四方）の上の空間を、Is Trigger の箱で覆う。届け先は、親のフィールド（この Prefab の FieldStages）。
+        static void AddDeliveryZone(GameObject root)
+        {
+            var box = root.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.size = new Vector3(0.54f, 0.4f, 0.54f);
+            box.center = new Vector3(0f, 0.2f, 0f);
+            root.AddComponent<DeliveryZone>();
+        }
+
+        // この村で出す食べ物の表。食感の ID（仮）と食べ物の Prefab を結ぶ。Prefab は作り直しても GUID が同じなので、つながったまま。
+        // Field Id は村の Id。フィールドごとの表は、現在のフィールドを教える仕組みができるまで使われない。
+        static void AddFoodTable(GameObject root)
+        {
+            var rows = new List<FoodRow>();
+            foreach (var (texture, foodId) in FoodTextures)
+            {
+                var food = AssetDatabase.LoadAssetAtPath<GameObject>(FoodFolder + foodId + ".prefab");
+                if (food == null) Debug.LogWarning($"[Village] 食べ物の Prefab が無い: {FoodFolder}{foodId}.prefab（Food の Generate Prefabs を先に実行する）");
+                rows.Add(new FoodRow(texture, food));
+            }
+            root.AddComponent<FoodTable>().Configure(VillageLayout.Village, rows.ToArray());
+        }
+
+        // ステップが済んだときの音と喜びの粒。素材が無ければ、空のまま付ける（Inspector で後から入れる）。
+        static void AddStepDoneFx(GameObject root)
+        {
+            var fx = root.AddComponent<StepDoneFx>();
+            var so = new SerializedObject(fx);
+            var joy = AssetDatabase.LoadAssetAtPath<GameObject>(PartsFolder + "Fx_Joy.prefab");
+            so.FindProperty("joy").objectReferenceValue = joy != null ? joy.GetComponent<ParticleSystem>() : null;
+            so.FindProperty("doneClip").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioClip>(DoneClipPath);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            if (joy == null) Debug.LogWarning($"[Village] {PartsFolder}Fx_Joy.prefab が無いので、喜びの粒は空のまま（Generate Prefabs を先に実行する）");
+        }
+
         // root は位置の基準（フィールドの中心）、parent は置く場所（root か、ステップ）。
         static GameObject CreateItem(VillageItem item, Transform root, Transform parent)
         {
@@ -98,7 +147,11 @@ namespace MouthOfGod.Village.Editor.Draft
             var target = root.TransformPoint(new Vector3(item.X, item.Y, item.Z));
             go.transform.position = target;
 
-            if (item.Length > 0f)
+            if (item.IsEffect)
+            {
+                // 煙などは見た目の大きさが無い。大きさは合わせず、位置だけ置く。
+            }
+            else if (item.Length > 0f)
             {
                 // 道・広場は、一辺 1・底面が原点の板。そのまま縦横に伸ばす。
                 go.transform.localScale = new Vector3(item.Width, 1f, item.Length);
