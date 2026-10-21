@@ -9,8 +9,8 @@ a:hover text{text-decoration:underline}.bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:
 <text class="t1" x="20" y="54" font-size="20" font-weight="600">M2 デモが通しで動く</text>
 <text class="t1" x="840" y="54" font-size="16" text-anchor="end">期限 10/24（あと 3 日）</text>
 <rect class="track" x="20" y="68" width="820" height="10" rx="5"/>
-<rect class="bar" x="20" y="68" width="410" height="10" rx="5"/>
-<text class="t2" x="20" y="98" font-size="13">22/44 完了・残り 22 件・待ちの最長 3 段</text>
+<rect class="bar" x="20" y="68" width="429" height="10" rx="5"/>
+<text class="t2" x="20" y="98" font-size="13">23/44 完了・残り 21 件・待ちの最長 3 段</text>
 <text class="t1" x="20" y="130" font-size="13" font-weight="600">着手中</text>
 <a href="https://github.com/Fialuxe/MouthOfGod_System/issues/31" target="_blank"><text class="t1" x="32" y="152" font-size="13">#31 Food: 食感に対応する食べ物をデータにして、決定時に口の位置へ生み出す @Fialuxe</text></a>
 <a href="https://github.com/Fialuxe/MouthOfGod_System/issues/91" target="_blank"><text class="t1" x="32" y="174" font-size="13">#91 ミニチュアの台を作る @Fialuxe @peachamomomo @mitorow @tkazuto0403 @ebiharak…</text></a>
