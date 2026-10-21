@@ -2,7 +2,8 @@
     "name": "MouthOfGod.Miko",
     "rootNamespace": "MouthOfGod.Miko",
     "references": [
-        "MouthOfGod.Core"
+        "MouthOfGod.Core",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

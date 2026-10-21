@@ -34,7 +34,7 @@ namespace MouthOfGod.Miko.Editor
             }
             Directory.CreateDirectory(OutputFolder);
 
-            var root = new GameObject("Miko");
+            var root = new GameObject("Body");
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(model);
             instance.name = "Model";
             instance.transform.SetParent(root.transform, false);
@@ -68,6 +68,8 @@ namespace MouthOfGod.Miko.Editor
             instance.transform.localPosition = -scaled.center;
 
             root.AddComponent<MikoFloat>();
+            root.AddComponent<MikoMover>();
+            root.AddComponent<MikoPointer>();
             root.AddComponent<MikoCueReceiver>();
             if (eyes.HasValue)
             {
@@ -83,10 +85,66 @@ namespace MouthOfGod.Miko.Editor
                 so.ApplyModifiedPropertiesWithoutUndo();
             }
 
-            PrefabUtility.SaveAsPrefabAsset(root, OutputFolder + "Miko.prefab");
-            Object.DestroyImmediate(root);
+            AddSpeech(root);
+
+            SaveAsPrefab(root);
             AssetDatabase.SaveAssets();
             Debug.Log($"[Miko] Prefab を作った → {OutputFolder}Miko.prefab（調べた前: {rig.Forward}、右腕の側: {rig.Right}）");
+        }
+
+        // Prefab の形: Miko（空）の下に、Body（モデルと動きの部品）と LineBook（セリフ）を置く。
+        // 2 回目からは Body だけ作り直し、LineBook は触らない。シーンの Miko に入れた設定を残すため。
+        static void SaveAsPrefab(GameObject body)
+        {
+            const string BodyName = "Body";
+            const string LineBookName = "LineBook";
+            var path = OutputFolder + "Miko.prefab";
+
+            GameObject prefabRoot = null;
+            var keepLineBook = false;
+            if (File.Exists(path))
+            {
+                prefabRoot = PrefabUtility.LoadPrefabContents(path);
+                keepLineBook = prefabRoot.transform.Find(LineBookName) != null;
+                if (!keepLineBook)
+                {
+                    // 古い形（部品が一番上にある）。作り直す。
+                    PrefabUtility.UnloadPrefabContents(prefabRoot);
+                    prefabRoot = null;
+                }
+            }
+
+            if (prefabRoot == null)
+            {
+                prefabRoot = new GameObject("Miko");
+                new GameObject(LineBookName).transform.SetParent(prefabRoot.transform, false);
+                prefabRoot.transform.Find(LineBookName).gameObject.AddComponent<MikoLineBook>(); // 見本のセリフが入る
+            }
+            else
+            {
+                var old = prefabRoot.transform.Find(BodyName);
+                if (old != null) Object.DestroyImmediate(old.gameObject);
+            }
+
+            body.name = BodyName;
+            body.transform.SetParent(prefabRoot.transform, false);
+            body.transform.SetAsFirstSibling();
+            PrefabUtility.SaveAsPrefabAsset(prefabRoot, path);
+            if (keepLineBook) PrefabUtility.UnloadPrefabContents(prefabRoot);
+            else Object.DestroyImmediate(prefabRoot);
+        }
+
+        // 声を鳴らす AudioSource と、字幕を出す MikoSpeech を付ける。
+        static void AddSpeech(GameObject root)
+        {
+            var source = root.AddComponent<AudioSource>();
+            source.playOnAwake = false;
+            source.spatialBlend = 1f; // 巫女の位置から聞こえる
+
+            var speech = root.AddComponent<MikoSpeech>();
+            var so = new SerializedObject(speech);
+            so.FindProperty("voiceSource").objectReferenceValue = source;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // 指さしの強さ（0〜1）。0.35 秒で上げ、1.4 秒まで保ち、2 秒までに戻す。
@@ -185,6 +243,8 @@ namespace MouthOfGod.Miko.Editor
         }
 
         // 浮いて待つ姿（phase は 0〜1 の 1 周期）と、指さし（point は 0〜1）。phase 0・point 0 が基本の姿。
+        const bool AnimateLegs = false;
+
         static Posing Pose(Rig rig, float phase, float point)
         {
             var p = new Posing();
@@ -198,10 +258,14 @@ namespace MouthOfGod.Miko.Editor
             p.Aim(rig["Head"], rig["Head_end"], up + f * (0.05f + 0.04f * sway));
 
             // 脚: 浮いているので、ひざから下が後ろへ流れる。ゆれは左右で少しずらす。
-            p.Aim(rig["UpperLeg.L"], rig["LowerLeg.L"], -up - f * (0.15f - 0.05f * swing) - r * 0.05f);
-            p.Aim(rig["LowerLeg.L"], rig["Foot.L"], -up - f * (0.7f - 0.1f * swing));
-            p.Aim(rig["UpperLeg.R"], rig["LowerLeg.R"], -up - f * (0.15f - 0.05f * swing) + r * 0.05f);
-            p.Aim(rig["LowerLeg.R"], rig["Foot.R"], -up - f * (0.7f - 0.1f * swing));
+            // 形がくずれたので、いまは動かさない（取り込んだままの姿）。確かめるときは AnimateLegs を true にする。
+            if (AnimateLegs)
+            {
+                p.Aim(rig["UpperLeg.L"], rig["LowerLeg.L"], -up - f * (0.15f - 0.05f * swing) - r * 0.05f);
+                p.Aim(rig["LowerLeg.L"], rig["Foot.L"], -up - f * (0.7f - 0.1f * swing));
+                p.Aim(rig["UpperLeg.R"], rig["LowerLeg.R"], -up - f * (0.15f - 0.05f * swing) + r * 0.05f);
+                p.Aim(rig["LowerLeg.R"], rig["Foot.R"], -up - f * (0.7f - 0.1f * swing));
+            }
 
             // 左腕: 体の横に下げ、ひじを軽く前に曲げる。
             p.Aim(rig["UpperArm.L"], rig["LowerArm.L"], -up - r * (0.35f + 0.04f * sway) + f * 0.1f);
@@ -353,10 +417,7 @@ namespace MouthOfGod.Miko.Editor
                 return null;
             }
 
-            // 元の目（材質 Face の面）をメッシュから取り除く。後ろの肌の面は残る。
-            var flat = Object.Instantiate(mesh);
-            flat.name = "Miko_Body";
-            flat.SetTriangles(new int[0], faceSlot);
+            // 左右の目の奥の面の深さ。メッシュは変えない（変えると、足などの形がくずれた）。
             var planes = new float[2];
             var groups = new[] { sideA, sideB };
             for (var g = 0; g < 2; g++)
@@ -365,31 +426,13 @@ namespace MouthOfGod.Miko.Editor
                 foreach (var k in groups[g]) rear = Mathf.Min(rear, Vector3.Dot(points[k], rig.Forward));
                 planes[g] = rear;
             }
-            // 左右で奥の面の深さが違うと、片目だけうまる。前にある側にそろえる。
-            Debug.Log($"[Miko] 目の奥の面の深さ: 左 {planes[0]:F5}、右 {planes[1]:F5}");
             planes[0] = planes[1] = Mathf.Max(planes[0], planes[1]);
-            flat.RecalculateBounds();
-            // 2 回目以降は、同じ Mesh の中身だけを入れ替える。作り直すと、参照が切れて体が消えることがある。
-            var meshPath = OutputFolder + "Miko_Body.asset";
-            var saved = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
-            if (saved == null)
-            {
-                AssetDatabase.CreateAsset(flat, meshPath);
-                saved = flat;
-            }
-            else
-            {
-                EditorUtility.CopySerialized(flat, saved);
-                Object.DestroyImmediate(flat);
-            }
-            EditorUtility.SetDirty(saved);
-            body.sharedMesh = saved;
 
             var texture = MikoEyeAtlas.Save(OutputFolder + "Miko_Eyes.png");
             var material = LoadOrCreateEyeMaterial(texture);
 
             var materials = body.sharedMaterials;
-            materials[faceSlot] = materials[skinSlot];
+            materials[faceSlot] = LoadOrCreateHiddenMaterial(); // 元の目は、透明にして見えなくする
             body.sharedMaterials = materials;
 
             var left = CreateEye("Eye_ViewerLeft", rig, Pick(points, sideA), planes[0], material);
@@ -449,6 +492,32 @@ namespace MouthOfGod.Miko.Editor
         }
 
         // URP の Unlit。半透明（アルファ合成）で、深度は書かない。
+        // 何も描かない（透明な）材質。元の目の面に当てて、消す。
+        static Material LoadOrCreateHiddenMaterial()
+        {
+            var path = OutputFolder + "Miko_Hidden.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material != null) return material;
+
+            var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default");
+            material = new Material(shader);
+            if (material.HasProperty("_Surface"))
+            {
+                material.SetFloat("_Surface", 1f);
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                material.SetFloat("_ZWrite", 0f);
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                material.SetOverrideTag("RenderType", "Transparent");
+            }
+            var clear = new Color(1f, 1f, 1f, 0f);
+            if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", clear);
+            material.color = clear;
+            material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            AssetDatabase.CreateAsset(material, path);
+            return material;
+        }
+
         static Material LoadOrCreateEyeMaterial(Texture2D texture)
         {
             var path = OutputFolder + "Miko_Eye.mat";
