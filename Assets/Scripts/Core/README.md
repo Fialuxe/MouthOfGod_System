@@ -1,6 +1,8 @@
 # Core
 
-全体で共有する、小さな基盤。機能どうしをつなぐ ID・イベントのデータ・interface だけを置く。ロジックは置かない。他の asmdef に依存しない（`MouthOfGod.Core` の `references` は空）。
+全体で共有する、小さな基盤です。機能どうしをつなぐ ID・イベントのデータ・interface だけを置きます。ロジックは置きません。
+
+決めた経緯は [docs/decisions.md](../../../docs/decisions.md)（2026-10-13、2026-10-15、2026-10-19）にあります。
 
 担当: （未定）
 
@@ -8,23 +10,32 @@
 
 | 型 | 役割 |
 |---|---|
-| `TextureId` / `FoodId` / `FieldId` / `CueId` / `PhaseId` | 文字列を包んだ ID（`readonly struct`）。`enum` にしないための型。`null` と空文字は、どちらも空 ID（`None`、`IsEmpty`）。大文字小文字は区別する。型が違えば、同じ文字列でも別物 |
-| `Spawned` / `Delivered`（`DeliveryKind` 付き）/ `RequestIssued` / `RequestClosed` / `CueRequested` | 機能をまたぐイベントが運ぶデータ（`readonly struct`）。値を持つだけ。デバイスの入力は `IDevice` のイベントで、ここには置かない |
-| `Devices` | 置き場: いま使える `IDevice`（`WhenReady`・`Current`）。デバイスの実装が `Register` する |
-| `Forks` | 置き場: いま使える `IFork`（`WhenReady`・`Current`）。フォークの先（Fork の `ForkTip`）が `Register` する。形は `Devices` と同じ |
-| `Cues` | 置き場: 合図（`CueRequested`）。Tutorial が `Request(CueId)` し、Village や UI が `Requested` を購読して、見せ方を決める。出す側は、誰が受けるかを知らない |
-| `Phases` | 置き場: いまの場面（`PhaseId`。チュートリアルの名前など）。決める側（Tutorial・Game）が `Set` し、使う側は `Current` で読み、`Changed` で知らせを受ける |
-| `Fields` | 置き場: いまシーンにあるフィールド（`All`・`Added`・`Removed`・`Find`）。フィールドが有効になると自分で `Register` する。ID が空・重なりは警告して登録しない |
-| `IFieldRequests` | 1 つのフィールドの欲しい物（`Open`・`Receive`・`Expire`・`Restart`・`Issued`・`Closed`・`Received`）。同時に複数出ていることがあり、欲しい物ごとに番号（`Request`）が付く。いつもの実装は Village の `FieldStages`（独自の作りでも、これを実装すればつながる）。使う側は `Fields` から受け取る。分担は [docs/requests.md](../../../docs/requests.md) |
-| `IFoodItem` | 生まれた食べ物が持つ。`Food`（食べ物の ID）を返す。届け先の判定などが、Food を参照せずに「どの食べ物か」を読むために使う。実装は Food の `FoodItemTag` |
-| `IDevice` | 触感デバイスの入力。`Current`（いまの食感）、`TextureChanged(TextureId)`、`Confirmed(TextureId)`（決定したときの食感を運ぶ）、`Bitten`。実装は Device 側 |
-| `IFork` | 体験者が持つフォーク。`IsLoaded`（先に雲のかけらが付いている）、`InMouth`（先が口の中）、`Pierced`・`MouthEntered`・`MouthLeft`・`Emptied`（決定してかけらがなくなった）。実装は Fork 側 |
+| `TextureId` / `FoodId` / `FieldId` / `CueId` / `PhaseId` | 文字列を包んだ ID です（`readonly struct`）。`enum` にしないための型です。`null`・空文字・`default` は、どれも空 ID（`None`、`IsEmpty`）です。大文字小文字は区別します（`Ordinal` で比べます）。型が違えば、同じ文字列でも別物です |
+| `Spawned` / `Delivered`（`DeliveryKind` 付き）/ `RequestIssued` / `RequestClosed` / `CueRequested` | 機能をまたぐイベントのデータです（`readonly struct`）。値を持つだけです。デバイスの入力は `IDevice` のイベントなので、ここには置きません |
+| `Devices` | 置き場です。いま使える `IDevice` を渡します（`WhenReady`・`Current`）。デバイスの実装が `Register` します |
+| `Forks` | 置き場です。いま使える `IFork` を渡します（`WhenReady`・`Current`）。Fork の `ForkTip` が `Register` します。形は `Devices` と同じです |
+| `Cues` | 合図（`CueRequested`）の置き場です。Tutorial が `Request(CueId)` します。Village や UI は `Requested` を購読し、見せ方を決めます。出す側は、誰が受けるかを知りません |
+| `Phases` | いまの場面（`PhaseId`）の置き場です。チュートリアルの名前などが入ります。決める側（Tutorial・Game）が `Set` します。使う側は `Current` で読み、`Changed` で知らせを受けます |
+| `Fields` | いまシーンにあるフィールドの置き場です（`All`・`Added`・`Removed`・`Find`）。フィールドは、有効になると自分で `Register` します。ID が空か重なっていれば、警告して登録しません |
+| `IFieldRequests` | 1 つのフィールドの欲しい物です（`Open`・`Receive`・`Expire`・`Restart`・`Issued`・`Closed`・`Received`）。同時に複数出ていることがあります。欲しい物ごとに番号（`Request`）が付きます。いつもの実装は Village の `FieldStages` です。独自の作りでも、これを実装すればつながります。使う側は `Fields` から受け取ります。分担は [docs/requests.md](../../../docs/requests.md) にあります |
+| `IFoodItem` | 生まれた食べ物が持ちます。`Food`（食べ物の ID）を返します。届け先の判定などで使います。Food を参照せずに、食べ物の情報を読めます。実装は Food の `FoodItemTag` です |
+| `IDevice` | 触感デバイスの入力です。`Current`（いまの食感）、`TextureChanged(TextureId)`、`Confirmed(TextureId)`、`Bitten` があります。`Confirmed` は、決定したときの食感を運びます。実装は Device 側です |
+| `IFork` | 体験者が持つフォークです。`IsLoaded` は、先に雲のかけらが付いていることです。`InMouth` は、先が口の中にあることです。イベントは `Pierced`・`MouthEntered`・`MouthLeft`・`Emptied` です。`Emptied` は、決定してかけらがなくなったときです。実装は Fork 側です |
 
-型とイベントの流れは [docs/architecture.md](../../../docs/architecture.md) §3。
+## ほかの機能とのつなぎ方
+
+- 他の機能は、`MouthOfGod.Core` だけを参照してよいです。Core は、他の asmdef に依存しません（`references` は空です）。
+- 機能をまたいで使う「もの」は、置き場（`Devices`・`Fields` など）で受け渡します。
+- 置き場を足すのは、そういう「もの」が増えたときだけです。足したら、上の表に書きます。
+- イベントの購読の仕組み（バス）は置きません。流れが追えなくなるためです。
+- 全機能を参照する組み立て役（Bootstrap）も置きません。理由は decisions.md の 2026-10-15 にあります。
+- 型とイベントの流れは [docs/architecture.md](../../../docs/architecture.md) §3 にあります。
 
 ## 使い方
 
-他の機能は、`MouthOfGod.Core` だけを参照してよい。ID は文字列で作る。
+### ID を作る
+
+ID は文字列で作ります。
 
 ```csharp
 var food = new FoodId("apple");
@@ -34,7 +45,7 @@ var delivered = new Delivered(food, field, DeliveryKind.Requested);
 
 ### デバイスの入力を受け取る
 
-`Devices.WhenReady` で `IDevice` を受け取る。デバイス（`MockDevice` など）が後から用意されても届く。Device の asmdef を参照する必要はない。
+`Devices.WhenReady` で `IDevice` を受け取ります。デバイス（`MockDevice` など）が後から用意されても届きます。Device の asmdef を参照する必要はありません。
 
 ```csharp
 using MouthOfGod.Core;
@@ -67,19 +78,13 @@ public sealed class FoodSpawner : MonoBehaviour
 }
 ```
 
-- `WhenReady` には、ラムダではなくメソッド（上の `Attach`）を渡す。ラムダは `CancelWhenReady` で取り消せない。
-- いまの食感だけ読みたいときは `Devices.Current?.Current`（デバイスがまだ無ければ null）。
-- デバイスは 1 台の前提。2 台目の `Register` は受け付けない（警告を出して `false` を返す）。登録は起動時に 1 回の前提で、途中の差し替えは、すでに受け取った側に知らせない。
-- `Devices` もイベントも、メインスレッドから使う。
-- イベントの順番と意味（`Current` を更新してから `TextureChanged` を出す、など）は `IDevice.cs` のコメント。
-
-## 決めたこと
-
-- 空 ID は、`null` と空文字を同じにそろえた（`default` も空）。
-- 大文字小文字は区別する（`Ordinal` で比べる）。
-- イベントの型の購読の仕組み（バス）は置かない（流れが追えなくなる。architecture.md §3）。
-- 機能をまたいで使う「もの」は、置き場（`Devices`・`Fields`）で受け渡す。全機能を参照する組み立て役（Bootstrap）は置かない（2026-10-15）。置き場を足すのは、そういう「もの」が増えたときだけで、足したら上の表に書く。
+- `WhenReady` には、ラムダではなくメソッド（上の `Attach`）を渡します。ラムダは `CancelWhenReady` で取り消せないためです。
+- いまの食感だけ読むときは、`Devices.Current?.Current` を使います。デバイスがまだ無ければ null です。
+- デバイスは 1 台の前提です。2 台目の `Register` は、警告を出して `false` を返します。
+- 登録は、起動時に 1 回の前提です。途中で差し替えても、すでに受け取った側には知らせません。
+- `Devices` もイベントも、メインスレッドから使います。
+- イベントの順番と意味は、`IDevice.cs` のコメントにあります。たとえば、`Current` を更新してから `TextureChanged` を出します。
 
 ## テスト
 
-`Tests/` に EditMode のテストがある（Window > General > Test Runner > EditMode）。
+`Tests/` に EditMode のテストがあります（Window > General > Test Runner > EditMode）。
