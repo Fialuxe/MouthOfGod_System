@@ -27,6 +27,7 @@ namespace MouthOfGod.Tutorial.Sandbox
             }
 
             Cue("sandbox-start");
+            Cue("miko.say.welcome");
             for (int i = 0; i < steps; i++)
             {
                 if (!field.Open())
@@ -34,16 +35,24 @@ namespace MouthOfGod.Tutorial.Sandbox
                     Debug.LogWarning($"[VillageTutorialProbe] {i + 1} 個目の欲しい物を出せません。");
                     yield break;
                 }
-                Cue("miko.point"); // 巫女が「これせい！」と指さす
-                DeliveryWait wait = WaitForDelivery(fieldId, timeoutSeconds);
-                yield return wait;
-                if (wait.TimedOut)
+                Cue("miko.say.give"); // 巫女が「これせい！」と指さして言う
+                // 欲しがっていない物（人参にかぶ、など）が届いても、そのステップは終わらない。欲しい物が届くまで待つ。
+                DeliveryWait wait;
+                do
                 {
-                    Debug.Log($"[VillageTutorialProbe] {i + 1} 個目は時間切れです。");
-                    field.Expire();
-                    yield break;
+                    wait = WaitForDelivery(fieldId, timeoutSeconds);
+                    yield return wait;
+                    if (wait.TimedOut)
+                    {
+                        Debug.Log($"[VillageTutorialProbe] {i + 1} 個目は時間切れです。");
+                        field.Expire();
+                        yield break;
+                    }
+                    Debug.Log($"[VillageTutorialProbe] {i + 1} 個目の届き: {wait.Result?.Kind}");
+                    if (wait.Result?.WasRequested != true) Cue("miko.say.wrong");
                 }
-                Debug.Log($"[VillageTutorialProbe] {i + 1} 個目が届きました（{wait.Result?.Kind}）。");
+                while (wait.Result?.WasRequested != true);
+                Cue("miko.say.thanks");
             }
             Cue("sandbox-done");
             Debug.Log("[VillageTutorialProbe] 終わりました。");
