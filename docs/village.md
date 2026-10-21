@@ -20,12 +20,12 @@
 
 1. **中心に広場と井戸**を置きます。見る人の目が、最初に行く所を 1 つ作ります。道は広場で交わり、村の外（隣のフィールド）へ抜けます。行き止まりにはしません。
 2. **家は、道か広場に正面を向けます**。裏は外側に向けます。家ごとに、角度を少しずつ変えます。道から引っ込む距離も、少しずつ変えます。一直線にはそろえません。
-3. **道の突き当たりに、目印**（風車）を置きます。
+3. **北は山に接するので、何も置きません**。風車・家畜・北へ延びる道は置きません。
 4. **畑・納屋・家畜は外側**に置きます。家の集まりと畑を、細い道でつなぎます。
 5. **外周に木**を置いて、端をやわらげます。詰め込みすぎず、広場のまわりは空けます。
-6. **村人は、何かをしている場所に**置きます。1 か所に集めません。井戸で水をくむ、戸口に立つ、羊の番、畑仕事などです。向きも、しているものの方に向けます。
+6. **村人は、何かをしている場所に**置きます。1 か所に集めません。井戸で水をくむ、戸口に立つ、畑仕事などです。向きも、しているものの方に向けます。
 
-道はまっすぐ通さず、少し曲げます。曲がった道は長く見え、作った感じが減るためです。
+道はまっすぐ通さず、少し曲げます。曲がった道は長く見え、作り物らしさが薄れるためです。
 
 ## 配置を変えるには
 
@@ -39,25 +39,27 @@
 
 | 置き物 | 素材 | 出るステップ |
 |---|---|---|
-| `House_Sample`（4 軒。道か広場に正面を向けます） | 既存の Prefab です（Medieval Village MegaKit の組み立て例）。家の素材は、これだけです | 常に |
-| `Well` `Windmill` `Barn` `Fence` `ChickenCoop` | Farm Buildings | 常に |
+| `House_Ruined`（屋根が無い家）→ `House_Sample`（屋根がある家）。4 軒。道か広場に正面を向けます | `House_Sample` は既存の Prefab です（Medieval Village MegaKit の組み立て例）。`House_Ruined` は、生成メニューが `House_Sample` から `Roof_` で始まる部品を外して作ります | 0 → 1〜4（1 軒ずつ） |
+| `Well` `Barn` `Fence` | Farm Buildings | 常に。`Windmill` `ChickenCoop` の Prefab は残りますが、いまの配置では使いません |
 | `Wagon` `Crate` | Medieval Village MegaKit（`Prop_Wagon` `Prop_Crate`） | 常に |
-| `Sheep` → `Pig` | Farm Animals | 3〜 → 4〜 |
 | `Farmland`（畑: 土の板と畝 4 本）、`Path`（道: 土の板）、`Plaza`（広場: 円盤） | 素材に無いので、生成メニューが箱・円柱・球で作ります（マテリアルも） | 常に |
-| `Tree_Bare`（葉が茶色い木）→ `Tree`（緑の木） | 同上 | 0〜1 → 2〜 |
-| `Crop_Withered`（枯れた茎）→ `Crop_Sprout`（芽） | 同上 | 0 → 1 |
-| `Casual_Male` `Casual_Female` `OldClassy_Male` `Worker_Male` `Worker_Female`（困っている村人 5 人） | Ultimate Animated Character Pack です。骨組みが同じなので、`Casual_Male` のクリップと `Villager.controller` を共有します | 常に |
-| `Carrot` `Turnip` `Pumpkin`（畑の作物。畝 1 本に 4 つずつ） | Ultimate Food Pack | 2〜 |
+| `Tree_Bare`（葉が茶色い木）→ `Tree`（緑の木）。4 本 | 同上 | 0 → 1〜4（1 本ずつ） |
+| `Crop_Withered`（枯れた茎） | 同上 | 0 → 1〜4（畝 1 本ずつ消えます）。`Crop_Sprout`（芽）の Prefab は残りますが、いまの配置では使いません |
+| `Casual_Male` `Casual_Female` `Worker_Male` `Worker_Female`（困っている村人 4 人） | Ultimate Animated Character Pack です。骨組みが同じなので、`Casual_Male` のクリップと `Villager.controller` を共有します。`OldClassy_Male` の Prefab も作りますが、いまの配置では使いません | 常に |
+| `Pumpkin` `Carrot` `Turnip` `Tomato`（畑の作物。畝 1 本に 3 つずつ。この順に畝の西から東へ） | Ultimate Food Pack | 1〜4（畝 1 本ずつ） |
+| `Fx_Smoke`（屋根の煙）、`Lantern`（ランタン）、`Flowerbed`（花壇） | 煙は Kenney の Particle Pack（CC0）の絵で作る粒です。ランタンと花壇は、箱・球で作ります（光って見えますが、ライトは使いません） | 1〜4（直った家ごと） |
 
 ## ステップ
 
 | ステップ（`Steps` の下の並び） | 見た目 | 元気になる村人 |
 |---|---|---|
-| はじめ（飢饉） | 畑に枯れた茎があり、木は茶色です。家畜はいません。村人は全員うなだれ、頭の上に暗い縦線が出ます | — |
-| 1 Sprout（欲しい物 〔carrot〕） | 畑に芽が出ます | 畑の 2 人（`Worker_Male` `Worker_Female`） |
-| 2 Crops（〔pumpkin〕） | 作物（にんじん・かぶ・かぼちゃ）が実り、木が緑に戻ります | 井戸の人（`Casual_Female`） |
-| 3 Sheep（〔sheep〕） | 羊が戻ります | 羊の番の長老（`OldClassy_Male`） |
-| 4 Pig（〔pig〕） | 豚も戻ります | 戸口の人（`Casual_Male`）。これで全員が元気です |
+| はじめ（飢饉） | 畑に枯れた茎があり、木は茶色で、家は屋根が無い状態です。家畜はいません。村人は全員うなだれ、頭の上に暗い縦線が出ます | — |
+| 1 Pumpkin（欲しい物 〔pumpkin〕） | 畝 1 本（畑の西端）にかぼちゃが実ります。木 1 本が緑に戻ります。家 1 軒の屋根が直ります | 畑の入り口の人（`Worker_Male`） |
+| 2 Carrot（〔carrot〕） | 畝 2 本目ににんじんが実ります。木 1 本と家 1 軒が戻ります | 井戸の人（`Casual_Female`） |
+| 3 Turnip（〔turnip〕） | 畝 3 本目にかぶが実ります。木 1 本と家 1 軒が戻ります | 畑の中の人（`Worker_Female`） |
+| 4 Tomato（〔tomato〕） | 畝 4 本目（海側）にトマトが実ります。最後の木と家が戻ります | 戸口の人（`Casual_Male`）。これで全員が元気です |
+
+どのステップの欲しい物も、農作物です。1 ステップごとに戻るものは、畝 1 本・木 1 本・家 1 軒・村人 1 人です。村は北が山、東が海のフィールドに接します。そのため、北の端には何も置かず、畑は東の端から離しています。`turnip` と `tomato` の食べ物は、Unity のメニュー MouthOfGod > Food > Generate Prefabs と Generate Icons で作ります。
 
 - ステップが済むたびに、元気な村人が `Victory` を 1 回やって喜びます。
 - 何がいつ戻るかは、`Village.prefab` の `Steps` の下の並びと、各 `FieldStep` で決めます。
@@ -104,9 +106,17 @@
 
 - `Assets/Resources/Prefabs/Village/` に、Prefab と `Villager.controller` を作ります。
 - できた Prefab をコミットすれば、以後は Play するだけで動きます。
-- 既にある Prefab は飛ばします。ただし、村人 5 人と `Villager.controller` は毎回作り直します。
+- 既にある Prefab は飛ばします。ただし、村人 5 人（`OldClassy_Male` を含む）と `Villager.controller` は毎回作り直します。
 - Prefab が無い物は、仮の箱で置きます。そのときは警告が出ます。
 - この手順は開発中の補助です。Prefab をコミットしたら要りません。
+
+## 演出（出方・煙・音）
+
+- **出方**: ステップの子の物は、出るとき小さい所から「ぽんっ」と大きくなります（`PopInEffect`）。`Steps` の下に物を置くだけで効きます。出方を自分で作る物には、`SkipPopIn` を付けます。ステップごとにやめるには、`FieldStep` の `Pop In` を外します。
+- **喜びの粒と音**: `StepDoneFx`（Village の根に付きます）が、ステップが済むと、助かった村人の頭の上に星の粒を出し、短い音を鳴らします。粒は `Fx_Joy` です。音は `Assets/ArtisticResources/ThirdParty/Kenney/Audio/` の `jingles_PIZZI02` です。聞いて合わなければ、Inspector の `Done Clip` を `jingles_PIZZI00`〜`05` の別のものにします。
+- **作り方**: 粒の Prefab は、メニューの `MouthOfGod > Village > Generate Effects` で作ります（`Generate Prefabs` からも呼ばれます）。作り直すときは、`Fx_*.prefab` を消してから実行します。
+- **素材**: Kenney の Particle Pack と Music Jingles です（どちらも CC0。ライセンスは各フォルダの `License.txt`）。
+- **Quest 向け**: 粒の数は 20 までにします。衝突・軌跡・ライトは使いません。
 
 ## 下書きと Bake（`Editor/Draft/`）
 
@@ -118,12 +128,12 @@
 
 ## 仮に決めたこと
 
-- 配置の座標と大きさは、実物の寸法で決めました。VR で見て決め直します。
-  - 家 10 cm、風車 11 cm、納屋 10 cm、井戸 5 cm です。
+- 配置の座標と大きさは、実物の寸法で書きます。VR で見て決め直します。
+  - 家と納屋は 10 cm、井戸は 5 cm です。
   - 畑は 15 cm です。柵は 5 cm で、3 辺に 8 枚です。
-  - 村人 6.5 cm、作物 2.5〜3 cm です。
+  - 村人は 8.5 cm、作物は 5〜6 cm です。
   - 大通りの幅は 3.5 cm、小道は 2.2 cm、広場の直径は 13 cm です。
-- 村人は 5 人で、大きさは 6.5 cm です。家 10 cm に対して、実際より大きく誇張しています。
+- 村人は 4 人で、大きさは 8.5 cm です。家 10 cm に対して、実際より大きく誇張しています。
 - `House_Sample` の玄関の向きは、確かめていません。家が道に背を向けていたら、Prefab の中で家を 180° 回します。下書きなら、`HouseFrontYaw` を 180 にして Bake し直します。
 - 素材の元の回転は残します。FBX の軸を直すための回転で、X -90° などです。その上から、Y の向きを付けます。
 - `House_Sample` の Prefab は、位置が大きくずれたまま保存されています（Transform が (-7, -5.8, 7.8)）。外形で位置を合わせるので、置き方には影響しません。

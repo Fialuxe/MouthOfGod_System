@@ -226,7 +226,7 @@ namespace MouthOfGod.Village
             foreach (var step in steps)
             foreach (var go in step.HideWhenDone)
                 if (go != null) go.SetActive(true);
-            for (var i = 0; i < steps.Length; i++) steps[i].ShowChildren(Progress.IsDone(i));
+            for (var i = 0; i < steps.Length; i++) steps[i].ShowChildren(Progress.IsDone(i), celebrate);
             for (var i = 0; i < steps.Length; i++)
             {
                 if (!Progress.IsDone(i)) continue;

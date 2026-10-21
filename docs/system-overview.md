@@ -80,17 +80,17 @@ flowchart LR
 |---|---|---|---|---|
 | 🐱 | **GitHub（公開）** `MouthOfGod_System` | Issue・マイルストーン・PR・docs・スキル・自動化のコード | GitHub | このリポジトリ |
 | 🔒 | **GitHub（非公開）** `MouthOfGod_transcripts` | 文字起こしの保管、人名・用語の設定（`config/`） | GitHub | 招待された人だけ |
-| ⚙️ | **GitHub Actions** | 下の 4 つのワークフロー（公開リポジトリなので無料） | GitHub のサーバー | `.github/workflows/` |
+| ⚙️ | **GitHub Actions** | 下の 8 つのワークフロー（公開リポジトリなので無料） | GitHub のサーバー | `.github/workflows/` |
 | 🗂️ | **Google ドライブ** `mtg-inbox` | 録音の置き場所（`processing/` が処理中、`done/` が済み） | Google | サービスアカウントと共有 |
 | 🎙️ | **Whisper large-v3**（faster-whisper） | 録音 → 文字（日本語）。GPU なら速く、CPU なら実時間の約 0.9 倍 | Actions（CPU）/ Windows PC（GPU）/ Mac（確認用） | `tools/mtg/transcribe.py` |
 | 🎛️ | **FFmpeg** | 音量をそろえる（小さな声・遠い声を落とさないため） | 同上 | `transcribe.ps1` / `transcribe_cloud.py` |
-| 🤖 | **Claude** | 議事録づくり（`mtg-sync`）、議題づくり（`mtg-agenda`）、Issue 整理（`issue-hygiene`） | Claude のルーティン（クラウド）/ PC の `claude` | `.claude/skills/` |
+| 🤖 | **Claude** | 議事録づくり（`mtg-sync`）、議題づくり（`mtg-agenda`）、Issue 整理（`issue-hygiene`）、Issue の実装（`dev-loop`）、コンフリクトの調査（`merge-check`）、質問の言い直し（`clarify-reply`）。一覧は [routines.md](routines.md) | Claude のルーティン（クラウド）/ PC の `claude` | `.claude/skills/` |
 | ✨ | **Gemini** | 1 日のふりかえりの文章づくり | Actions | `GEMINI_API_KEY_*` |
 | 💬 | **Slack** | 日次のふりかえりの送り先 | Slack | `SLACK_WEBHOOK_URL` |
 | 🪟 | **Windows PC** | 録音フォルダの見張り、GPU での文字起こし、`mtg-sync` の実行 | メンバーの PC | `tools/mtg/setup-pc.ps1` |
 | 🍎 | **Mac（Apple Silicon）** | 環境の確認と、手で文字起こし（予備）。CPU のみ | メンバーの Mac | `tools/mtg/setup-mac.sh` |
 
-### GitHub Actions の 4 つのワークフロー
+### GitHub Actions の 8 つのワークフロー
 
 | 名前 | いつ動く | 何をする |
 |---|---|---|
@@ -98,6 +98,10 @@ flowchart LR
 | **Daily Digest** | 毎日 22 時ごろ（日本時間） | 今日の変化を Gemini でまとめて Slack に送る |
 | **Coupling check** | `Assets/Scripts/**` を触る PR | 機能どうしの直接参照を警告する |
 | **MTG transcribe (cloud)** | 30 分おき（Drive に録音があるときだけ処理） | 録音 → 文字起こし → 非公開リポジトリに保存 |
+| **Calendar sync** | 毎日 6:17（日本時間） | チームのカレンダーの 3 週間分の予定を、非公開リポジトリに書く。水曜の議題づくりが読む |
+| **Claude mention** | コメントに `@claude` が付いたとき | Claude のルーティン（`clarify-reply`）を呼び、言い直しの返信を書かせる |
+| **Conflict check** | `main` が進んだとき、PR が更新されたとき | open の PR のコンフリクトを git で調べる。新しくぶつかった PR があれば、Claude のルーティン（`merge-check`）を呼ぶ |
+| **MTG tools test** | MTG の自動化のスクリプトを触る PR | MTG の自動化のスクリプトが壊れていないかを確かめる。録音と文字起こしの中身は使いません |
 
 ## 3. 1 週間の流れ
 
@@ -105,9 +109,10 @@ flowchart LR
 |---|---|---|
 | **火** 朝 | 🤖 `issue-hygiene`: 完了済みの Issue を閉じ、重複・担当なし・止まっているものを「Issue 整理（週次）」にまとめる | Claude のルーティン |
 | **水** | 🤖 `mtg-agenda`: 金曜の議題 Issue を作る（前回のアクションの結果、決めることの候補つき） | Claude のルーティン |
+| **水** 作業会 | 10 月だけ、水曜にも集まって作業します。会場とオンラインの両方で参加できます | メンバー |
 | **金** MTG | 📱 誰かがスマホで録音 → `mtg-inbox` にアップロード（ファイル名に日付） | メンバー |
 | 金〜土 | 🎙️ クラウドが録音を見つけて文字起こし（`processing/` → `done/`）、🔒 非公開リポジトリに保存 | Actions |
-| 土 | 🤖 `mtg-sync`: 議事録（決定事項・アクション・未解決）、Issue の片づけ、議事録の PR | Windows PC（`run.ps1`） |
+| 土 | 🤖 `mtg-sync`: 議事録（決定事項・アクション・未解決）、Issue の片づけ、議事録の PR | Claude のルーティン（PC の `run.ps1` は予備） |
 | 毎日 | 💬 22 時ごろ、1 日のふりかえりが Slack に届く | Actions + Gemini |
 | いつでも | 📋 Issue が変わると、ロードマップと活動記録が自動で作り直される | Actions |
 
@@ -321,10 +326,9 @@ flowchart TB
 
 ## 7. まだつながっていないところ（次の課題）
 
-- ⚠️ 議事録づくり（`mtg-sync`）は、まだ PC で動く（Claude が `claude` コマンドで動く）。クラウドの録音の議事録は、PC が戻るまで待つ。非公開リポジトリを読めるルーティンで `mtg-sync` を動かせば、全部クラウドになる。
 - ⚠️ 週次の Issue 整理（火）のルーティンは、リポジトリの設定を、ルーティンの画面（claude.ai/code/routines）で足す必要がある。ルーティンの設定と引き継ぎは、[docs/routines.md](routines.md) にまとめてある（ルーティンは、作ったアカウントに紐づく）。
-- ⚠️ 長い録音（1 時間以上）でのクラウドの速さは、3 分の録音での実測（0.89 倍）だけ。長い録音の実測は、まだ。
-- 🍎 Mac は環境の確認まで（見張りと議事録は Windows のみ）。
+- ⚠️ クラウドの文字起こしの時間は、3 分の録音で測りました。かかった時間は、録音の長さの 0.89 倍でした。1 時間以上の録音は、まだ測っていません。
+- 🍎 Mac でできるのは、環境の確認までです。録音フォルダの見張りと議事録づくりは、Windows でしか動きません。
 
 ## 8. 詳しい手順
 
