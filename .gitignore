@@ -66,6 +66,7 @@ crashlytics-build.properties
 .DS_Store
 Thumbs.db
 desktop.ini
+.vsconfig
 
 # Scene Fusion: 各自の設定（選んだプロジェクト、表示、ログ）。セッションの設定は作った人の値が使われる
 /Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset
@@ -101,3 +102,5 @@ desktop.ini
 # Python が自動で作るキャッシュ。実行のたびに書き換わるので、管理しない
 __pycache__/
 *.pyc
+
+waveletNoiseTile.bin
