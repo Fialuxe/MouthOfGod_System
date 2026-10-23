@@ -2,7 +2,8 @@
     "name": "MouthOfGod.Village.Editor",
     "rootNamespace": "MouthOfGod.Village.Editor",
     "references": [
-        "MouthOfGod.Village"
+        "MouthOfGod.Village",
+        "MouthOfGod.Food"
     ],
     "includePlatforms": [
         "Editor"

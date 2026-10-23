@@ -36,6 +36,9 @@ namespace MouthOfGod.Village.Editor.Draft
         public float Length, Width;
 
         public bool IsVillager => HelpedAt >= 0;
+
+        /// <summary>煙などの演出（Prefab 名が Fx_ で始まる）。見た目の大きさを持たないので、大きさは合わせず、位置だけ置く。</summary>
+        public bool IsEffect => Prefab != null && Prefab.StartsWith("Fx_");
     }
 
     /// <summary>戻り方の 1 段（下書き）。Bake すると <see cref="FieldStep"/> になる。</summary>
@@ -62,57 +65,76 @@ namespace MouthOfGod.Village.Editor.Draft
     /// 村らしく見せるための決まり（README「配置の考え方」）:
     /// 1. 中心に広場と井戸（目が最初に行く所）。道は広場で交わり、村の外（隣のフィールド）へ抜ける。
     /// 2. 家は道か広場に正面を向け、少しずつ角度と下がり具合を変える（一直線にそろえない）。
-    /// 3. 道の突き当たりに目印（風車）。
+    /// 3. 北は山に接するので、風車や家畜は置かない（道は北へ延ばさない）。
     /// 4. 畑・納屋・家畜は外側。家の集まりと畑の間を細い道でつなぐ。
     /// 5. 外周に木を置いて、村の端をやわらげる。詰め込みすぎず、広場のまわりは空ける。
     /// 6. 村人は、何かをしている場所にいる。1 か所に集めない。
     ///
-    /// 村は届けるたびに少しずつ戻る（README「ステップ」）。はじめは飢饉（畑は枯れ、木は茶色、家畜はいない、村人は全員悩む）:
-    ///   1 畑に芽が出る（畑の 2 人が元気になる）
-    ///   2 作物が実り、木が緑に戻る（井戸の人が元気になる）
-    ///   3 羊が戻る（羊の番の長老が元気になる）
-    ///   4 豚も戻る（戸口の人も元気になり、全員が元気）
+    /// 村は届けるたびに少しずつ戻る（README「ステップ」）。はじめは飢饉（畑は枯れ、木は茶色、家は屋根が無く、村人は全員悩む）。
+    /// どのステップの欲しい物も農作物で、1 ステップに戻るものは、畝 1 本・木 1 本・家 1 軒・村人 1 人:
+    ///   1 かぼちゃ（畑の入り口の人が元気になる）
+    ///   2 にんじん（井戸の人が元気になる）
+    ///   3 かぶ（畑の中の人が元気になる）
+    ///   4 トマト（戸口の人も元気になり、全員が元気）
+    /// 北（山のフィールド）と東（海のフィールド）の端には、何も置かない・畑を寄せない（隣の景色とぶつけないため）。
     /// </summary>
     public static class VillageLayout
     {
         public const string Village = "village";
 
         // ステップの番号（下の Steps の何番目か。1 から）。下書きの中だけで使い、Bake した Prefab には番号は残らない。
-        const int Sprout = 1, Crops = 2, Sheep = 3, Pig = 4;
+        const int Pumpkin = 1, Carrot = 2, Turnip = 3, Tomato = 4;
 
         /// <summary>村の戻り方の順番。欲しい物の ID は仮。</summary>
         public static readonly IReadOnlyList<VillageStep> Steps = new[]
         {
-            new VillageStep { Name = "Sprout", Food = "carrot" },
-            new VillageStep { Name = "Crops", Food = "pumpkin" },
-            new VillageStep { Name = "Sheep", Food = "sheep" },
-            new VillageStep { Name = "Pig", Food = "pig" },
+            new VillageStep { Name = "Pumpkin", Food = "pumpkin" },
+            new VillageStep { Name = "Carrot", Food = "carrot" },
+            new VillageStep { Name = "Turnip", Food = "turnip" },
+            new VillageStep { Name = "Tomato", Food = "tomato" },
         };
 
         const float HouseSize = 0.10f;
-        const float VillagerSize = 0.065f;
+        // 家の中心から、正面の壁の外側までの距離（HouseSize に合わせた値）。
+        const float DoorFrontDistance = 0.045f;
+        // 煙の出る高さ（家の屋根のあたり。地面から）。家の大きさ HouseSize に合わせた仮の値で、Prefab を開いて直す。
+        const float SmokeHeight = 0.075f;
+        const float VillagerSize = 0.085f;
         const float RoadWidth = 0.035f, LaneWidth = 0.022f;
-        // House_Sample の正面（玄関）が、向き 0° のときにどちらを向くか。家が道に背を向けていたら 180 にする。
-        const float HouseFrontYaw = 0f;
+        // House_Sample の玄関は、Prefab の -Z 側にある。向き 0° で +Z を向かせるため 180 にする。
+        const float HouseFrontYaw = 180f;
         // 人物の素材は、向き 0° で +Z を向く。
         const float CharacterFrontYaw = 0f;
 
-        const float FarmX = 0.15f, FarmZ = -0.165f, FarmSize = 0.15f;
+        const float FarmX = 0.11f, FarmZ = -0.165f, FarmSize = 0.15f;
         const float FenceLength = 0.05f; // 柵 1 枚の長さ。畑の一辺 FarmSize に 3 枚
-        const int CropsPerRidge = 4;
+        const int CropsPerRidge = 3; // 作物を大きくしたので、4 個だと重なる
         // 畑の Prefab（VillagePrefabGenerator.CreateFarmland）の、畝の位置（畑の一辺を 1 とした X）と、畝の上面の高さ（同じく 1 とした値）。
         static readonly float[] RidgeX = { -0.375f, -0.125f, 0.125f, 0.375f };
         const float RidgeTop = 0.06f;
 
-        // 外周の木 (X, Z, 向き, 大きさ)。飢饉の間は葉が茶色い木（Tree_Bare）、作物が実ると緑の木（Tree）。
+        // 外周の木 (X, Z, 向き, 大きさ)。並びの順に、1 本ずつステップ 1〜4 で緑に戻る（飢饉の間は葉が茶色い Tree_Bare）。北の端（山側）には置かない。
         static readonly (float X, float Z, float Yaw, float Size)[] Trees =
         {
-            (-0.24f, 0.24f, 0f, 0.08f),
-            (-0.245f, 0.10f, 70f, 0.065f),
-            (0.23f, 0.22f, 140f, 0.075f),
-            (0.25f, 0.13f, 20f, 0.06f),
-            (0.25f, -0.05f, 200f, 0.06f),
             (-0.245f, -0.245f, 260f, 0.07f),
+            (-0.245f, 0.10f, 70f, 0.065f),
+            (0.25f, -0.05f, 200f, 0.06f),
+            (0.25f, 0.13f, 20f, 0.06f),
+        };
+
+        // 家 (X, Z, 向く先 X, 向く先 Z)。並びの順に、1 軒ずつステップ 1〜4 で屋根が直る（はじめは屋根が無い House_Ruined）。
+        static readonly (float X, float Z, float FaceX, float FaceZ)[] Houses =
+        {
+            (-0.09f, -0.10f, 0f, 0f),
+            (-0.19f, -0.08f, -0.19f, 0f),
+            (-0.12f, 0.09f, -0.12f, 0f),
+            (0.13f, 0.11f, 0.10f, 0f),
+        };
+
+        // 畝の作物 (Prefab, 大きさ)。畝 0（畑の西端）から順に、ステップ 1〜4 で枯れた茎から作物に変わる。
+        static readonly (string Prefab, float Size)[] CropKinds =
+        {
+            ("Pumpkin", 0.06f), ("Carrot", 0.055f), ("Turnip", 0.05f), ("Tomato", 0.05f),
         };
 
         public static List<VillageField> CreateDefault()
@@ -126,31 +148,19 @@ namespace MouthOfGod.Village.Editor.Draft
                     new VillageItem { Prefab = "Plaza", Length = 0.13f, Width = 0.13f }, // 厚さは変えず、直径だけ伸ばす
                     Item("Well", 0f, 0f, 0f, 0.05f),
 
-                    // 道。東西の大通りは広場で途切れ、少し曲がって村の外へ抜ける。北は風車へ、南は畑と納屋へ
+                    // 道。東西の大通りは広場で途切れ、少し曲がって村の外へ抜ける。南は畑と納屋へ（北は山に接するので道を出さない）
                     Path(-0.27f, -0.025f, -0.06f, 0f, RoadWidth),
                     Path(0.06f, 0f, 0.27f, 0.03f, RoadWidth),
-                    Path(0f, 0.06f, 0.02f, 0.15f, LaneWidth),
-                    Path(0.02f, -0.06f, 0.07f, -0.10f, LaneWidth),
-                    Path(-0.02f, -0.06f, -0.01f, -0.15f, LaneWidth),
+                    Path(0.02f, -0.06f, 0.03f, -0.10f, LaneWidth),
+                    Path(-0.02f, -0.06f, -0.03f, -0.15f, LaneWidth),
 
-                    // 2. 家は道か広場に正面を向ける
-                    House(-0.12f, 0.09f, faceX: -0.12f, faceZ: 0f),
-                    House(-0.19f, -0.08f, faceX: -0.19f, faceZ: 0f),
-                    House(-0.09f, -0.10f, faceX: 0f, faceZ: 0f),
-                    House(0.13f, 0.11f, faceX: 0.10f, faceZ: 0f),
+                    // 2. 家は道か広場に正面を向ける（下の Houses から置く。ステップごとに 1 軒ずつ直る）
 
-                    // 3. 北の道の突き当たりに風車
-                    Item("Windmill", 0.02f, 0.21f, 200f, 0.11f),
-
-                    // 4. 外側: 納屋・鶏小屋・荷車・木箱。家畜は村が戻ってから現れる
-                    Item("Barn", -0.01f, -0.21f, 0f, 0.10f),
-                    Item("ChickenCoop", -0.17f, -0.22f, 30f, 0.05f),
+                    // 3. 外側（南西）: 納屋・荷車・木箱
+                    Item("Barn", -0.04f, -0.21f, 0f, 0.10f),
                     Item("Wagon", -0.10f, -0.03f, 85f, 0.04f),
-                    Item("Crate", 0.05f, -0.235f, 10f, 0.015f),
-                    Item("Crate", 0.058f, -0.215f, 35f, 0.015f),
-                    Appears(Item("Sheep", -0.22f, 0.19f, 120f, 0.035f), at: Sheep),
-                    Appears(Item("Sheep", -0.18f, 0.22f, 200f, 0.035f), at: Sheep),
-                    Appears(Item("Pig", -0.12f, -0.23f, 60f, 0.03f), at: Pig),
+                    Item("Crate", -0.105f, -0.235f, 10f, 0.015f),
+                    Item("Crate", -0.097f, -0.215f, 35f, 0.015f),
 
                     // 畑（中心 (FarmX, FarmZ)、一辺 FarmSize、畝 4 本は X 方向に並ぶ）。北側は道に向けて開け、残る 3 辺を柵で囲む
                     Item("Farmland", FarmX, FarmZ, 0f, FarmSize),
@@ -159,32 +169,51 @@ namespace MouthOfGod.Village.Editor.Draft
                     Fence(-2, -1, 90f), Fence(-2, 0, 90f),
 
                     // 村人（困っている人）。1 か所に集めず、それぞれ何かをしている場所に置く。家に対して少し大きめ（誇張）
-                    // 悩むのをやめるのは、その人の困りごとが解けるステップ（畑の人は芽が出たら、長老は羊が戻ったら）。1 人目が吹き出しを出す
-                    Villager("Worker_Male", 0.10f, -0.07f, FarmX, FarmZ, helpedAt: Sprout),       // 畑の入り口で、畑を見る
-                    Villager("Worker_Female", 0.19f, -0.13f, 0.15f, -0.20f, helpedAt: Sprout),    // 畑の中で、畝を見下ろす
-                    Villager("Casual_Female", 0.035f, -0.02f, 0f, 0f, helpedAt: Crops),           // 井戸で水をくむ
-                    Villager("OldClassy_Male", -0.20f, 0.15f, -0.20f, 0.21f, helpedAt: Sheep),    // 長老が羊の番をする
-                    Villager("Casual_Male", -0.10f, 0.03f, -0.05f, -0.02f, helpedAt: Pig),        // 家の戸口で、大通りの方を見る
+                    // 悩むのをやめるのは、その人の困りごとが解けるステップ（1 ステップに 1 人）。1 人目が吹き出しを出す
+                    Villager("Worker_Male", FarmX - 0.05f, -0.07f, FarmX, FarmZ, helpedAt: Pumpkin),      // 畑の入り口で、畑を見る
+                    Villager("Worker_Female", FarmX + 0.08f, -0.13f, FarmX, -0.20f, helpedAt: Turnip),    // 畑の中で、畝を見下ろす
+                    Villager("Casual_Female", 0.035f, -0.02f, 0f, 0f, helpedAt: Carrot),          // 井戸で水をくむ
+                    Villager("Casual_Male", -0.10f, 0.03f, -0.05f, -0.02f, helpedAt: Tomato),    // 家の戸口で、大通りの方を見る
                 },
             };
 
-            // 5. 外周の木。飢饉の間は茶色、作物が実ると緑
-            foreach (var t in Trees)
+            // 外周の木。飢饉の間は茶色、1 本ずつ緑に戻る
+            for (var i = 0; i < Trees.Length; i++)
             {
-                village.Items.Add(Appears(Item("Tree_Bare", t.X, t.Z, t.Yaw, t.Size), at: 0, goneAt: Crops));
-                village.Items.Add(Appears(Item("Tree", t.X, t.Z, t.Yaw, t.Size), at: Crops));
+                var t = Trees[i];
+                village.Items.Add(Appears(Item("Tree_Bare", t.X, t.Z, t.Yaw, t.Size), at: 0, goneAt: i + 1));
+                village.Items.Add(Appears(Item("Tree", t.X, t.Z, t.Yaw, t.Size), at: i + 1));
             }
 
-            // 畑。飢饉の間は枯れた茎、芽が出て、作物が実る。畝 1 本に CropsPerRidge 個ずつ
+            // 家。はじめは屋根が無く、1 軒ずつ屋根が直る
+            for (var i = 0; i < Houses.Length; i++)
+            {
+                var h = Houses[i];
+                var yaw = YawToward(h.FaceX - h.X, h.FaceZ - h.Z) + HouseFrontYaw;
+                village.Items.Add(Appears(Item("House_Ruined", h.X, h.Z, yaw, HouseSize), at: 0, goneAt: i + 1));
+                village.Items.Add(Appears(Item("House_Sample", h.X, h.Z, yaw, HouseSize), at: i + 1));
+
+                // 直った家のまわり: 屋根の煙、玄関わきのランタンと窓の下の花壇。
+                // 玄関は、家の Prefab の中で -Z 側にあり、中心から Prefab の +X 側へ少しずれている。
+                // 玄関が向く先（toward）を基準に置く。
+                var toward = YawToward(h.FaceX - h.X, h.FaceZ - h.Z);
+                var rad = toward * (float)Math.PI / 180f;
+                float fx = (float)Math.Sin(rad), fz = (float)Math.Cos(rad); // 玄関が向く先
+                float rx = fz, rz = -fx;                                    // 玄関に向かって右
+                var smoke = Item("Fx_Smoke", h.X - rx * 0.01f, h.Z - rz * 0.01f);
+                smoke.Y = SmokeHeight;
+                village.Items.Add(Appears(smoke, at: i + 1));
+                // 玄関は中心より 0.0125 だけ左、窓は中心より 0.03 だけ右にある
+                village.Items.Add(Appears(Item("Lantern", h.X + fx * DoorFrontDistance - rx * 0.032f, h.Z + fz * DoorFrontDistance - rz * 0.032f, toward, 0.03f), at: i + 1));
+                village.Items.Add(Appears(Item("Flowerbed", h.X + fx * (DoorFrontDistance + 0.004f) + rx * 0.03f, h.Z + fz * (DoorFrontDistance + 0.004f) + rz * 0.03f, toward, 0.035f), at: i + 1));
+            }
+
+            // 畑。飢饉の間は枯れた茎。畝 1 本ずつ、枯れた茎が消えて作物が実る。畝 1 本に CropsPerRidge 個ずつ
             for (var ridge = 0; ridge < RidgeX.Length; ridge++)
             {
-                village.Items.AddRange(CropRow("Crop_Withered", ridge, 0.02f, 0, goneAt: Sprout));
-                village.Items.AddRange(CropRow("Crop_Sprout", ridge, 0.012f, Sprout, goneAt: Crops));
+                village.Items.AddRange(CropRow("Crop_Withered", ridge, 0.02f, 0, goneAt: ridge + 1));
+                village.Items.AddRange(CropRow(CropKinds[ridge].Prefab, ridge, CropKinds[ridge].Size, ridge + 1));
             }
-            village.Items.AddRange(CropRow("Carrot", 0, 0.025f, Crops));
-            village.Items.AddRange(CropRow("Turnip", 1, 0.024f, Crops));
-            village.Items.AddRange(CropRow("Carrot", 2, 0.025f, Crops));
-            village.Items.AddRange(CropRow("Pumpkin", 3, 0.03f, Crops));
 
             return new List<VillageField> { village };
         }
@@ -207,9 +236,6 @@ namespace MouthOfGod.Village.Editor.Draft
             item.Width = width;
             return item;
         }
-
-        static VillageItem House(float x, float z, float faceX, float faceZ)
-            => Item("House_Sample", x, z, YawToward(faceX - x, faceZ - z) + HouseFrontYaw, HouseSize);
 
         static VillageItem Villager(string prefab, float x, float z, float faceX, float faceZ, int helpedAt)
         {

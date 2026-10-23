@@ -1,0 +1,17 @@
+{
+    "name": "MouthOfGod.Miko",
+    "rootNamespace": "MouthOfGod.Miko",
+    "references": [
+        "MouthOfGod.Core",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

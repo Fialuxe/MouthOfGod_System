@@ -17,16 +17,18 @@ namespace MouthOfGod.Food.Editor
         const string OutputFolder = "Assets/Resources/Prefabs/Food/";
 
         // 食べ物の ID → FBX の場所と、一番長い辺の長さ（m）。長さは仮。口から飛ばして見やすい大きさにしている。
-        // carrot / pumpkin / sheep / pig は、村の欲しい物（Draft/VillageLayout）。apple / fish / cow は、ほかのフィールドと試験用。
+        // pumpkin / carrot / turnip / tomato は、村の欲しい物（Draft/VillageLayout）。sheep / pig / apple / fish / cow は、ほかのフィールドと試験用。
         static readonly Dictionary<string, (string Path, float Size)> Sources = new Dictionary<string, (string, float)>
         {
-            { "carrot", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Carrot.fbx", 0.2f) },
-            { "pumpkin", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Pumpkin.fbx", 0.3f) },
-            { "sheep", (Quaternius + "Farm Animals by @Quaternius/FBX/Sheep.fbx", 0.4f) },
-            { "pig", (Quaternius + "Farm Animals by @Quaternius/FBX/Pig.fbx", 0.4f) },
-            { "apple", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Apple.fbx", 0.12f) },
-            { "fish", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Fish.fbx", 0.3f) },
-            { "cow", (Quaternius + "Farm Animals by @Quaternius/FBX/Cow.fbx", 0.45f) },
+            { "carrot", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Carrot.fbx", 0.1f) },
+            { "pumpkin", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Pumpkin.fbx", 0.15f) },
+            { "turnip", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Turnip.fbx", 0.1f) },
+            { "tomato", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Tomato.fbx", 0.06f) },
+            { "sheep", (Quaternius + "Farm Animals by @Quaternius/FBX/Sheep.fbx", 0.2f) },
+            { "pig", (Quaternius + "Farm Animals by @Quaternius/FBX/Pig.fbx", 0.2f) },
+            { "apple", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Apple.fbx", 0.06f) },
+            { "fish", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Fish.fbx", 0.15f) },
+            { "cow", (Quaternius + "Farm Animals by @Quaternius/FBX/Cow.fbx", 0.225f) },
         };
 
         const float Mass = 0.3f; // kg。飛び方は FoodSpawner の Launch Speed と、この重さで決まる
@@ -62,14 +64,27 @@ namespace MouthOfGod.Food.Editor
         }
 
         [MenuItem("MouthOfGod/Food/Generate Prefabs")]
-        public static void Generate()
+        public static void Generate() => Run(overwrite: false);
+
+        // 大きさ（Sources の長さ）を変えたあとに使う。ファイルを消さず、同じ場所に上書きするので、GUID が変わらない。
+        // シーンの FoodTable など、Prefab を参照している所は、つながったまま。Prefab を手で直した所（Mass など）は、元に戻る。
+        [MenuItem("MouthOfGod/Food/Regenerate Prefabs (Overwrite)")]
+        public static void Regenerate()
+        {
+            if (!EditorUtility.DisplayDialog("食べ物の Prefab を作り直す",
+                    "Assets/Resources/Prefabs/Food/ の Prefab を、すべて上書きします。\nGUID は変わりません。手で直した所（Mass など）は元に戻ります。",
+                    "上書きする", "やめる")) return;
+            Run(overwrite: true);
+        }
+
+        static void Run(bool overwrite)
         {
             Directory.CreateDirectory(OutputFolder);
             int created = 0, skipped = 0;
             foreach (var pair in Sources)
             {
                 var path = OutputFolder + pair.Key + ".prefab";
-                if (File.Exists(path)) { skipped++; continue; }
+                if (!overwrite && File.Exists(path)) { skipped++; continue; }
 
                 var model = AssetDatabase.LoadAssetAtPath<GameObject>(pair.Value.Path);
                 if (model == null)
@@ -84,7 +99,7 @@ namespace MouthOfGod.Food.Editor
                 created++;
             }
             AssetDatabase.SaveAssets();
-            Debug.Log($"[Food] Prefab を {created} 件作った（既にあって飛ばした: {skipped} 件）→ {OutputFolder}");
+            Debug.Log($"[Food] Prefab を {created} 件{(overwrite ? "上書きした" : "作った")}（既にあって飛ばした: {skipped} 件）→ {OutputFolder}");
         }
     }
 }
