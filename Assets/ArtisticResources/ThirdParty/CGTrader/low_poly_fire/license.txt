@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Fire
+* source:	https://sketchfab.com/3d-models/low-poly-fire-97814378e39c45a4b04de43ff4598e62
+* author:	gmeyerp (https://sketchfab.com/gmeyerp)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Fire" (https://sketchfab.com/3d-models/low-poly-fire-97814378e39c45a4b04de43ff4598e62) by gmeyerp (https://sketchfab.com/gmeyerp) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
