@@ -24,8 +24,8 @@ Inspector で変えられる値は次のとおりです。
 |---|---|---|
 | `textureIds` | `placeholder-a` `placeholder-b` `placeholder-c` | 噛んでいる間に、順に切り替わる食感 ID です。いまはプレースホルダーです。実際の ID に差し替えます |
 | `switchIntervalSeconds` | 1.5 | 食感が切り替わる間隔（秒）です。最小値は 0.05 秒です |
-| `biteAction` | Quest 右トリガー / Space / ゲームパッド A | 噛む操作（`InputAction`）です。Inspector でバインドを変えられます |
-| `confirmAction` | Quest 右 A ボタン / Enter / ゲームパッド Start | 決定操作です（同上） |
+| `biteAction` | Quest 右トリガー / 左手を握る / Space / ゲームパッド A | 噛む操作（`InputAction`）です。Inspector でバインドを変えられます |
+| `confirmAction` | Quest 右 A ボタン / 左手のつまみ / Enter / ゲームパッド Start | 決定操作です（同上） |
 
 ## ほかの機能とのつなぎ方
 
@@ -45,10 +45,10 @@ Prefab は、メニュー **MouthOfGod > Device > Create MockDevice Prefab** で
 
 | キー | 動作 |
 |---|---|
-| 右トリガー(Quest) / A / Space を押す | 噛み始めます。まず `Bitten` を出します。続けて、最初の食感の `TextureChanged` をすぐ出します |
+| 右トリガー(Quest) / 左手を握る / A / Space を押す | 噛み始めます。まず `Bitten` を出します。続けて、最初の食感の `TextureChanged` をすぐ出します |
 | 同上を押し続ける | 間隔ごとに、次の食感へ切り替わります。最後の次は、最初に戻ります |
 | 同上を離す | 噛むのをやめ、切替が止まります。次に押すと、最初の食感から始まります |
-| 右 A ボタン(Quest) / Start / Enter | 決定します。いまの食感を付けて `Confirmed` を出します。噛んでいなくても出ます。噛む前なら、空の ID を付けます。離した後なら、最後の食感を付けます |
+| 右 A ボタン(Quest) / 左手のつまみ / Start / Enter | 決定します。いまの食感を付けて `Confirmed` を出します。噛んでいなくても出ます。噛む前なら、空の ID を付けます。離した後なら、最後の食感を付けます |
 
 - キャンセルはありません。決定はボタン操作で行います。
 - 食感 ID が空欄なら、通知しません。
