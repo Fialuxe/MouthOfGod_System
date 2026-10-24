@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1183" height="208" viewBox="0 0 1183 208" role="img" aria-label="日ごとの活動">
+<svg xmlns="http://www.w3.org/2000/svg" width="1196" height="208" viewBox="0 0 1196 208" role="img" aria-label="日ごとの活動">
 <style>
 svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP',sans-serif}
 .bg{fill:#fcfcfb}.t1{fill:#0b0b0b;font-size:12px}.t2{fill:#52514e;font-size:10px}.l0{fill:#ecebe8}.l1{fill:#b7d3f6}.l2{fill:#6da7ec}.l3{fill:#2a78d6}.l4{fill:#184f95}
 @media (prefers-color-scheme: dark){.bg{fill:#1a1a19}.t1{fill:#ffffff}.t2{fill:#c3c2b7}.l0{fill:#2c2c2a}.l1{fill:#184f95}.l2{fill:#256abf}.l3{fill:#3987e5}.l4{fill:#86b6ef}}
 </style>
-<rect class="bg" width="1183" height="208" rx="6"/>
+<rect class="bg" width="1196" height="208" rx="6"/>
 <text class="t2" x="96" y="24">8/3</text>
 <text class="t2" x="187" y="24">8/10</text>
 <text class="t2" x="278" y="24">8/17</text>
@@ -101,6 +101,7 @@ svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP
 <rect class="l0" x="1136" y="34" width="11" height="11" rx="2"><title>claude 2026-10-22: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="1149" y="34" width="11" height="11" rx="2"><title>claude 2026-10-23: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="1162" y="34" width="11" height="11" rx="2"><title>claude 2026-10-24: コミット 0・PR 0・Issue 0</title></rect>
+<rect class="l0" x="1175" y="34" width="11" height="11" rx="2"><title>claude 2026-10-25: コミット 0・PR 0・Issue 0</title></rect>
 <text class="t1" x="10" y="67">Fialuxe</text>
 <rect class="l0" x="96" y="57" width="11" height="11" rx="2"><title>Fialuxe 2026-08-03: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="109" y="57" width="11" height="11" rx="2"><title>Fialuxe 2026-08-04: コミット 0・PR 0・Issue 0</title></rect>
@@ -185,6 +186,7 @@ svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP
 <rect class="l0" x="1136" y="57" width="11" height="11" rx="2"><title>Fialuxe 2026-10-22: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l2" x="1149" y="57" width="11" height="11" rx="2"><title>Fialuxe 2026-10-23: コミット 3・PR 0・Issue 0</title></rect>
 <rect class="l2" x="1162" y="57" width="11" height="11" rx="2"><title>Fialuxe 2026-10-24: コミット 0・PR 2・Issue 1</title></rect>
+<rect class="l0" x="1175" y="57" width="11" height="11" rx="2"><title>Fialuxe 2026-10-25: コミット 0・PR 0・Issue 0</title></rect>
 <text class="t1" x="10" y="90">github-actions</text>
 <rect class="l0" x="96" y="80" width="11" height="11" rx="2"><title>github-actions 2026-08-03: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="109" y="80" width="11" height="11" rx="2"><title>github-actions 2026-08-04: コミット 0・PR 0・Issue 0</title></rect>
@@ -269,6 +271,7 @@ svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP
 <rect class="l0" x="1136" y="80" width="11" height="11" rx="2"><title>github-actions 2026-10-22: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="1149" y="80" width="11" height="11" rx="2"><title>github-actions 2026-10-23: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="1162" y="80" width="11" height="11" rx="2"><title>github-actions 2026-10-24: コミット 0・PR 0・Issue 0</title></rect>
+<rect class="l0" x="1175" y="80" width="11" height="11" rx="2"><title>github-actions 2026-10-25: コミット 0・PR 0・Issue 0</title></rect>
 <text class="t1" x="10" y="113">mitorow</text>
 <rect class="l0" x="96" y="103" width="11" height="11" rx="2"><title>mitorow 2026-08-03: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="109" y="103" width="11" height="11" rx="2"><title>mitorow 2026-08-04: コミット 0・PR 0・Issue 0</title></rect>
@@ -353,6 +356,7 @@ svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP
 <rect class="l0" x="1136" y="103" width="11" height="11" rx="2"><title>mitorow 2026-10-22: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="1149" y="103" width="11" height="11" rx="2"><title>mitorow 2026-10-23: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="1162" y="103" width="11" height="11" rx="2"><title>mitorow 2026-10-24: コミット 0・PR 0・Issue 0</title></rect>
+<rect class="l0" x="1175" y="103" width="11" height="11" rx="2"><title>mitorow 2026-10-25: コミット 0・PR 0・Issue 0</title></rect>
 <text class="t1" x="10" y="136">peachamomomo</text>
 <rect class="l0" x="96" y="126" width="11" height="11" rx="2"><title>peachamomomo 2026-08-03: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="109" y="126" width="11" height="11" rx="2"><title>peachamomomo 2026-08-04: コミット 0・PR 0・Issue 0</title></rect>
@@ -437,6 +441,7 @@ svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP
 <rect class="l0" x="1136" y="126" width="11" height="11" rx="2"><title>peachamomomo 2026-10-22: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l3" x="1149" y="126" width="11" height="11" rx="2"><title>peachamomomo 2026-10-23: コミット 5・PR 3・Issue 0</title></rect>
 <rect class="l0" x="1162" y="126" width="11" height="11" rx="2"><title>peachamomomo 2026-10-24: コミット 0・PR 0・Issue 0</title></rect>
+<rect class="l0" x="1175" y="126" width="11" height="11" rx="2"><title>peachamomomo 2026-10-25: コミット 0・PR 0・Issue 0</title></rect>
 <text class="t1" x="10" y="159">tkazuto0403</text>
 <rect class="l0" x="96" y="149" width="11" height="11" rx="2"><title>tkazuto0403 2026-08-03: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l0" x="109" y="149" width="11" height="11" rx="2"><title>tkazuto0403 2026-08-04: コミット 0・PR 0・Issue 0</title></rect>
@@ -521,12 +526,13 @@ svg{font-family:system-ui,-apple-system,'Segoe UI','Hiragino Sans','Noto Sans JP
 <rect class="l0" x="1136" y="149" width="11" height="11" rx="2"><title>tkazuto0403 2026-10-22: コミット 0・PR 0・Issue 0</title></rect>
 <rect class="l2" x="1149" y="149" width="11" height="11" rx="2"><title>tkazuto0403 2026-10-23: コミット 3・PR 1・Issue 0</title></rect>
 <rect class="l0" x="1162" y="149" width="11" height="11" rx="2"><title>tkazuto0403 2026-10-24: コミット 0・PR 0・Issue 0</title></rect>
+<rect class="l0" x="1175" y="149" width="11" height="11" rx="2"><title>tkazuto0403 2026-10-25: コミット 0・PR 0・Issue 0</title></rect>
 <text class="t2" x="10" y="199">1 マス = 1 日（コミット＋マージした PR＋クローズした Issue の数）</text>
-<text class="t2" x="1046" y="199">少</text>
-<rect class="l0" x="1062" y="190" width="11" height="11" rx="2"><title>0 件</title></rect>
-<rect class="l1" x="1075" y="190" width="11" height="11" rx="2"><title>1 件以上</title></rect>
-<rect class="l2" x="1088" y="190" width="11" height="11" rx="2"><title>3 件以上</title></rect>
-<rect class="l3" x="1101" y="190" width="11" height="11" rx="2"><title>6 件以上</title></rect>
-<rect class="l4" x="1114" y="190" width="11" height="11" rx="2"><title>10 件以上</title></rect>
-<text class="t2" x="1131" y="199">多</text>
+<text class="t2" x="1059" y="199">少</text>
+<rect class="l0" x="1075" y="190" width="11" height="11" rx="2"><title>0 件</title></rect>
+<rect class="l1" x="1088" y="190" width="11" height="11" rx="2"><title>1 件以上</title></rect>
+<rect class="l2" x="1101" y="190" width="11" height="11" rx="2"><title>3 件以上</title></rect>
+<rect class="l3" x="1114" y="190" width="11" height="11" rx="2"><title>6 件以上</title></rect>
+<rect class="l4" x="1127" y="190" width="11" height="11" rx="2"><title>10 件以上</title></rect>
+<text class="t2" x="1144" y="199">多</text>
 </svg>
