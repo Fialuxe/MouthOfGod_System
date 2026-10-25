@@ -149,16 +149,19 @@ namespace MouthOfGod.Tutorial
                 yield return Pause();
             }
 
-            // 1. 雲を刺す
-            Cue(pierceGlowCue);
-            Say(pierceLine);
+            // 1. 雲を刺す（先に刺していれば、案内を飛ばす。待ちもすぐ終わる）
+            if (!AlreadyDone(TutorialEvent.Pierced))
+            {
+                Cue(pierceGlowCue);
+                Say(pierceLine);
+            }
             IEnumerator step = WaitWithHints("刺す", t => WaitForPierce(t), pierceGiveUpSeconds,
                 new Hint(pierceHintSeconds, () => Cue(pierceHintCue)));
             while (step.MoveNext()) yield return step.Current;
             yield return Pause();
 
             // 2. 口に含む
-            Say(mouthLine);
+            if (!AlreadyDone(TutorialEvent.MouthEntered)) Say(mouthLine);
             step = WaitWithHints("口に含む", t => WaitForMouth(t), mouthGiveUpSeconds,
                 new Hint(mouthHintSeconds, () => Say(mouthHintLine)),
                 new Hint(mouthAlertSeconds, () => Cue(mouthAlertCue)));
@@ -172,8 +175,11 @@ namespace MouthOfGod.Tutorial
             yield return Pause();
 
             // 4. ボタンで決定する
-            Cue(buttonGlowCue);
-            Say(buttonLine);
+            if (!AlreadyDone(TutorialEvent.Confirmed))
+            {
+                Cue(buttonGlowCue);
+                Say(buttonLine);
+            }
             step = WaitWithHints("決定", t => WaitForConfirm(t), buttonGiveUpSeconds,
                 new Hint(buttonHintSeconds, () => Cue(buttonHintCue)));
             while (step.MoveNext()) yield return step.Current;

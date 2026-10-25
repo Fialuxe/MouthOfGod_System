@@ -34,6 +34,7 @@ namespace MouthOfGod.Tutorial
 
         Coroutine _running;
         TutorialScript _current;
+        TutorialHistory _history;
 
         /// <summary>チュートリアルのあいだで引き継ぐ、覚えたこと。</summary>
         public TutorialMemory Memory { get; } = new TutorialMemory();
@@ -76,6 +77,8 @@ namespace MouthOfGod.Tutorial
                 catch (Exception e) { ReportException(e); }
             }
             _current = null;
+            _history?.Dispose();
+            _history = null;
             Phases.Set(PhaseId.None);
         }
 
@@ -85,7 +88,8 @@ namespace MouthOfGod.Tutorial
             foreach (TutorialScript script in CollectScripts())
             {
                 _current = script;
-                script.Attach(Memory);
+                _history = new TutorialHistory(); // このチュートリアルが始まってからの操作を記録する（先回りした操作を数える）
+                script.Attach(Memory, _history);
                 if (script.Phase.IsEmpty) ReportWarning("[TutorialRunner] " + script + " の Phase が空です。");
                 Phases.Set(script.Phase);
                 Raise(ScriptStarted, script.Phase);
@@ -94,6 +98,8 @@ namespace MouthOfGod.Tutorial
                 while (body.MoveNext()) yield return body.Current;
 
                 script.CancelWaits();
+                _history.Dispose();
+                _history = null;
                 _current = null;
                 Raise(ScriptFinished, script.Phase);
             }

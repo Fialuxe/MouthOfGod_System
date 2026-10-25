@@ -52,7 +52,18 @@ namespace MouthOfGod.Tutorial
         public void Cancel() => Finish();
 
         // 条件が満たされた。
-        protected void Complete() => Finish();
+        protected void Complete()
+        {
+            if (IsDone) return;
+            Finish();
+            Completed?.Invoke();
+        }
+
+        // 条件が満たされて終わったときに呼ぶもの（時間切れ・取り消しでは呼ばない）。TutorialScript が、使った記録を進めるのに使う。
+        internal Action Completed { get; set; }
+
+        // 待ち始める前に、もう満たされていた（先回りした操作。TutorialHistory で分かる）。記録は、呼ぶ側が使ったことにする。
+        internal void CompleteNow() => Finish();
 
         void Finish()
         {
@@ -120,6 +131,13 @@ namespace MouthOfGod.Tutorial
         }
 
         public TextureId Result { get; private set; }
+
+        // 待ち始める前に、もう決定していた。
+        internal void CompleteWith(TextureId texture)
+        {
+            Result = texture;
+            CompleteNow();
+        }
 
         void Bind(IDevice device)
         {
@@ -203,6 +221,13 @@ namespace MouthOfGod.Tutorial
 
         public Spawned? Result { get; private set; }
 
+        // 待ち始める前に、もう生まれていた。
+        internal void CompleteWith(Spawned spawned)
+        {
+            Result = spawned;
+            CompleteNow();
+        }
+
         void Bind(IFoodSpawner spawner)
         {
             if (IsDone) return;
@@ -228,20 +253,26 @@ namespace MouthOfGod.Tutorial
 
     /// <summary>
     /// 噛んでいる間に、食感が <c>count</c> 回切り替わるのを待つ（<see cref="IDevice.TextureChanged"/>）。待ち始めてからの回数を数える。
-    /// 噛み始めの最初の食感も 1 回に数える。
+    /// 噛み始めの最初の食感も 1 回に数える。待ち始める前の回数（先回りした分）を <c>already</c> で渡せる。
     /// </summary>
     public sealed class TextureChangeWait : TutorialWait
     {
         readonly int _count;
         IDevice _device;
 
-        internal TextureChangeWait(int count, float timeoutSeconds, Func<float> clock) : base(timeoutSeconds, clock)
+        internal TextureChangeWait(int count, float timeoutSeconds, Func<float> clock, int already = 0) : base(timeoutSeconds, clock)
         {
             _count = Math.Max(1, count);
+            Changes = Math.Max(0, already);
+            if (Changes >= _count)
+            {
+                CompleteNow();
+                return;
+            }
             Devices.WhenReady(Bind); // デバイスがあとから用意されても聞く
         }
 
-        /// <summary>待ち始めてから、食感が切り替わった回数。</summary>
+        /// <summary>食感が切り替わった回数（先回りした分を含む）。</summary>
         public int Changes { get; private set; }
 
         void Bind(IDevice device)
