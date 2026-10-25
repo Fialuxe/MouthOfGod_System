@@ -89,7 +89,7 @@
 
 ## 2026-10-15 全部をつなぐ組み立て役（Bootstrap）は置かず、Core の置き場に自分で登録する（案）
 
-**決めたこと**: 機能をまたいで使う「もの」（デバイス・フィールド）は、Core の置き場（`Devices`・`Fields`）に自分で登録し、使う側はそこから受け取る。全機能を参照する Bootstrap は置かない。置き場は「もの」にだけ作り、増やすのは「体験者がいまいるフィールド」「いまの場面」のように、機能をまたぐ「もの」が増えたときだけ。
+**決めたこと**: 機能をまたいで使う「もの」（デバイス・フィールド）は、Core の置き場（`Devices`・`Fields`）に自分で登録し、使う側はそこから受け取る。全機能を参照する Bootstrap は置かない。置き場は「もの」にだけ作る。置き場を増やすのは、「体験者がいまいるフィールド」「いまの場面」のように、機能をまたぐ「もの」が増えたときだけ。
 
 **理由**: 山・海・草原・村を 4 人が別々に作り、最後に 1 つのシーンにまとめる。登録する形なら、作ったフィールドは置くだけで本編・チュートリアル・吹き出しにつながり、1 人ずつ自分のサンドボックスで試せる。どの機能も Core しか知らないので、密結合にならない。「Mock に自動で切り替わる」は、すでに `Devices` が満たしている。
 
@@ -135,7 +135,7 @@
 - 密結合の防ぎ方 → 全機能に asmdef を強制するのは重い。まず、直接参照を PR の警告で知らせる軽い検査を入れた。
 
 **どうなったか**
-- 型は `Food`（`FoodDefinition` `FoodId` `FoodCatalog`）、`FieldId` `FieldDefinition`、`RequestSet`（2026-10-15 にやめた。上の記録）、`TutorialStep`、`TextureId`。ID は文字列。データは `Assets/Resources/Data/<種類>/`、1 件 = 1 アセット。→ [CONTRIBUTING「型の名前とデータの置き場所」](../CONTRIBUTING.md#型の名前とデータの置き場所)
+- 型は `Food`（`FoodDefinition` `FoodId` `FoodCatalog`）、`FieldId` `FieldDefinition`、`TutorialStep`、`TextureId` の 5 つ。`RequestSet` は 2026-10-15 にやめた（上の記録）。ID は文字列。データは `Assets/Resources/Data/<種類>/`、1 件 = 1 アセット。→ [CONTRIBUTING「型の名前とデータの置き場所」](../CONTRIBUTING.md#型の名前とデータの置き場所)
 - 実行用の共有シーンは `Assets/Scenes/Main.unity` の 1 つ。個人の確認用は `Assets/Scenes/Sandbox/`。
 - 引き継ぎは `IProgress` の案（**案のまま。実装するときに確定する**）。記録の名前は [progress-keys.md](progress-keys.md) の 1 か所に書く。
 - 機能が他の機能を直接参照すると、PR に警告が出る（`.github/scripts/check_coupling.py`、止めはしない）。
