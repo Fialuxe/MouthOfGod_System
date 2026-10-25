@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bcfe71d8a99ca11468b6745e76520879, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  standField: village
+  standField: 
   standCueSuffix: .footprint
   standLine: 
   standGiveUpSeconds: 15

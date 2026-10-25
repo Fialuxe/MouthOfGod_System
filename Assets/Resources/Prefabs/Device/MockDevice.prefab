@@ -151,6 +151,9 @@ MonoBehaviour:
   - placeholder-a
   - placeholder-b
   - placeholder-c
+  - placeholder-d
+  - placeholder-e
+  - placeholder-f
   switchIntervalSeconds: 1.5
   biteAction:
     m_Name: Bite

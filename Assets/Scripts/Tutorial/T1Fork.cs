@@ -42,8 +42,8 @@ namespace MouthOfGod.Tutorial
         public override PhaseId Phase => new PhaseId("fork");
 
         [Header("0. 立つ場所")]
-        [Tooltip("最初に立ってもらうフィールドの名前。空なら、この段を飛ばす")]
-        [SerializeField] string standField = "village";
+        [Tooltip("最初に立ってもらうフィールドの名前。空なら、この段を飛ばす（チュートリアル 1 は、どこに立っていても遊べる）")]
+        [SerializeField] string standField = "";
 
         [Tooltip("立つ場所の印の合図の後ろ半分。Stand Field のあとに付けて出す（village.footprint）。空なら出さない")]
         [SerializeField] string standCueSuffix = ".footprint";

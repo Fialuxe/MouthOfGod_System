@@ -38,7 +38,7 @@
 - `MockDeviceModel` の Inspector で、握る操作、握りの強さ、手の位置（空なら `RightHandAnchor` を探す）を変える。
 - 設定を残したいときは、メニュー **MouthOfGod > Device > Create MockDevice Prefab** で Prefab（`Assets/Resources/Prefabs/Device/MockDevice.prefab`）を作り、その Inspector で変えてコミットする。Play すると、Mock はこの Prefab から作られる（既にあれば上書きしない）。
 - シーンに置きたいときは、Prefab を置く（置いたものが使われる。Prefab より優先）。`MockDevice` コンポーネントだけを足すと、棒の見た目（`MockDeviceModel`）が付かない。
-- 食感 ID の既定は `placeholder-a/b/c`。実際の ID は #31 / #54 で決まる。
+- 食感 ID の既定は `placeholder-a` 〜 `placeholder-f` の 6 つ。実際の ID は #31 / #54 で決まる。
 
 ## まだ確かめていないこと
 - Quest + Link での動作（右トリガー・右 A ボタン・握り）。
