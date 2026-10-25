@@ -4,12 +4,12 @@ using UnityEngine;
 namespace MouthOfGod.Core
 {
     /// <summary>
-    /// 体験者がいま前に立っているフィールドの置き場。口から生まれた物は、このフィールドに落ちる（シナリオブック S6）。
+    /// 体験者がいま前に立っているフィールドの置き場。チュートリアルの「ここに立って」の案内と、そのフィールド専用の食べ物の表を選ぶのに使う。
+    /// 物がどのフィールドに届くかは、ここでは決めない。体験者が狙って飛ばした物が、実際に落ちたフィールドに届く（Village の DeliveryZone）。
     /// 立つ位置を判定する側（Village の立つ場所）が <see cref="Set"/> し、使う側（Food・Tutorial・Game）は <see cref="Field"/> で読み、<see cref="Changed"/> で知らせを受ける。
     /// </summary>
     /// <remarks>
     /// - どこにも立っていないときは <see cref="FieldId.None"/>。
-    /// - <see cref="DropPoint"/> は、そのフィールドで物を落としたい場所（無ければ null）。食べ物を生む側が、狙う先に使う。
     /// - 立つ位置の取り方（頭の位置、床の印など）は、判定する側が決める。使う側は知らない。
     /// - static なので、Play のたびに空にする。すべてメインスレッドから呼ぶ。
     /// - この形を変えるときは、使う側すべてに効くので、別の PR にする。
@@ -22,16 +22,12 @@ namespace MouthOfGod.Core
         /// <summary>いま前に立っているフィールド。どこにも立っていなければ <see cref="FieldId.None"/>。</summary>
         public static FieldId Field { get; private set; }
 
-        /// <summary>そのフィールドで物を落としたい場所。無ければ null。</summary>
-        public static Transform DropPoint { get; private set; }
-
         /// <summary>立っているフィールドが変わった（新しいフィールドを運ぶ）。<see cref="Field"/> を更新してから出す。同じフィールドを Set しても出ない。</summary>
         public static event Action<FieldId> Changed;
 
-        /// <summary>いま立っているフィールドを決める。dropPoint は、そのフィールドで物を落としたい場所（無ければ null）。</summary>
-        public static void Set(FieldId field, Transform dropPoint = null)
+        /// <summary>いま立っているフィールドを決める。</summary>
+        public static void Set(FieldId field)
         {
-            DropPoint = field.IsEmpty ? null : dropPoint;
             if (field == Field) return;
             Field = field;
 
@@ -56,7 +52,6 @@ namespace MouthOfGod.Core
         internal static void Reset()
         {
             Field = FieldId.None;
-            DropPoint = null;
             Changed = null;
         }
     }

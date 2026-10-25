@@ -217,40 +217,6 @@ namespace MouthOfGod.Food.Tests
         }
 
         [Test]
-        public void BallisticVelocity_LandsOnTarget_AfterSeconds()
-        {
-            var origin = new Vector3(0f, 1.5f, 0f);
-            var target = new Vector3(0.4f, 0.8f, 1.2f);
-            var gravity = new Vector3(0f, -9.81f, 0f);
-            const float t = 0.6f;
-
-            Vector3 v = FoodSpawner.BallisticVelocity(origin, target, gravity, t);
-
-            // p(t) = origin + v t + g t^2 / 2
-            Vector3 landed = origin + v * t + 0.5f * t * t * gravity;
-            Assert.AreEqual(target.x, landed.x, 0.0001f);
-            Assert.AreEqual(target.y, landed.y, 0.0001f);
-            Assert.AreEqual(target.z, landed.z, 0.0001f);
-        }
-
-        [Test]
-        public void BallisticVelocity_WithoutGravity_IsStraightLine()
-        {
-            Vector3 v = FoodSpawner.BallisticVelocity(Vector3.zero, new Vector3(0f, 0f, 2f), Vector3.zero, 0.5f);
-
-            Assert.AreEqual(0f, v.x, 0.0001f);
-            Assert.AreEqual(0f, v.y, 0.0001f);
-            Assert.AreEqual(4f, v.z, 0.0001f);
-        }
-
-        [Test]
-        public void BallisticVelocity_ZeroOrNegativeSeconds_IsZero()
-        {
-            Assert.AreEqual(Vector3.zero, FoodSpawner.BallisticVelocity(Vector3.zero, Vector3.one, Physics.gravity, 0f));
-            Assert.AreEqual(Vector3.zero, FoodSpawner.BallisticVelocity(Vector3.zero, Vector3.one, Physics.gravity, -1f));
-        }
-
-        [Test]
         public void Spawn_UsesTheFieldFromStanding_WhenCurrentFieldIsEmpty()
         {
             Standing.Set(new FieldId("grassland"));

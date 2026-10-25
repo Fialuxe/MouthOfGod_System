@@ -11,7 +11,7 @@ namespace MouthOfGod.Village
     /// <summary>
     /// 体験者が、そのフィールドの前に立っているかを判定する場所。フィールドごとに 1 つ置く。
     /// 頭が箱に入ったら Core の <see cref="Standing.Set"/> を呼び、出たら <see cref="Standing.Leave"/> を呼ぶ。
-    /// 口から生まれた物は、ここで決めたフィールドの <c>Drop Point</c> に落ちる（シナリオブック S6）。
+    /// 立っている場所は、チュートリアルの案内と、そのフィールド専用の食べ物の表を選ぶのに使う。物がどこに届くかは、落ちた所（DeliveryZone）で決まる。
     /// </summary>
     /// <remarks>
     /// - 箱は、このオブジェクトのローカル座標で持つ。台ごと動いても（AprilTag で合わせても）ついてくる。
@@ -38,12 +38,6 @@ namespace MouthOfGod.Village
         [Tooltip("出たと判定するまでの余白（ローカル座標の長さ）。境目で、入る・出るをくり返さないようにする")]
         [SerializeField, Min(0f)] float margin = 0.1f;
 
-        [Tooltip("このフィールドで、食べ物を落としたい場所。空なら、フィールド（FieldStages）の位置に Drop Offset を足した場所。フィールドも無ければ、このオブジェクトの位置")]
-        [SerializeField] Transform dropPoint;
-
-        [Tooltip("Drop Point が空のときに、落とす場所をずらす量（フィールドのローカル座標）")]
-        [SerializeField] Vector3 dropOffset = Vector3.zero;
-
         [Tooltip("体験者の頭。空なら、Main Camera")]
         [SerializeField] Transform head;
 
@@ -59,7 +53,6 @@ namespace MouthOfGod.Village
         // いま頭が入っている場所（入った順）。最後が、いま立っている場所。
         static readonly List<StandArea> Occupied = new List<StandArea>();
 
-        Transform _autoDropPoint;
         bool _inside;
         // 右クリックの「Stand Here」で立たせた。頭が外にあっても、出たことにしない。
         bool _pinned;
@@ -78,41 +71,14 @@ namespace MouthOfGod.Village
         /// <summary>頭が、いまこの場所に入っているか。</summary>
         public bool IsInside => _inside;
 
-        /// <summary>このフィールドで食べ物を落とす場所。</summary>
-        public Transform DropPoint
-        {
-            get
-            {
-                if (dropPoint != null) return dropPoint;
-                if (_autoDropPoint != null) return _autoDropPoint;
-                var field = FieldTransform();
-                if (field == null) return transform;
-                if (dropOffset == Vector3.zero) return field;
-                _autoDropPoint = new GameObject("DropPoint (" + name + ")").transform;
-                _autoDropPoint.SetParent(field, false);
-                _autoDropPoint.localPosition = dropOffset;
-                return _autoDropPoint;
-            }
-        }
-
-        // フィールド（FieldStages など）の Transform。親から探し、無ければ Fields から引く。
-        Transform FieldTransform()
-        {
-            var parent = GetComponentInParent<IFieldRequests>() as Component;
-            if (parent != null) return parent.transform;
-            var found = Fields.Find(Field) as Component;
-            return found != null ? found.transform : null;
-        }
-
         // テスト用。null の項目は変えない。
         internal void Configure(string fieldId = null, Vector3? center = null, Vector3? size = null, float? margin = null,
-                                Transform dropPoint = null, GameObject footprint = null)
+                                GameObject footprint = null)
         {
             if (fieldId != null) this.fieldId = fieldId;
             if (center.HasValue) this.center = center.Value;
             if (size.HasValue) this.size = size.Value;
             if (margin.HasValue) this.margin = margin.Value;
-            if (dropPoint != null) this.dropPoint = dropPoint;
             if (footprint != null) this.footprint = footprint;
         }
 
@@ -180,7 +146,7 @@ namespace MouthOfGod.Village
             _inside = true;
             Occupied.Remove(this);
             Occupied.Add(this);
-            Standing.Set(field, DropPoint);
+            Standing.Set(field);
             if (hideFootprintOnArrive && footprint != null) footprint.SetActive(false);
         }
 
@@ -194,7 +160,7 @@ namespace MouthOfGod.Village
             if (Standing.Field.IsEmpty && Occupied.Count > 0)
             {
                 var back = Occupied[Occupied.Count - 1];
-                Standing.Set(back.Field, back.DropPoint);
+                Standing.Set(back.Field);
             }
         }
 
@@ -219,7 +185,7 @@ namespace MouthOfGod.Village
                 // もう入っていても、いま立っている場所にする
                 Occupied.Remove(this);
                 Occupied.Add(this);
-                Standing.Set(Field, DropPoint);
+                Standing.Set(Field);
                 return;
             }
             Enter();
@@ -234,22 +200,7 @@ namespace MouthOfGod.Village
 
         void OnDrawGizmos() => DrawBox(selected: false);
 
-        void OnDrawGizmosSelected()
-        {
-            DrawBox(selected: true);
-            // 落とす場所を、物を作らずに描く
-            Vector3 drop;
-            if (dropPoint != null) drop = dropPoint.position;
-            else
-            {
-                var field = FieldTransform();
-                drop = field != null ? field.TransformPoint(dropOffset) : transform.position;
-            }
-            Gizmos.matrix = Matrix4x4.identity;
-            Gizmos.color = new Color(1f, 0.6f, 0.1f, 1f);
-            Gizmos.DrawWireSphere(drop, 0.05f);
-            Gizmos.DrawLine(transform.TransformPoint(center), drop);
-        }
+        void OnDrawGizmosSelected() => DrawBox(selected: true);
 
         void DrawBox(bool selected)
         {

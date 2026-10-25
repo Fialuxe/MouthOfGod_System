@@ -30,7 +30,6 @@ namespace MouthOfGod.Core.Tests
         public void Field_StartsEmpty()
         {
             Assert.IsTrue(Standing.Field.IsEmpty);
-            Assert.IsNull(Standing.DropPoint);
         }
 
         [Test]
@@ -50,20 +49,6 @@ namespace MouthOfGod.Core.Tests
             Standing.Set(new FieldId("sea"));
             Standing.Set(new FieldId("sea"));
             Assert.AreEqual(1, count);
-        }
-
-        [Test]
-        public void Set_KeepsDropPoint_AndEmptyFieldClearsIt()
-        {
-            var go = new GameObject("drop");
-            try
-            {
-                Standing.Set(new FieldId("sea"), go.transform);
-                Assert.AreSame(go.transform, Standing.DropPoint);
-                Standing.Set(FieldId.None, go.transform);
-                Assert.IsNull(Standing.DropPoint);
-            }
-            finally { UnityEngine.Object.DestroyImmediate(go); }
         }
 
         [Test]

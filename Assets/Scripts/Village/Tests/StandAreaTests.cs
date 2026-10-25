@@ -102,7 +102,6 @@ namespace MouthOfGod.Village.Tests
             area.Tick(new Vector3(5.2f, 1.6f, 0.1f));
             Assert.IsTrue(area.IsInside);
             Assert.AreEqual(new FieldId("sea"), Standing.Field);
-            Assert.AreEqual(area.transform, Standing.DropPoint, "フィールドが無ければ、自分の位置に落とす");
 
             area.Tick(new Vector3(5.55f, 1.6f, 0f)); // 余白の中
             Assert.AreEqual(new FieldId("sea"), Standing.Field);
@@ -110,7 +109,6 @@ namespace MouthOfGod.Village.Tests
             area.Tick(Vector3.zero);
             Assert.IsFalse(area.IsInside);
             Assert.IsTrue(Standing.Field.IsEmpty);
-            Assert.IsNull(Standing.DropPoint);
         }
 
         [Test]
@@ -153,7 +151,6 @@ namespace MouthOfGod.Village.Tests
             a.Tick(onlyA);
             b.Tick(onlyA);
             Assert.AreEqual(new FieldId("village"), Standing.Field);
-            Assert.AreEqual(a.transform, Standing.DropPoint);
         }
 
         [Test]
@@ -173,7 +170,7 @@ namespace MouthOfGod.Village.Tests
         }
 
         [Test]
-        public void EmptyFieldId_UsesParentField_AndDropsOnTheField()
+        public void EmptyFieldId_UsesParentField()
         {
             var root = NewObject("Field");
             var field = root.AddComponent<FieldStages>();
@@ -187,19 +184,6 @@ namespace MouthOfGod.Village.Tests
             area.Tick(new Vector3(0f, 1.6f, -1f));
 
             Assert.AreEqual(new FieldId("sea"), Standing.Field);
-            Assert.AreEqual(root.transform, Standing.DropPoint);
-        }
-
-        [Test]
-        public void DropPoint_Inspector_IsUsed()
-        {
-            var drop = NewObject("Drop").transform;
-            var area = NewArea("sea", Vector3.zero);
-            area.Configure(dropPoint: drop);
-
-            area.Tick(Vector3.zero);
-
-            Assert.AreEqual(drop, Standing.DropPoint);
         }
 
         [Test]

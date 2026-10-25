@@ -10,8 +10,8 @@ namespace MouthOfGod.Food
     /// </summary>
     /// <remarks>
     /// - デバイスは Core の <see cref="Devices.WhenReady"/> で受け取る。Mock か実機かは知らない。
-    /// - 飛ばす: 生んだ食べ物に Rigidbody があり、落とす場所（<see cref="Standing.DropPoint"/>）があれば、<c>Flight Seconds</c> 秒でそこに落ちる初速を与える（<c>Aim At Drop Point</c>）。
-    ///   無ければ、<c>Launch Speed</c> が 0 より大きいときだけ、<c>Spawn Point</c> の前向きに初速を与える。そのあとの動きは、食べ物の Rigidbody（Mass など）と物理しだい。
+    /// - 飛ばす: <c>Launch Speed</c> が 0 より大きく、生んだ食べ物に Rigidbody があれば、<c>Spawn Point</c> の前向きに初速を与える。そのあとの動きは、食べ物の Rigidbody（Mass など）と物理しだい。
+    ///   体験者は、顔を向けて狙いを定め、欲しがっている人のところへ飛ばす。どこに届いたかは、落ちた所の DeliveryZone（Village）が決める。
     /// - 生んだ食べ物には、どの食べ物かを渡す <see cref="IFoodItem"/>（<c>FoodItemTag</c>）を付ける。
     /// - 「体験者の前のフィールド」は、Core の <see cref="Standing.Field"/> を読む。<see cref="CurrentField"/> に関数を入れたときは、そちらを使う（テストや、別の決め方を試すとき）。
     /// - 有効になると、自分で Core の <see cref="FoodSpawners"/> に登録する。チュートリアルや影の UI は、そこから受け取る。
@@ -24,12 +24,6 @@ namespace MouthOfGod.Food
 
         [Tooltip("生んだ食べ物に、Spawn Point の前向きに与える初速（m/s）。0 以下、または食べ物に Rigidbody がなければ、与えない。そのあとの動きは、食べ物の Rigidbody（Mass など）しだい")]
         [SerializeField, Min(0f)] float launchSpeed = 2f;
-
-        [Tooltip("落とす場所（Standing.DropPoint）があれば、そこに落ちる初速で飛ばす。無いときと、食べ物に Rigidbody が無いときは、Launch Speed で前へ飛ばす")]
-        [SerializeField] bool aimAtDropPoint = true;
-
-        [Tooltip("落とす場所に着くまでの秒数。短いほど、まっすぐ速く飛ぶ。空気抵抗（Linear Damping）は計算に入れないので、大きいと手前に落ちる")]
-        [SerializeField, Min(0.05f)] float flightSeconds = 0.6f;
 
         // 警告と例外の出し先。テストで差し替える。
         internal static Action<string> ReportWarning = Debug.LogWarning;
@@ -86,28 +80,11 @@ namespace MouthOfGod.Food
         // 初速（m/s）。Spawn Point の前向き × 速さ。
         internal static Vector3 LaunchVelocity(Transform origin, float speed) => origin.forward * speed;
 
-        // 初速（m/s）。origin から出て、seconds 秒後に target に着く放物線。v = (target - origin - g t^2 / 2) / t。秒数が 0 以下なら 0。
-        internal static Vector3 BallisticVelocity(Vector3 origin, Vector3 target, Vector3 gravity, float seconds)
-        {
-            if (seconds <= 0f) return Vector3.zero;
-            return (target - origin - 0.5f * seconds * seconds * gravity) / seconds;
-        }
-
         void Launch(GameObject instance, Transform origin)
         {
+            if (launchSpeed <= 0f) return;
             Rigidbody body;
             if (!instance.TryGetComponent<Rigidbody>(out body) || body.isKinematic) return;
-
-            // 立っている場所に落とす場所があれば、そこを狙う（Launch Speed によらない）。
-            Transform drop = aimAtDropPoint ? Standing.DropPoint : null;
-            if (drop != null && flightSeconds > 0f)
-            {
-                Vector3 gravity = body.useGravity ? Physics.gravity : Vector3.zero;
-                body.AddForce(BallisticVelocity(origin.position, drop.position, gravity, flightSeconds), ForceMode.VelocityChange);
-                return;
-            }
-
-            if (launchSpeed <= 0f) return;
             // 質量によらず、速さそのものを与える。そのあとは物理（重さ・空気抵抗・重力）が動かす。
             body.AddForce(LaunchVelocity(origin, launchSpeed), ForceMode.VelocityChange);
         }

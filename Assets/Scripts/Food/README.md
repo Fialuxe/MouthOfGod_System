@@ -9,7 +9,7 @@
 | 部品 | 付ける所 | 役割 |
 |---|---|---|
 | `FoodTable` | 共通の表は、`FoodSpawner` と同じオブジェクトです。専用の表は、そのフィールドの Prefab の一番上です | 「食感 → 食べ物の Prefab」の表です。**Field Id が空なら共通の表**です。フィールドの ID（`village` / `mountain` / `sea` / `grassland`）なら、そのフィールドの専用の表です。有効になると、自分で `FoodTables` に登録します |
-| `FoodSpawner` | シーンに 1 つ | 決定した食感（`IDevice.Confirmed`）で表を引きます。**Spawn Point** の位置に食べ物を生みます。食べ物に Rigidbody があれば、落とす場所（`Standing.DropPoint`）に向けて飛ばします。落とす場所が無ければ、**Launch Speed** で前へ飛ばします。そのあとの動きは、食べ物の Rigidbody（Mass など）しだいです |
+| `FoodSpawner` | シーンに 1 つ | 決定した食感（`IDevice.Confirmed`）で表を引きます。**Spawn Point** の位置に食べ物を生みます。食べ物に Rigidbody があれば、**Launch Speed** で、口の前（Spawn Point の前向き）へ飛ばします。そのあとの動きは、食べ物の Rigidbody（Mass など）しだいです |
 | `FoodTables` | （置き場です。付けません） | いまある `FoodTable` の掲示板です。`Resolve(FieldId, TextureId)` で引きます。そのフィールドの表、共通の表、なし、の順に探します |
 | `FoodItemTag` | （`FoodSpawner` が、生んだ食べ物に付けます） | Core の `IFoodItem` を実装し、どの食べ物かを渡します。届け先の判定などは、Food を参照せずに `IFoodItem` で読みます |
 
@@ -19,7 +19,7 @@
 - 食べ物は、立っている場所のフィールドと食感で決まります。フィールドは、Core の `Standing.Field` から読みます。
 - `Standing` に入れるのは、Village の `StandArea` です。どこにも立っていなければ、共通の表だけを使います。
 - 別の決め方を試すときは、`FoodSpawner.CurrentField`（`Func<FieldId>`）に関数を入れます。入れたときは、そちらを使います。
-- 立っている場所に落とす場所（`Standing.DropPoint`）があれば、食べ物はそこに落ちます。くわしくは下の「落とす場所を狙う」です。
+- 体験者は、顔を向けて狙いを定め、欲しがっている人のところへ食べ物を飛ばします。どのフィールドに届いたかは、食べ物が落ちた所の `DeliveryZone`（Village）が決めます。
 - 影の表示は UI の仕事です。`FoodSpawner.Preview(TextureId)` を使うと、生まずに Prefab を引けます。
 - 欲しい物と違う食べ物が届いたときの反応と採点は、受ける側が足します。受ける側は、`IFieldRequests` の `Received` を受け取ります。
 
@@ -48,15 +48,6 @@
 - 手で描いたアイコンを使うときは、食べ物の ID と同じ名前の PNG を、そのフォルダに置きます。
 - Prefab を直してアイコンを作り直すときは、Project でその Prefab を選びます。右クリックの **MouthOfGod > Food > Generate Icon From Selected** を使います。
 
-### 落とす場所を狙う
-
-- **Aim At Drop Point** が入っていると、食べ物を落とす場所に向けて飛ばします。初めから入っています。
-- 落とす場所は、Core の `Standing.DropPoint` です。Village の `StandArea` が決めます。
-- **Flight Seconds** に、落とす場所に着くまでの秒数を入れます。初めは 0.6 秒です。短いほど、まっすぐ速く飛びます。
-- 空気抵抗（Linear Damping）は、計算に入れていません。抵抗が大きい食べ物は、手前に落ちます。
-- 食べ物の Use Gravity が切れているときは、まっすぐ飛ばします。
-- 落とす場所が無いときと、Rigidbody が無いときは、これまでどおりです。前へ飛ばすか、その場に生みます。
-
 ### 起動時の警告
 
 `FoodSpawner` の `Start` で、次の食い違いを Console に出します。
@@ -75,4 +66,4 @@
 
 ## テスト
 
-テストは `Tests/` にあります（EditMode）。`FoodTablesTests` は、表の引き方・登録・警告を確かめます。`FoodSpawnerTests` は、生む処理とデバイスの受け取り、落とす場所を狙う速さの計算を確かめます。
+テストは `Tests/` にあります（EditMode）。`FoodTablesTests` は、表の引き方・登録・警告を確かめます。`FoodSpawnerTests` は、生む処理とデバイスの受け取り、前へ飛ばす速さの計算を確かめます。
