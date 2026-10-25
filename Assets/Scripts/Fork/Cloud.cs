@@ -8,6 +8,7 @@ namespace MouthOfGod.Fork
     /// </summary>
     /// <remarks>
     /// 光らせる・近くへ寄せるなどの見せ方は、ここには書かない。合図（Cues）を受ける側が足す。
+    /// 当たり判定は、起動時にトリガーにする。体験者が口から飛ばした物が、手前の雲に当たって跳ね返らないようにするため。
     /// </remarks>
     public sealed class Cloud : MonoBehaviour
     {
@@ -16,6 +17,12 @@ namespace MouthOfGod.Fork
 
         float _hiddenUntil = float.NegativeInfinity;
         bool _hidden;
+
+        // 雲は、口から飛ばした物を止めない（すり抜ける）。フォークの先は、トリガーどうしでも刺せる（先に Rigidbody があるため）。
+        void Awake()
+        {
+            foreach (Collider c in GetComponentsInChildren<Collider>(true)) c.isTrigger = true;
+        }
 
         /// <summary>いま刺せる（隠れていない）。</summary>
         public bool IsAvailable => !_hidden;

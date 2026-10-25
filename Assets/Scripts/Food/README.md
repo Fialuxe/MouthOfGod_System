@@ -9,16 +9,17 @@
 | 部品 | 付ける所 | 役割 |
 |---|---|---|
 | `FoodTable` | 共通の表は、`FoodSpawner` と同じオブジェクトです。専用の表は、そのフィールドの Prefab の一番上です | 「食感 → 食べ物の Prefab」の表です。**Field Id が空なら共通の表**です。フィールドの ID（`village` / `mountain` / `sea` / `grassland`）なら、そのフィールドの専用の表です。有効になると、自分で `FoodTables` に登録します |
-| `FoodSpawner` | シーンに 1 つ | 決定した食感（`IDevice.Confirmed`）で表を引きます。**Spawn Point** の位置に食べ物を生みます。**Launch Speed** が 0 より大きく、食べ物に Rigidbody があれば、前向きに初速を与えます。向きは Spawn Point の前です。そのあとの動きは、食べ物の Rigidbody（Mass など）しだいです |
+| `FoodSpawner` | シーンに 1 つ | 決定した食感（`IDevice.Confirmed`）で表を引きます。**Spawn Point** の位置に食べ物を生みます。食べ物に Rigidbody があれば、**Launch Speed** で、口の前（Spawn Point の前向き）へ飛ばします。そのあとの動きは、食べ物の Rigidbody（Mass など）しだいです |
 | `FoodTables` | （置き場です。付けません） | いまある `FoodTable` の掲示板です。`Resolve(FieldId, TextureId)` で引きます。そのフィールドの表、共通の表、なし、の順に探します |
 | `FoodItemTag` | （`FoodSpawner` が、生んだ食べ物に付けます） | Core の `IFoodItem` を実装し、どの食べ物かを渡します。届け先の判定などは、Food を参照せずに `IFoodItem` で読みます |
 
 ## ほかの機能とのつなぎ方
 
 - 参照するのは Core だけです。
-- 食べ物は、立っている場所のフィールドと食感で決まります。このフィールドを判定する仕組みは、まだありません。
-- 判定を作る側が、`FoodSpawner.CurrentField`（`Func<FieldId>`）に関数を入れます。入れるまでは、いつも「なし」です。そのため、共通の表だけを使います。
-- 立つ位置の取り方は、#64（届ける操作）で扱います。移動は #80 で扱います。#62 は 10/13 に閉じました。
+- 食べ物は、立っている場所のフィールドと食感で決まります。フィールドは、Core の `Standing.Field` から読みます。
+- `Standing` に入れるのは、Village の `StandArea` です。どこにも立っていなければ、共通の表だけを使います。
+- 別の決め方を試すときは、`FoodSpawner.CurrentField`（`Func<FieldId>`）に関数を入れます。入れたときは、そちらを使います。
+- 体験者は、顔を向けて狙いを定め、欲しがっている人のところへ食べ物を飛ばします。どのフィールドに届いたかは、食べ物が落ちた所の `DeliveryZone`（Village）が決めます。
 - 影の表示は UI の仕事です。`FoodSpawner.Preview(TextureId)` を使うと、生まずに Prefab を引けます。
 - 欲しい物と違う食べ物が届いたときの反応と採点は、受ける側が足します。受ける側は、`IFieldRequests` の `Received` を受け取ります。
 
@@ -65,4 +66,4 @@
 
 ## テスト
 
-テストは `Tests/` にあります（EditMode）。`FoodTablesTests` は、表の引き方・登録・警告を確かめます。`FoodSpawnerTests` は、生む処理とデバイスの受け取りを確かめます。
+テストは `Tests/` にあります（EditMode）。`FoodTablesTests` は、表の引き方・登録・警告を確かめます。`FoodSpawnerTests` は、生む処理とデバイスの受け取り、前へ飛ばす速さの計算を確かめます。

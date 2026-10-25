@@ -11,7 +11,7 @@
 | `miko.point` | 指さしをします。`MikoCueReceiver` の `Point Target` があれば、その方も向きます。 |
 | `miko.follow` | プレイヤーのそば（右前）についてきます。 |
 | `miko.stay` | いまの場所にとどまります。 |
-| `miko.say.<id>` | `LineBook` の `MikoLineBook` の `Lines` から `<id>` を引いて、字幕と音声を出します。表情と指さしも、セリフに付けられます。 |
+| `miko.say.<id>` | `MikoLineBook` の `Lines` から `<id>` を引いて、字幕と音声を出します。先に Miko の `LineBook` を探し、無ければシーンにあるほかの `MikoLineBook` を探します。表情と指さしも、セリフに付けられます。 |
 | `miko.hush` | しゃべるのをやめます。 |
 | `miko.face.<name>` | 表情を変えます。`normal` `happy` `squint` `love` `sleep` `wink` `tired` です。 |
 
@@ -27,7 +27,16 @@
 
 ## セリフの足し方
 
-セリフは、Miko の子の `LineBook` にある `MikoLineBook` の `Lines` に並べます。見本の 3 つ（`welcome` `give` `thanks`）は、Prefab を最初に作るときに入ります。
+セリフは、`MikoLineBook` の `Lines` に並べます。`MikoLineBook` は、次の 2 か所に置きます。
+
+| 置き場所 | 入れるセリフ |
+|---|---|
+| Miko の子の `LineBook` | 巫女の共通のセリフです。見本の 3 つ（`welcome` `give` `thanks`）は、Prefab を最初に作るときに入ります |
+| 場面のオブジェクト（例: チュートリアル 1 の Prefab `T1Fork`） | その場面だけのセリフです。担当者は、自分の場面の `MikoLineBook` だけを直します |
+
+有効な `MikoLineBook` は、シーンのどこにあっても巫女が引けます。そのため、`Id` はシーン全体で重ならないようにします。重なると、Play を始めたときに警告が出ます。チュートリアルのセリフは、`t1-` のように場面の印を頭に付けます。
+
+見本のセリフは、オブジェクトの名前が `LineBook` のときだけ入ります。場面のオブジェクトに `MikoLineBook` を足しても、見本は入りません。
 
 1. `Lines` に行を足し、`Id` と `Text` を入れます。
 2. 音声があれば `Voice` に入れます。無ければ字幕だけ出ます。
@@ -40,6 +49,21 @@
 ## Prefab の作り直し
 
 メニューの「MouthOfGod/Miko/Generate Prefab」で作ります。Prefab は、Miko（空）の下に `Body`（モデルと動きの部品）と `LineBook`（セリフ）を置く形です。2 回目からは `Body` だけ作り直し、`LineBook` は触りません。セリフと、シーンの Miko に入れた指さす物は、残ります。目の位置は `MikoPrefabGenerator.cs` の定数に固定してあります。
+
+## 字幕の位置
+
+字幕は、体験者の視線の少し下に出ます。巫女の頭の上ではありません。台のミニチュアを見下ろしても読めるように、次のように置きます。
+
+| 項目 | 初期値 | 決め方 |
+|---|---|---|
+| Subtitle Distance Meters | 0.7 m | 台の中心（およそ 0.9 m 先）より手前にします。奥に置くと、見下ろしたときに村の中に埋もれます |
+| Subtitle Below Gaze | 12 度 | 視線の少し下に出し、見ている物をふさがないようにします |
+| Pitch Range | -55〜10 度 | 見下ろす・見上げるのに合わせて、この範囲で上下に追います。台を見下ろしても視界に入ります |
+| Subtitle Width Meters | 0.55 m | 文字の大きさも、幅に合わせて変わります。見かけの大きさは、以前の 1.2 m 先・幅 0.9 m と同じです |
+| Always On Top | 入 | ほかの物より前に描きます。雲や村に隠れません |
+
+- 頭を回すと、字幕はゆっくり追います。速さは **Follow Speed** です。
+- 字幕は、巫女の子ではなく、シーンの一番上に作ります。巫女の大きさを変えても、字幕の大きさは変わりません。
 
 ## 字幕の言葉
 

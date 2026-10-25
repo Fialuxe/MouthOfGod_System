@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7292951995785901453
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7408939970992020404}
+  - component: {fileID: 8537520320751806752}
+  - component: {fileID: 1554777352762815870}
+  m_Layer: 0
+  m_Name: T3Recognize
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7408939970992020404
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7292951995785901453}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8537520320751806752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7292951995785901453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 675f770725bf9ab408623cbf538df413, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  requestField: sea
+  requestFood: fish
+  fieldGlowSuffix: glow
+  shadowFaintCue: shadow.faint
+  shadowShowCue: shadow.show
+  shadowEmphasizeCue: shadow.emphasize
+  shadowHideCue: shadow.hide
+  cloudGlowCue: cloud.glow
+  troubledLine: t3-troubled
+  whichFeelLine: t3-which-feel
+  wrongLine: t3-wrong
+  fishHereLine: t3-fish-here
+  pauseAfterTroubledSeconds: 3
+  pauseBeforeFishHereSeconds: 1.5
+  pauseAtEndSeconds: 4
+  missesBeforeEmphasize: 2
+  giveUpSeconds: 60
+--- !u!114 &1554777352762815870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7292951995785901453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6411f8459331c3542aed6b2d12b00812, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lines:
+  - id: t3-troubled
+    text: Oh, the people by the sea are troubled. They want fish.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t3-which-feel
+    text: Pierce a new cloud. Which feel was the fish?
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t3-wrong
+    text: Not that one. Which feel was the fish?
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t3-fish-here
+    text: "That's the fish \u2014 but blessings fall where you stand. Fish belong
+      in the sea."
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0

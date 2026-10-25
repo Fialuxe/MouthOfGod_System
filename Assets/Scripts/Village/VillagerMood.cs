@@ -30,8 +30,27 @@ namespace MouthOfGod.Village
         bool _slumped;
         float _nextSwitch;
 
+        /// <summary>違う物が届いたときに送る、Animator のトリガーの名前（Villager.controller に入っている）。</summary>
+        public const string MissedTrigger = "Missed";
+
         public GameObject WorryMark { get => worryMark; set => worryMark = value; }
         public bool IsWorried => _worried;
+
+        /// <summary>
+        /// Animator に、その名前のトリガーを送る。Animator Controller にその名前のトリガーが無ければ、何もしないで false。
+        /// 動きを足すときは、Animator Controller にトリガーとステートを足し、ここに名前を渡すだけでよい（コードは直さない）。
+        /// </summary>
+        public bool React(string trigger)
+        {
+            if (string.IsNullOrEmpty(trigger) || !HasAnimator()) return false;
+            foreach (var parameter in _animator.parameters)
+            {
+                if (parameter.type != AnimatorControllerParameterType.Trigger || parameter.name != trigger) continue;
+                _animator.SetTrigger(parameter.nameHash);
+                return true;
+            }
+            return false;
+        }
 
         /// <summary>悩むか元気かを決める。celebrate なら、元気な人は喜ぶ（ステップが済んだとき）。<see cref="FieldStages"/> が呼ぶ。</summary>
         public void SetWorried(bool worried, bool celebrate)

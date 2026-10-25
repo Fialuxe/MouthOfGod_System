@@ -22,7 +22,7 @@ Inspector で変えられる値は次のとおりです。
 
 | 項目 | 既定 | 意味 |
 |---|---|---|
-| `textureIds` | `placeholder-a` `placeholder-b` `placeholder-c` | 噛んでいる間に、順に切り替わる食感 ID です。いまはプレースホルダーです。実際の ID に差し替えます |
+| `textureIds` | `placeholder-a` 〜 `placeholder-f`（6 つ） | 噛んでいる間に、順に切り替わる食感 ID です。いまはプレースホルダーです。実際の ID に差し替えます。a〜d は各フィールドの食べ物、e はリンゴ、f は魚に使います（docs/decisions.md 2026-10-25） |
 | `switchIntervalSeconds` | 1.5 | 食感が切り替わる間隔（秒）です。最小値は 0.05 秒です |
 | `biteAction` | Quest 右トリガー / 左手を握る / Space / ゲームパッド A | 噛む操作（`InputAction`）です。Inspector でバインドを変えられます |
 | `confirmAction` | Quest 右 A ボタン / 左手のつまみ / Enter / ゲームパッド Start | 決定操作です（同上） |

@@ -13,7 +13,7 @@ namespace MouthOfGod.Device
     public sealed class MockDevice : MonoBehaviour, IDevice
     {
         [Tooltip("噛んでいる間に順に切り替わる食感 ID。既定はプレースホルダー。実際の ID に差し替える。Play 中に変えても反映されない")]
-        [SerializeField] string[] textureIds = { "placeholder-a", "placeholder-b", "placeholder-c" };
+        [SerializeField] string[] textureIds = { "placeholder-a", "placeholder-b", "placeholder-c", "placeholder-d", "placeholder-e", "placeholder-f" };
 
         [Tooltip("食感が切り替わる間隔（秒）。暫定。Play 中に変えても反映されない")]
         [SerializeField] float switchIntervalSeconds = 1.5f;

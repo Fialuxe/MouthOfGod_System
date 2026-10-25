@@ -17,10 +17,13 @@
 | `Cues` | 合図（`CueRequested`）の置き場です。Tutorial が `Request(CueId)` します。Village や UI は `Requested` を購読し、見せ方を決めます。出す側は、誰が受けるかを知りません |
 | `Phases` | いまの場面（`PhaseId`）の置き場です。チュートリアルの名前などが入ります。決める側（Tutorial・Game）が `Set` します。使う側は `Current` で読み、`Changed` で知らせを受けます |
 | `Fields` | いまシーンにあるフィールドの置き場です（`All`・`Added`・`Removed`・`Find`）。フィールドは、有効になると自分で `Register` します。ID が空か重なっていれば、警告して登録しません |
+| `FoodSpawners` | 置き場です。いま使える `IFoodSpawner`（食べ物を生む所）を渡します（`WhenReady`・`Current`）。Food の `FoodSpawner` が `Register` します。形は `Devices` と同じです |
+| `Standing` | 体験者がいま前に立っているフィールドの置き場です（`Field`・`Changed`）。Village の `StandArea` が `Set` します。Food は、このフィールドの表で食べ物を引きます。チュートリアルは、「ここに立って」と案内して待つのに使います |
 | `IFieldRequests` | 1 つのフィールドの欲しい物です（`Open`・`Receive`・`Expire`・`Restart`・`Issued`・`Closed`・`Received`）。同時に複数出ていることがあります。欲しい物ごとに番号（`Request`）が付きます。いつもの実装は Village の `FieldStages` です。独自の作りでも、これを実装すればつながります。使う側は `Fields` から受け取ります。分担は [docs/requests.md](../../../docs/requests.md) にあります |
 | `IFoodItem` | 生まれた食べ物が持ちます。`Food`（食べ物の ID）を返します。届け先の判定などで使います。Food を参照せずに、食べ物の情報を読めます。実装は Food の `FoodItemTag` です |
 | `IDevice` | 触感デバイスの入力です。`Current`（いまの食感）、`TextureChanged(TextureId)`、`Confirmed(TextureId)`、`Bitten` があります。`Confirmed` は、決定したときの食感を運びます。実装は Device 側です |
 | `IFork` | 体験者が持つフォークです。`IsLoaded` は、先に雲のかけらが付いていることです。`InMouth` は、先が口の中にあることです。イベントは `Pierced`・`MouthEntered`・`MouthLeft`・`Emptied` です。`Emptied` は、決定してかけらがなくなったときです。実装は Fork 側です |
+| `IFoodSpawner` | 食べ物を生む所です。`Spawned`（生まれた）と `Preview(TextureId)`（その食感なら何が生まれるか）を持ちます。チュートリアルは生まれた物を待ち、影の UI は生まれる物を引きます。実装は Food の `FoodSpawner` です |
 
 ## ほかの機能とのつなぎ方
 

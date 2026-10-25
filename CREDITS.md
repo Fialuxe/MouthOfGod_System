@@ -19,6 +19,16 @@
 
 ライセンスの原文は、各パックのフォルダの `License.txt`（MegaKit は `License_Standard.txt`）。
 
+## Kenney
+
+作者: [Kenney](https://kenney.nl/)。**CC0 1.0**（パブリックドメイン。クレジットは必須ではないが、敬意を表して載せている）。
+
+| パック | ライセンス | 置き場所 |
+|---|---|---|
+| Music Jingles（`jingles_PIZZI00`〜`05`。物が届いたときの音） | CC0 1.0 | `Assets/ArtisticResources/ThirdParty/Kenney/Audio/`。標準の成功の音として、`jingles_PIZZI02` を `Assets/Resources/Sounds/Village/Done.ogg` に複製している |
+
+ライセンスの原文は、フォルダの `License.txt`。失敗の音（`Assets/Resources/Sounds/Village/Missed.wav`）は外部素材ではなく、このリポジトリで作った音です。
+
 ## MatrixRex
 
 作者: [MatrixRex](https://github.com/MatrixRex)。**MIT License**（再配布可。著作権表示とライセンス文を残す）。

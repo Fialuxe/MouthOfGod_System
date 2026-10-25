@@ -35,6 +35,7 @@ namespace MouthOfGod.Food.Tests
         public void SetUp()
         {
             FoodTables.Reset();
+            Standing.Set(FieldId.None); // ほかのテストで立った場所を残さない
             _created.Clear();
             _warnings.Clear(); // NUnit は同じインスタンスで全テストを走らせるので、前のテストの分を消す
             _spawned.Clear();
@@ -61,6 +62,7 @@ namespace MouthOfGod.Food.Tests
             foreach (FoodItemTag tag in Object.FindObjectsByType<FoodItemTag>(FindObjectsSortMode.None))
                 Object.DestroyImmediate(tag.gameObject);
             FoodTables.Reset();
+            Standing.Set(FieldId.None);
             FoodSpawner.ReportWarning = _savedWarning;
             foreach (GameObject go in _created)
                 if (go != null) Object.DestroyImmediate(go);
@@ -212,6 +214,16 @@ namespace MouthOfGod.Food.Tests
             Assert.AreEqual(3f, v.x, 0.0001f);
             Assert.AreEqual(0f, v.y, 0.0001f);
             Assert.AreEqual(0f, v.z, 0.0001f);
+        }
+
+        [Test]
+        public void Spawn_UsesTheFieldFromStanding_WhenCurrentFieldIsEmpty()
+        {
+            Standing.Set(new FieldId("grassland"));
+
+            GameObject food = _spawner.Spawn(new TextureId("b"));
+
+            Assert.AreEqual(new FoodId("pig"), food.GetComponent<IFoodItem>().Food);
         }
     }
 }
