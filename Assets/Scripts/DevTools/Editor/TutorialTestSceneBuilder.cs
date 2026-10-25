@@ -18,8 +18,9 @@ namespace MouthOfGod.DevTools.Editor
     /// <remarks>
     /// - 作るシーンは <see cref="ScenePath"/>。毎回、作り直す（手で直した所は消える）。試したい値は、Play 中か、作ったあとに Inspector で変える。
     /// - 並べる物: 頭（キーボードとマウスで動く Main Camera）、フォークの先、雲、食べ物を生む装置と表、村と海のフィールド、立つ場所、巫女、影、合図で光る印、チュートリアル、状態の表示。
+    /// - フィールドに届いたときの反応は、FieldStages が自分で付ける DeliveryFx が出す（違う物は煙を出して消える）。
     /// - チュートリアルは、Assets/Resources/Prefabs/Tutorial/ の Prefab を置く。セリフも Prefab に入っている。Prefab を直せば、作り直さなくても、このシーンに反映される。
-    /// - 食感は MockDevice の既定（placeholder-a / b / c）を使い、それぞれリンゴ・魚・ニンジンにする。
+    /// - 食感は MockDevice の既定（placeholder-a〜f）を使う。a〜d は各フィールドの食べ物（村の表）、e はリンゴ、f は魚（共通の表）。
     /// - バッチモードからも作れる: <c>-executeMethod MouthOfGod.DevTools.Editor.TutorialTestSceneBuilder.Build</c>
     /// </remarks>
     public static class TutorialTestSceneBuilder
@@ -108,17 +109,23 @@ namespace MouthOfGod.DevTools.Editor
             ring.AddComponent<CloudCues>();
         }
 
-        // 食べ物を生む装置と、共通の表。MockDevice の食感 a / b / c を、リンゴ・魚・ニンジンにする。
+        // 食べ物を生む装置と、共通の表。共通の表は、どこに立っていても生まれる物（e: リンゴ、f: 魚）だけを持つ。
         static void Spawner(Transform mouth)
         {
             var go = new GameObject("FoodSpawner");
             FoodSpawner spawner = go.AddComponent<FoodSpawner>();
             Set(spawner, "spawnPoint", mouth);
 
+            Table(go, "", new[,] { { "placeholder-e", "apple" }, { "placeholder-f", "fish" } });
+        }
+
+        // 「食感 → 食べ物」の表を付ける。fieldId が空なら共通の表。
+        static void Table(GameObject go, string fieldId, string[,] pairs)
+        {
             FoodTable table = go.AddComponent<FoodTable>();
             var so = new SerializedObject(table);
+            so.FindProperty("fieldId").stringValue = fieldId;
             SerializedProperty rows = so.FindProperty("rows");
-            string[,] pairs = { { "placeholder-a", "apple" }, { "placeholder-b", "fish" }, { "placeholder-c", "carrot" } };
             rows.arraySize = pairs.GetLength(0);
             for (int i = 0; i < pairs.GetLength(0); i++)
             {
@@ -131,7 +138,7 @@ namespace MouthOfGod.DevTools.Editor
 
         /// <summary>
         /// フィールドを 1 つ作る。台・届く範囲・欲しい物のステップ・光る印・喜ぶ印・首を振る印を置く。
-        /// 立つ場所（StandArea）は stand に置き、そのフィールドの台の上を落とす場所にする。立つ場所の Transform を返す。
+        /// 立つ場所（StandArea）は stand に置く。立つ場所の Transform を返す。
         /// </summary>
         static Transform Field(string id, Vector3 position, Vector3 stand, Color color, string food)
         {
@@ -150,36 +157,30 @@ namespace MouthOfGod.DevTools.Editor
             var stages = root.AddComponent<FieldStages>();
             Set(stages, "fieldId", id);
 
+            // 村だけ、本物の村（Village.prefab）と同じ専用の表を付ける。a〜d が村の食べ物になる。
+            if (id == "village")
+                Table(root, id, new[,] { { "placeholder-a", "carrot" }, { "placeholder-b", "turnip" }, { "placeholder-c", "pumpkin" }, { "placeholder-d", "tomato" } });
+
             var steps = new GameObject("Steps").transform;
             steps.SetParent(root.transform, false);
             var step = new GameObject("Step_" + food);
             step.transform.SetParent(steps, false);
             step.AddComponent<FieldStep>().Food = food;
 
-            var drop = new GameObject("DropPoint").transform;
-            drop.SetParent(root.transform, false);
-            drop.localPosition = new Vector3(0f, 0.4f, 0f);
-
             GameObject glow = Shape(PrimitiveType.Cylinder, "Glow", root.transform, new Vector3(0f, 0.12f, 0f), new Vector3(1.5f, 0.02f, 1.5f), new Color(1f, 0.9f, 0.4f));
-            GameObject cheer = Shape(PrimitiveType.Sphere, "Cheer", root.transform, new Vector3(0f, 1.5f, 0f), Vector3.one * 0.25f, new Color(0.3f, 1f, 0.3f));
-            GameObject shake = Shape(PrimitiveType.Cube, "ShakeHead", root.transform, new Vector3(0f, 1.5f, 0f), Vector3.one * 0.25f, new Color(1f, 0.25f, 0.25f));
             glow.SetActive(false);
-            cheer.SetActive(false);
-            shake.SetActive(false);
 
+            // 届いたときの反応（喜ぶ・がっかりする）は、FieldStages が自分で付ける DeliveryFx が出す。合図で出すのは、光だけ。
             var reaction = root.AddComponent<CueReaction>();
             Entries(reaction,
                 (id + ".glow", new[] { glow }, null, 0f),
-                (id + ".glow-off", null, new[] { glow }, 0f),
-                (id + ".cheer", new[] { cheer }, null, 2f),
-                (id + ".shake-head", new[] { shake }, null, 1.5f));
+                (id + ".glow-off", null, new[] { glow }, 0f));
 
             var standGo = new GameObject("Stand_" + id);
             standGo.transform.position = stand;
             GameObject footprint = Shape(PrimitiveType.Cylinder, "Footprint", standGo.transform, new Vector3(0f, 0.01f, 0f), new Vector3(0.5f, 0.005f, 0.5f), new Color(1f, 0.85f, 0.2f));
             StandArea area = standGo.AddComponent<StandArea>();
             Set(area, "fieldId", id);
-            Set(area, "dropPoint", drop);
             Set(area, "footprint", footprint);
             return standGo.transform;
         }
