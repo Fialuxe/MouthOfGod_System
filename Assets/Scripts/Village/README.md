@@ -12,7 +12,7 @@
 
 | 部品 | 付ける所 | 役割 |
 |---|---|---|
-| `FieldStages` | フィールドの一番上 | Core の `IFieldRequests` の実装です。**Field Id に、自分のフィールドの ID を入れます**（初期値は空です。`village` / `mountain` / `sea` / `grassland`）。有効になると、Core の `Fields` に登録されます。下の `FieldStep` を **Hierarchy の並び順**に使います。番号は持ちません。同時に出せる欲しい物の数は、**Max Open Requests** で決めます。今の値は仮に 2 です |
+| `FieldStages` | フィールドの一番上 | フィールド 1 つ分の欲しい物と、戻り方を受け持ちます。Core の `IFieldRequests` を実装しています。**Field Id には、自分のフィールドの ID を入れます**。ID は `village`・`mountain`・`sea`・`grassland` のどれかです。初期値は空です。有効になると、Core の `Fields` に登録されます。欲しい物は、下の `FieldStep` を **Hierarchy の並び順**に使います。番号は持ちません。同時に出せる欲しい物の数は、**Max Open Requests** で決めます。今の値は仮に 2 です |
 | `FieldStep` | `Steps` の下の、ステップごとの空のオブジェクト | 戻り方の 1 段です。欲しい物（`Food`）と、困りごとが解ける人（`Helped`）を持ちます。吹き出しは、`Helped` の 1 人目の頭の上に出ます。`Hide When Done` には、済むと消える物を入れます。**このオブジェクトの子が、済むと出る物です**。音や光は `On Done` につなぎます |
 | `VillagerMood` | 村人（村人の Prefab に入っています） | 悩んでいる間は、頭の上に印を出します。村人は、ゆっくり立つ動きと、ときどきうなだれる動きをくり返します。間隔は人ごとにばらばらです。名前のあるステップがすべて済むと、元気になります。ステップが済むたびに、元気な人が喜びます |
 | `SurfaceAnchor` | フィールドの Prefab の一番上 | シーンの台（縦が潰れた立方体）の上面に乗せ、親の倍率を打ち消します。Prefab の中は 1 = 1 m のままです。編集中のシーンでも効きます |

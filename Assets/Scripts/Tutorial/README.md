@@ -91,9 +91,11 @@ public sealed class SeaReaction : MonoBehaviour
 |---|---|---|---|
 | `PrologueVideo` | `prologue` | 導入の動画を流し、「立ち上がって、スタッフの指示を聞いて」と伝える | — |
 | `T1Fork` | `fork` | 雲を刺す → 口に含む → 食感が 3 回変わる → ボタンで決める | `fork-learned` |
-| `T2Spawn` | `spawn` | 影を見ながら、リンゴを生む。違う物なら、やり直す | `food-born`・`texture-shadow-seen` |
+| `T2Spawn` | `spawn` | リンゴを生む。違う物なら、やり直す（影は参考。下の注） | `food-born`・`texture-shadow-seen` |
 | `T3Recognize` | `recognize` | 海に魚の欲しい物を出し、魚を生む。欲しい物は出したままにする | `request-seen` |
 | `T4Deliver` | `deliver` | 海の前まで歩き、魚を届ける。違う場所なら「ここではない」 | `delivered-by-standing` |
+
+チュートリアル 2 と 3 の流れは、担当者が作り直すときの参考です。この 2 つは、霞の中に影（`FoodShadow`）を出す合図を送っています。影は試しに入れたもので、実装しないことになりました（#277）。使わないときは、Prefab の Inspector で `shadow` の合図の名前を空にします。
 
 どのチュートリアルも、待ちに **Give Up Seconds** があります。その時間を過ぎると、できていなくても次へ進みます。ブースで止まらないようにするためです。
 
@@ -136,7 +138,7 @@ Prefab がまだ無いときは、メニュー **MouthOfGod > Tutorial > Generat
 2. その子に、`Prologue`・`T1Fork`・`T2Spawn`・`T3Recognize`・`T4Deliver` の Prefab を、この順でドラッグします。この順に動きます。
 3. 上に書いた、シーンの物だけを入れます。
 4. `CloudRing` のオブジェクトに、`CloudCues`（Fork）を足します。雲が光る・寄ってくる見せ方です。
-5. 影を出す `FoodShadow`（UI）を、シーンに 1 つ置きます。
+5. 影を試すときだけ、`FoodShadow`（UI）をシーンに 1 つ置きます。影は参考の部品で、体験には使いません。
 6. フィールドごとに、立つ場所の `StandArea`（Village）を置きます。置き方は [Village/README.md](../Village/README.md) にあります。
 7. ほかの合図への反応は、`CueReaction`（UI）で付けます。コードは要りません。
 
