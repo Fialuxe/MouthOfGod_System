@@ -10,7 +10,8 @@ namespace MouthOfGod.Village
     /// </summary>
     /// <remarks>
     /// - 欲しい物が届いた（ステップが済んだ）: 助かった村人の頭の上に喜びの粒を出し、音を 2D で鳴らす。村人の喜ぶ動きは <see cref="VillagerMood"/> が出す。
-    /// - 違う物が届いた（頼まれていない物・よその物。どちらも同じ反応）: 困っている村人に、Animator のトリガー（<c>Missed Trigger</c>）を送る。音があれば鳴らす。
+    /// - 違う物が届いた（頼まれていない物・よその物。どちらも同じ反応）: 困っている村人に、Animator のトリガー（<c>Missed Trigger</c>）を送り、がっかりした音を鳴らす。
+    /// - 粒と音を空にしておくと、Resources の標準の物を使う（粒: Prefabs/Village/Fx_Joy、音: Sounds/Village/Done と Missed）。
     ///   動きを変えるときは、村人の Animator Controller の、このトリガーで入るステートの Motion を差し替える。コードは直さない。
     ///   トリガーを持たない Animator（動物など）には、何もしない。
     /// - 届いた物そのものの消え方（違う物は霞のように消える）は、<see cref="DeliveryZone"/> が受け持つ。
@@ -19,12 +20,14 @@ namespace MouthOfGod.Village
     public sealed class DeliveryFx : MonoBehaviour
     {
         const string DefaultJoyPath = "Prefabs/Village/Fx_Joy";
+        const string DefaultDoneClipPath = "Sounds/Village/Done";     // Kenney「Music Jingles」の jingles_PIZZI02（CC0）
+        const string DefaultMissedClipPath = "Sounds/Village/Missed"; // このリポジトリで作った音（下がる 2 音）
 
         [Header("欲しい物が届いたとき")]
         [Tooltip("助かった村人の頭の上に出す粒。一度だけ出して、終わると自分で消える（Stop Action を Destroy にする）。空なら Resources/Prefabs/Village/Fx_Joy")]
         [SerializeField] ParticleSystem joy;
 
-        [Tooltip("ステップが済んだときの音（短い物）。空なら鳴らさない")]
+        [Tooltip("ステップが済んだときの音（短い物）。空なら Resources/Sounds/Village/Done")]
         [SerializeField] AudioClip doneClip;
 
         [Tooltip("欲しい物が届いたときに、ほかに呼ぶもの")]
@@ -34,7 +37,7 @@ namespace MouthOfGod.Village
         [Tooltip("困っている村人の Animator に送るトリガーの名前。Animator Controller に、この名前のトリガーが無ければ何もしない")]
         [SerializeField] string missedTrigger = VillagerMood.MissedTrigger;
 
-        [Tooltip("違う物が届いたときの音。空なら鳴らさない")]
+        [Tooltip("違う物が届いたときの音。空なら Resources/Sounds/Village/Missed")]
         [SerializeField] AudioClip missedClip;
 
         [Tooltip("違う物が届いたときに、ほかに呼ぶもの")]
@@ -57,6 +60,8 @@ namespace MouthOfGod.Village
                 _audio.spatialBlend = 0f;
             }
             if (joy == null) joy = Resources.Load<ParticleSystem>(DefaultJoyPath);
+            if (doneClip == null) doneClip = Resources.Load<AudioClip>(DefaultDoneClipPath);
+            if (missedClip == null) missedClip = Resources.Load<AudioClip>(DefaultMissedClipPath);
             if (_stages == null) return;
             _stages.StepDone += OnStepDone;
             _stages.Received += OnReceived;
