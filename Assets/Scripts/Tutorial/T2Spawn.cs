@@ -186,6 +186,14 @@ namespace MouthOfGod.Tutorial
             if (endPauseSeconds > 0f) yield return new WaitForSeconds(endPauseSeconds);
         }
 
+        // Stop で途中でやめたとき、お供え物と影を消す。
+        protected override void OnAborted()
+        {
+            if (offering != null) offering.SetActive(false);
+            Cue(offeringHideCue);
+            Cue(shadowHideCue);
+        }
+
         bool GaveUp => giveUpSeconds > 0f && Time.time - _startedAt >= giveUpSeconds;
 
         float NextTimeout(float hintSeconds) => TimeoutFor(hintSeconds, giveUpSeconds, Time.time - _startedAt);

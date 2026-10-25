@@ -4,15 +4,16 @@ using UnityEngine;
 namespace MouthOfGod.Miko.Editor
 {
     /// <summary>
-    /// 一時的なメニュー。チュートリアル 1〜4 のセリフ（英語）を、選んだ Miko の LineBook に足す。
+    /// 一時的なメニュー。プロローグの終わりと、チュートリアル 1〜4 のセリフ（英語）を、選んだ Miko の LineBook に足す。
     /// 同じ id がもうあれば、足さない（人が直した文は上書きしない）。
     /// シーンの LineBook に入れ終えたら、このファイルは消す（docs/architecture.md「データの作り方」）。
     /// </summary>
     static class TutorialLinesMenu
     {
-        // id と英文。台本は docs/scenario-book.md の S3〜S6。台本にない文は仮。
+        // id と英文。台本は docs/scenario-book.md の S1・S3〜S6。台本にない文は仮。
         static readonly string[,] Lines =
         {
+            { "prologue-stand-up", "Please stand up and follow the booth staff." },
             { "t1-pierce", "Take the fork in your hand. Pierce that glowing cloud." },
             { "t1-mouth", "Now bring it to your mouth." },
             { "t1-mouth-again", "Bring it to your mouth." },

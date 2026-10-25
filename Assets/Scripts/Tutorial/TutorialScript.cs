@@ -79,6 +79,11 @@ namespace MouthOfGod.Tutorial
             return wait;
         }
 
+        /// <summary>途中でやめられた（<see cref="TutorialRunner.Stop"/>）。流している動画を止めるなど、後片付けを書く。最後まで進んだときは呼ばれない。</summary>
+        protected virtual void OnAborted() { }
+
+        internal void Abort() => OnAborted();
+
         // このチュートリアルが終わった・やめたときに、待ちが残っていれば聞くのをやめる。
         internal void CancelWaits()
         {

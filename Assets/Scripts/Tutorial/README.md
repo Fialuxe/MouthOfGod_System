@@ -67,12 +67,13 @@ public sealed class SeaReaction : MonoBehaviour
 
 合図の名前は、フィールド名から始めます（`sea.glow`、`village.cheer`）。
 
-## チュートリアル 1〜4
+## プロローグとチュートリアル 1〜4
 
-台本は [シナリオブック](../../../docs/scenario-book.md) の S3〜S6 です。セリフの id・合図の名前・待ち時間は、すべて Inspector で変えられます。合図やセリフを空にすると、出しません。
+台本は [シナリオブック](../../../docs/scenario-book.md) の S1・S3〜S6 です。セリフの id・合図の名前・待ち時間は、すべて Inspector で変えられます。合図やセリフを空にすると、出しません。
 
 | ファイル | 場面（Phase） | すること | 覚えること |
 |---|---|---|---|
+| `PrologueVideo` | `prologue` | 導入の動画を流し、「立ち上がって、スタッフの指示を聞いて」と伝える | — |
 | `T1Fork` | `fork` | 雲を刺す → 口に含む → 食感が 3 回変わる → ボタンで決める | `fork-learned` |
 | `T2Spawn` | `spawn` | 影を見ながら、リンゴを生む。違う物なら、やり直す | `food-born`・`texture-shadow-seen` |
 | `T3Recognize` | `recognize` | 海に魚の欲しい物を出し、魚を生む。欲しい物は出したままにする | `request-seen` |
@@ -80,11 +81,21 @@ public sealed class SeaReaction : MonoBehaviour
 
 どのチュートリアルも、待ちに **Give Up Seconds** があります。その時間を過ぎると、できていなくても次へ進みます。ブースで止まらないようにするためです。
 
+### 導入の動画（プロローグ）
+
+動画は、シーンを切り替えずに、同じシーンの中の画面で流します。理由は、[決めたことの記録](../../../docs/decisions.md) の 2026-10-25 にあります。
+
+- `VideoScreen` の **Clip** に動画を入れます。大きい動画は `Assets/StreamingAssets/` に置き、**Streaming Assets File** にファイル名を書きます。
+- 画面は、体験者の正面 3 m 先に、幅 2.2 m で出ます。距離・幅・高さは Inspector で変えられます。
+- 動画のあいだだけ村を隠すときは、**Hide While Playing** に入れます。暗い背景を出すときは、**Show While Playing** に入れます。
+- 試すときは、Play 中に `VideoScreen` を右クリックし、**Skip** で飛ばせます。
+
 ### シーンへの置き方
 
 1. 空の GameObject に `TutorialRunner` を付けます。
-2. その子に、`T1Fork`・`T2Spawn`・`T3Recognize`・`T4Deliver` を、この順で 1 つずつ置きます。
-3. シーンの Miko を選び、メニュー **MouthOfGod > Miko > Add Tutorial Lines To Selected LineBook** を実行します。22 行のセリフが LineBook に入ります。このメニューは一時的なものなので、入れ終えたら消します。
+2. その子に、`PrologueVideo`・`T1Fork`・`T2Spawn`・`T3Recognize`・`T4Deliver` を、この順で 1 つずつ置きます。`PrologueVideo` のオブジェクトには、`VideoScreen` も付けます。
+   - Play で自動で始めるときは、`TutorialRunner` の **Begin On Start** を入れます。**Wait Until Worn** が入っていれば、Quest をかぶるまで待ちます。
+3. シーンの Miko を選び、メニュー **MouthOfGod > Miko > Add Tutorial Lines To Selected LineBook** を実行します。23 行のセリフが LineBook に入ります。このメニューは一時的なものなので、入れ終えたら消します。
 4. `CloudRing` のオブジェクトに、`CloudCues`（Fork）を足します。雲が光る・寄ってくる見せ方です。
 5. 影を出す `FoodShadow`（UI）を、シーンに 1 つ置きます。
 6. フィールドごとに、立つ場所の `StandArea`（Village）を置きます。置き方は [Village/README.md](../Village/README.md) にあります。
@@ -102,11 +113,13 @@ public sealed class SeaReaction : MonoBehaviour
 | `offering.show` / `offering.hide` | お供え物のリンゴを見せる・消す | `CueReaction` で付ける（`T2Spawn` の Offering に入れてもよい） |
 | `device.button.glow` / `device.button.glow-strong` / `device.button.glow-off` | ボタンの位置を光らせる | `CueReaction` で付ける |
 | `staff.alert` | スタッフに知らせる | `CueReaction` で付ける |
+| `prologue.start` / `prologue.end` | 導入の動画を流し始める・終わった | `CueReaction` で付ける |
 
 ## まだないもの
 
 - 台本にないセリフ（`t2-remember-short`・`t2-hint-pierce`・`t2-hint-mouth`・`t3-wrong`・`t4-here`）は、仮の文です。
 - セリフの声は、まだありません。字幕だけが出ます。
+- 導入の動画そのものは、まだありません。動画が無いときは、プロローグは最後のセリフだけを言って進みます。
 
 ## テスト
 
