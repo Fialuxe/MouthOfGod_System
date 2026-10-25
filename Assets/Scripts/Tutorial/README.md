@@ -11,9 +11,25 @@
 | `TutorialScript` | 人形劇スクリプトの土台です。継いだクラスを、チュートリアルごとに 1 つ書きます（`T1Fork.cs` …）。`Phase`（場面の名前）と、`Play()`（流れのコルーチン）を書きます |
 | `TutorialRunner` | 子の `TutorialScript` を、Hierarchy の並び順に 1 つずつ動かします。無効にしたスクリプトは飛ばすので、特定のチュートリアルだけを試せます。例外が出たら、そのスクリプトだけをやめて次へ進みます。`Begin()` で始め、`Stop()` でやめます |
 | `TutorialMemory` | チュートリアルのあいだで引き継ぐ「覚えたこと」です。名前だけを持ちます。`Has(名前)`・`Set(名前)` で使います |
-| `DeliveryWait` / `ConfirmWait` / `ForkWait` / `SpawnWait` / `TextureChangeWait` / `StandWait` / `AnyWait` | `yield return` で待つものです。時間切れも付けられます。待てるのは、次の 7 つです。
-物の届き、デバイスでの決定、フォークの動き、物が生まれる（`WaitForSpawn`）、食感の切り替わり（`WaitForTextureChanges`）、その場所に立つ（`WaitForStanding`）、どれか早いほう |
-| `Say(id)` | 巫女にセリフを言わせます。合図 `miko.say.<id>` を出します。文は、シーンの Miko の LineBook に書きます |
+| `DeliveryWait` / `ConfirmWait` / `ForkWait` / `SpawnWait` / `TextureChangeWait` / `StandWait` / `AnyWait` | `yield return` で待つものです。時間切れも付けられます。待てるのは次の 7 つです。1 つ目から 6 つ目は、物が届く、デバイスで決定する、フォークで刺す・口に含む、物が生まれる、食感が切り替わる、その場所に立つ、です。7 つ目は、渡した待ちのうち、どれかが終わったら終わる待ちです |
+| `Say(id)` | 巫女にセリフを言わせます。合図 `miko.say.<id>` を出します。文は、そのチュートリアルの Prefab に付けた `MikoLineBook` に書きます |
+| `TutorialHistory` | チュートリアルが始まってから体験者がしたことの記録です。`TutorialRunner` が、チュートリアルごとに作ります。待ちは、この記録を使って、先回りした操作も数えます（下の「先回りした操作」） |
+| `AlreadyDone(種類)` | その操作を、もう先回りして済ませているかを返します。済んでいる段の案内のセリフを飛ばすときに使います |
+
+### 先回りした操作
+
+体験者は、案内のセリフより先に動くことがあります。そこで、待ちは次の決まりで操作を数えます。各チュートリアルのスクリプトで、特別に書く必要はありません。
+
+- 待ちは、そのチュートリアルが始まってから起きて、まだ使われていない操作を数えます。もう起きていれば、待ちはすぐ終わります。
+- 待ちが終わると、その種類の操作は使ったことにします。同じリンゴ 1 つで、2 回進むことはありません。
+- 前のチュートリアルで起きた操作は数えません。
+- 記録するのは次の 5 つです。
+  1. フォークで雲を刺した
+  2. かけらの付いた先を口に含んだ
+  3. 食感が変わった
+  4. デバイスで決定した
+  5. 食べ物が生まれた
+- 物の届きと立つ場所は、記録しません。立つ場所は、待ち始めたときにもう立っていれば、すぐ終わります。
 
 ## ほかの機能とのつなぎ方
 
@@ -85,17 +101,40 @@ public sealed class SeaReaction : MonoBehaviour
 
 動画は、シーンを切り替えずに、同じシーンの中の画面で流します。理由は、[決めたことの記録](../../../docs/decisions.md) の 2026-10-25 にあります。
 
-- `VideoScreen` の **Clip** に動画を入れます。大きい動画は `Assets/StreamingAssets/` に置き、**Streaming Assets File** にファイル名を書きます。
-- 画面は、体験者の正面 3 m 先に、幅 2.2 m で出ます。距離・幅・高さは Inspector で変えられます。
-- 動画のあいだだけ村を隠すときは、**Hide While Playing** に入れます。暗い背景を出すときは、**Show While Playing** に入れます。
+- 導入の動画（約 1 分）は、`Assets/StreamingAssets/` に置きます。`Prologue` の Prefab の `VideoScreen` の **Streaming Assets File** に、ファイル名（例: `Begin_KeltPiano.mp4`）を書きます。短い動画なら、**Clip** に入れてもかまいません。
+- 画面は、体験者の正面 3 m 先に出ます。大きさは、水平の視野の 100 度を覆う幅です（**View Degrees**）。視界をほぼ覆います。
+- 流している間は、周りを暗い球で囲みます（**Dark Surround**）。村もミニチュアも見えません。
+- 画面は空間に固定します。頭に付けると、頭と一緒に動いて酔いやすいためです。大きく向きを変えたときだけ、ゆっくり正面へ回り込みます。
+- ほかに隠す物・出す物があれば、**Hide While Playing** と **Show While Playing** に入れます。
 - 試すときは、Play 中に `VideoScreen` を右クリックし、**Skip** で飛ばせます。
+
+### チュートリアルの Prefab
+
+プロローグとチュートリアル 1〜4 は、1 つずつ Prefab にしています。置き場所は `Assets/Resources/Prefabs/Tutorial/` です。担当者は、自分のチュートリアルの Prefab だけを直します。ほかの人と同じファイルを直さないので、Scene Fusion を待たずに並列で作業できます。
+
+| Prefab | 中身 |
+|---|---|
+| `Prologue` | `PrologueVideo`、子の `VideoScreen`、セリフ |
+| `T1Fork` | `T1Fork`、セリフ |
+| `T2Spawn` | `T2Spawn`、お供え物の仮の見た目（赤い球）、セリフ |
+| `T3Recognize` | `T3Recognize`、セリフ |
+| `T4Deliver` | `T4Deliver`、セリフ |
+
+Prefab がまだ無いときは、メニュー **MouthOfGod > Tutorial > Generate Tutorial Prefabs** で作ります。既にある Prefab は上書きしません。
+
+秒数・合図の名前・セリフは、Prefab を開いて直します。シーンに置いた Prefab の上で直すと、そのシーンだけの上書きになり、ほかのシーンには反映されません。
+
+ただし、シーンの物は Prefab に入れられません。次の値だけは、シーンに置いた Prefab の上で入れます。
+- セリフの **Point Target**（指さす物）と **Move To**（行き先）
+- `VideoScreen` の **Hide While Playing** と **Show While Playing**（動画のあいだ隠す物・出す物）
+- `T2Spawn` のお供え物の位置。体験者の前に浮かぶように動かします
 
 ### シーンへの置き方
 
 1. 空の GameObject に `TutorialRunner` を付けます。
-2. その子に、`PrologueVideo`・`T1Fork`・`T2Spawn`・`T3Recognize`・`T4Deliver` を、この順で 1 つずつ置きます。`PrologueVideo` のオブジェクトには、`VideoScreen` も付けます。
    - Play で自動で始めるときは、`TutorialRunner` の **Begin On Start** を入れます。**Wait Until Worn** が入っていれば、Quest をかぶるまで待ちます。
-3. シーンの Miko を選び、メニュー **MouthOfGod > Miko > Add Tutorial Lines To Selected LineBook** を実行します。23 行のセリフが LineBook に入ります。このメニューは一時的なものなので、入れ終えたら消します。
+2. その子に、`Prologue`・`T1Fork`・`T2Spawn`・`T3Recognize`・`T4Deliver` の Prefab を、この順でドラッグします。この順に動きます。
+3. 上に書いた、シーンの物だけを入れます。
 4. `CloudRing` のオブジェクトに、`CloudCues`（Fork）を足します。雲が光る・寄ってくる見せ方です。
 5. 影を出す `FoodShadow`（UI）を、シーンに 1 つ置きます。
 6. フィールドごとに、立つ場所の `StandArea`（Village）を置きます。置き方は [Village/README.md](../Village/README.md) にあります。
@@ -119,7 +158,7 @@ public sealed class SeaReaction : MonoBehaviour
 
 - 台本にないセリフ（`t2-remember-short`・`t2-hint-pierce`・`t2-hint-mouth`・`t3-wrong`・`t4-here`）は、仮の文です。
 - セリフの声は、まだありません。字幕だけが出ます。
-- 導入の動画そのものは、まだありません。動画が無いときは、プロローグは最後のセリフだけを言って進みます。
+- 導入の動画は、`Assets/StreamingAssets/` に 2 本の候補があります。`Begin_KeltPiano.mp4` と `Begin_PureKelt.mp4` です。今は `Prologue` の Prefab で `Begin_KeltPiano.mp4` を流しています。どちらにするかは、まだ決まっていません。動画が無いときは、プロローグは最後のセリフだけを言って進みます。
 
 ## テスト
 
