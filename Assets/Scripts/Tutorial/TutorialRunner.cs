@@ -23,6 +23,12 @@ namespace MouthOfGod.Tutorial
         internal static Action<string> ReportWarning = Debug.LogWarning;
         internal static Action<Exception> ReportException = Debug.LogException;
 
+        [Tooltip("入れると、Play を始めたときに自動で Begin する。入れないときは、呼ぶ側（台の前に立った、など）が Begin を呼ぶ")]
+        [SerializeField] bool beginOnStart;
+
+        [Tooltip("Begin On Start のとき、始めるまで待つ秒数")]
+        [SerializeField, Min(0f)] float beginDelaySeconds;
+
         Coroutine _running;
         TutorialScript _current;
 
@@ -153,6 +159,13 @@ namespace MouthOfGod.Tutorial
 
         [ContextMenu("Stop")]
         void StopFromMenu() => Stop();
+
+        IEnumerator Start()
+        {
+            if (!beginOnStart) yield break;
+            if (beginDelaySeconds > 0f) yield return new WaitForSeconds(beginDelaySeconds);
+            if (!IsRunning) Begin();
+        }
 
         void OnDisable() => Stop();
     }

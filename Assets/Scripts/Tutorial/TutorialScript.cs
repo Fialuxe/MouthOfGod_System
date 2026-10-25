@@ -31,7 +31,10 @@ namespace MouthOfGod.Tutorial
         internal void Attach(TutorialMemory memory) => Memory = memory;
 
         /// <summary>合図を出す。見せ方は、受けた側が決める。</summary>
-        protected void Cue(string cue) => Cues.Request(new CueId(cue));
+        protected void Cue(string cue)
+        {
+            if (!string.IsNullOrEmpty(cue)) Cues.Request(new CueId(cue)); // Inspector で合図を空にしたら、出さない
+        }
 
         /// <summary>フィールドに物が届くのを待つ。field を空にすると、どこへ届いてもよい。timeoutSeconds が 0 なら、時間切れはない。</summary>
         protected DeliveryWait WaitForDelivery(string field = "", float timeoutSeconds = 0f)
@@ -48,6 +51,24 @@ namespace MouthOfGod.Tutorial
         /// <summary>雲のかけらが付いたフォークの先を、口に含むのを待つ。もう含んでいれば、すぐ終わる。timeoutSeconds が 0 なら、時間切れはない。</summary>
         protected ForkWait WaitForMouth(float timeoutSeconds = 0f)
             => Track(new ForkWait(ForkGoal.Mouth, timeoutSeconds, null));
+
+        /// <summary>食べ物が生まれるのを待つ。food を空にすると、何が生まれてもよい。timeoutSeconds が 0 なら、時間切れはない。</summary>
+        protected SpawnWait WaitForSpawn(string food = "", float timeoutSeconds = 0f)
+            => Track(new SpawnWait(new FoodId(food), timeoutSeconds, null));
+
+        /// <summary>噛んでいる間に、食感が count 回切り替わるのを待つ。timeoutSeconds が 0 なら、時間切れはない。</summary>
+        protected TextureChangeWait WaitForTextureChanges(int count, float timeoutSeconds = 0f)
+            => Track(new TextureChangeWait(count, timeoutSeconds, null));
+
+        /// <summary>体験者が、そのフィールドの前に立つのを待つ。field を空にすると、どこでもよい。もう立っていれば、すぐ終わる。timeoutSeconds が 0 なら、時間切れはない。</summary>
+        protected StandWait WaitForStanding(string field = "", float timeoutSeconds = 0f)
+            => Track(new StandWait(new FieldId(field), timeoutSeconds, null));
+
+        /// <summary>巫女にセリフを言わせる（合図 <c>miko.say.&lt;id&gt;</c>）。id が空なら何もしない。セリフの中身は、シーンの Miko の LineBook に書く。</summary>
+        protected void Say(string lineId)
+        {
+            if (!string.IsNullOrEmpty(lineId)) Cue("miko.say." + lineId);
+        }
 
         /// <summary>渡した待ちのうち、どれかが終わるのを待つ。終わったら、ほかは取り消す。</summary>
         protected AnyWait WaitForAny(params TutorialWait[] waits) => new AnyWait(waits);

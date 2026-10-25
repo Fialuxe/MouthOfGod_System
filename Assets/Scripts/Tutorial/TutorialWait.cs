@@ -186,6 +186,110 @@ namespace MouthOfGod.Tutorial
         }
     }
 
+    /// <summary>
+    /// 食べ物が生まれるのを待つ（<see cref="IFoodSpawner.Spawned"/>）。<c>only</c> を指定すれば、その食べ物だけ。指定しなければ、何が生まれてもよい。
+    /// 終わったあとの <see cref="Result"/> で、何が生まれたかが分かる。時間切れなら null。
+    /// </summary>
+    public sealed class SpawnWait : TutorialWait
+    {
+        readonly FoodId _only;
+        IFoodSpawner _spawner;
+
+        internal SpawnWait(FoodId only, float timeoutSeconds, Func<float> clock) : base(timeoutSeconds, clock)
+        {
+            _only = only;
+            FoodSpawners.WhenReady(Bind); // 食べ物を生む所があとから用意されても聞く
+        }
+
+        public Spawned? Result { get; private set; }
+
+        void Bind(IFoodSpawner spawner)
+        {
+            if (IsDone) return;
+            _spawner = spawner;
+            _spawner.Spawned += OnSpawned;
+        }
+
+        void OnSpawned(Spawned spawned)
+        {
+            if (IsDone) return;
+            if (!_only.IsEmpty && spawned.Food != _only) return;
+            Result = spawned;
+            Complete();
+        }
+
+        protected override void Unsubscribe()
+        {
+            FoodSpawners.CancelWhenReady(Bind);
+            if (_spawner != null) _spawner.Spawned -= OnSpawned;
+            _spawner = null;
+        }
+    }
+
+    /// <summary>
+    /// 噛んでいる間に、食感が <c>count</c> 回切り替わるのを待つ（<see cref="IDevice.TextureChanged"/>）。待ち始めてからの回数を数える。
+    /// 噛み始めの最初の食感も 1 回に数える。
+    /// </summary>
+    public sealed class TextureChangeWait : TutorialWait
+    {
+        readonly int _count;
+        IDevice _device;
+
+        internal TextureChangeWait(int count, float timeoutSeconds, Func<float> clock) : base(timeoutSeconds, clock)
+        {
+            _count = Math.Max(1, count);
+            Devices.WhenReady(Bind); // デバイスがあとから用意されても聞く
+        }
+
+        /// <summary>待ち始めてから、食感が切り替わった回数。</summary>
+        public int Changes { get; private set; }
+
+        void Bind(IDevice device)
+        {
+            if (IsDone) return;
+            _device = device;
+            _device.TextureChanged += OnChanged;
+        }
+
+        void OnChanged(TextureId texture)
+        {
+            if (IsDone) return;
+            Changes++;
+            if (Changes >= _count) Complete();
+        }
+
+        protected override void Unsubscribe()
+        {
+            Devices.CancelWhenReady(Bind);
+            if (_device != null) _device.TextureChanged -= OnChanged;
+            _device = null;
+        }
+    }
+
+    /// <summary>
+    /// 体験者が、あるフィールドの前に立つのを待つ（<see cref="Standing"/>）。<c>field</c> を空にすると、どこかのフィールドの前に立てばよい。
+    /// 待ち始めたときに、もうその場所に立っていれば、すぐ終わる。
+    /// </summary>
+    public sealed class StandWait : TutorialWait
+    {
+        readonly FieldId _field;
+
+        internal StandWait(FieldId field, float timeoutSeconds, Func<float> clock) : base(timeoutSeconds, clock)
+        {
+            _field = field;
+            Standing.Changed += OnChanged;
+            OnChanged(Standing.Field);
+        }
+
+        void OnChanged(FieldId field)
+        {
+            if (IsDone || field.IsEmpty) return;
+            if (_field.IsEmpty || field == _field) Complete();
+        }
+
+        protected override void Unsubscribe() => Standing.Changed -= OnChanged;
+    }
+
     /// <summary><see cref="ForkWait"/> が待つもの。</summary>
     public enum ForkGoal
     {
