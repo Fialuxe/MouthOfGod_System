@@ -90,6 +90,12 @@ namespace MouthOfGod.Village
         }
 
         // 掲示板への登録。ID が空・重なっているときは、Fields が警告を出す。
+        // 標準の反応（DeliveryFx）が無ければ付ける。フィールドの担当が何もしなくても、届いたときに反応が出るように。
+        void Awake()
+        {
+            if (Application.isPlaying && !TryGetComponent<DeliveryFx>(out _)) gameObject.AddComponent<DeliveryFx>();
+        }
+
         void OnEnable() => Fields.Register(this);
 
         // 出ていた欲しい物は終えてから外す（使う側が Removed で購読を外しても、吹き出しが残らないように）。

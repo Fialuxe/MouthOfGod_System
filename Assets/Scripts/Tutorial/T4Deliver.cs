@@ -16,18 +16,19 @@ namespace MouthOfGod.Tutorial
     /// 2. フィールドを光らせ、足あとの印を出し、巫女をついて来させて「海の前まで歩き、そこで魚を生み出す」と言う。
     ///    その後は、どこかに物が届くのを待つ。目当てのフィールドに、欲しがっていた物が届いたら成功。
     ///    - 目当ての前に立ったら、足あとの印を消し、「ここで生み出す」と言う。
-    ///    - よそのフィールドに届いたら、そのフィールドの村人が首を振り、「ここではない」と言う。足あとの印をもう一度出す。
-    ///    - 目当てのフィールドに、違う物が届いたら、村人が首を振り、指示をもう一度言う。
+    ///    - よそのフィールドに届いたら、「ここではない」と言う。足あとの印をもう一度出す。
+    ///    - 目当てのフィールドに、違う物が届いたら、指示をもう一度言う。
+    ///    - どちらの場合も、届いたフィールドは自分でがっかりする（DeliveryFx）。届いた物は霞のように消える（DeliveryZone）。
     ///    - しばらく何も届かなければ、指示をもう一度言う。
     ///    - あきらめる時間を過ぎたら、成功しないまま 4 へ進む（ブースを止めない）。
-    /// 3. 成功したら、フィールドが喜び、「見事じゃ」と言う。
+    /// 3. 成功したら、「見事じゃ」と言う。フィールドは自分で喜ぶ（ステップが済み、DeliveryFx が粒と音を出す）。
     /// 4. 光と足あとの印を消し、巫女をとどまらせて、締めのセリフを言う。成功したときだけ、<c>delivered-by-standing</c> を覚える。
     ///
     /// 出す合図（フィールド名は Inspector の Field。接尾辞を空にした合図は出さない）:
     /// - <c>&lt;field&gt;.glow</c> / <c>&lt;field&gt;.glow-off</c>: 目当てのフィールドを光らせる / 光を消す。
     /// - <c>&lt;field&gt;.footprint</c> / <c>&lt;field&gt;.footprint-off</c>: 目当てのフィールドの前の床に、足あとの印を出す / 消す。
-    /// - <c>&lt;field&gt;.cheer</c>: 目当てのフィールドの村人が喜ぶ。
-    /// - <c>&lt;届いたフィールド&gt;.shake-head</c>: 違う場所・違う物が届いたフィールドの村人が首を振る。
+    /// - <c>&lt;field&gt;.cheer</c> / <c>&lt;届いたフィールド&gt;.shake-head</c>: 既定では出さない。届いたときの反応（喜ぶ・がっかりする）は、
+    ///   フィールドの DeliveryFx が、チュートリアルでも本編でも同じように出すため。演出を足したいときだけ、接尾辞を入れる。
     /// - <c>miko.follow</c> / <c>miko.stay</c>: 巫女が体験者についてくる / その場にとどまる。
     ///
     /// セリフ（<c>miko.say.&lt;id&gt;</c>。中身はシーンの Miko の LineBook に書く）:
@@ -83,11 +84,11 @@ namespace MouthOfGod.Tutorial
         [Tooltip("足あとの印を消す（<field>.footprint-off）。前に立ったときと、最後に出す")]
         [SerializeField] string footprintOffSuffix = "footprint-off";
 
-        [Tooltip("正しく届いたフィールドが喜ぶ（<field>.cheer）")]
-        [SerializeField] string cheerSuffix = "cheer";
+        [Tooltip("正しく届いたフィールドに出す合図（<field>.cheer）。空なら出さない。届いたときの反応は、フィールドの DeliveryFx が出すので、ふつうは空のまま")]
+        [SerializeField] string cheerSuffix = "";
 
-        [Tooltip("違う場所・違う物が届いたフィールドの村人が首を振る（<届いたフィールド>.shake-head）")]
-        [SerializeField] string shakeHeadSuffix = "shake-head";
+        [Tooltip("違う場所・違う物が届いたフィールドに出す合図（<届いたフィールド>.shake-head）。空なら出さない。ふつうは空のまま（DeliveryFx が反応する）")]
+        [SerializeField] string shakeHeadSuffix = "";
 
         [Header("巫女の合図（空なら出さない）")]
         [Tooltip("指示を出すときに、巫女を体験者についてこさせる")]

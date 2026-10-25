@@ -22,8 +22,17 @@ namespace MouthOfGod.Village
         [Tooltip("頼まれた物が届いたら、その食べ物を消す")]
         [SerializeField] bool consumeRequested = true;
 
-        [Tooltip("頼まれていない物（同じ物の 2 つ目や、よその物）が届いたら、その食べ物を消す。消さなければ、フィールドに残る")]
+        [Tooltip("頼まれていない物（同じ物の 2 つ目や、よその物）が届いたら、その食べ物をすぐ消す。Vanish Others より先に効く")]
         [SerializeField] bool consumeOthers;
+
+        [Tooltip("頼まれていない物が届いたら、煙を出して、だんだん小さくして消す（霞のように消える）。外すと、フィールドに残る")]
+        [SerializeField] bool vanishOthers = true;
+
+        [Tooltip("消えるまでの秒数")]
+        [SerializeField, Min(0f)] float vanishSeconds = 1f;
+
+        [Tooltip("消えるときに出す物（煙など）。空なら Resources/Prefabs/Village/Fx_Smoke")]
+        [SerializeField] GameObject vanishFx;
 
         // Component を付けたとき、Collider を Is Trigger にする。
         void Reset()
@@ -62,8 +71,34 @@ namespace MouthOfGod.Village
             else
             {
                 food.AddComponent<DeliveredMark>();
+                if (vanishOthers && Application.isPlaying) Vanish(food);
             }
             return true;
+        }
+
+        void Vanish(GameObject food)
+        {
+            var fx = vanishFx != null ? vanishFx : Resources.Load<GameObject>("Prefabs/Village/Fx_Smoke");
+            if (fx != null) Instantiate(fx, food.transform.position, Quaternion.identity);
+            food.AddComponent<Vanishing>().Seconds = vanishSeconds;
+        }
+
+        // 届いた違う物を、だんだん小さくして消す。
+        sealed class Vanishing : MonoBehaviour
+        {
+            public float Seconds = 1f;
+            Vector3 _scale;
+            float _t;
+
+            void Start() => _scale = transform.localScale;
+
+            void Update()
+            {
+                _t += Time.deltaTime;
+                float k = Seconds > 0f ? Mathf.Clamp01(_t / Seconds) : 1f;
+                transform.localScale = _scale * (1f - k);
+                if (k >= 1f) Destroy(gameObject);
+            }
         }
 
         IFieldRequests ResolveField()

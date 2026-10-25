@@ -118,7 +118,7 @@ namespace MouthOfGod.Tutorial.Tests
             Assert.IsFalse(Advance(play));
             CollectionAssert.AreEqual(new[]
             {
-                "sea.cheer", "miko.say.t4-splendid",
+                "miko.say.t4-splendid",
                 "sea.footprint-off", "sea.glow-off", "miko.stay", "miko.say.t4-true-god",
             }, CuesFrom(4));
             Assert.IsTrue(_memory.Has("delivered-by-standing"));
@@ -160,7 +160,7 @@ namespace MouthOfGod.Tutorial.Tests
 
             village.Deliver("fish", DeliveryKind.Foreign);
             Assert.IsTrue(Advance(play)); // まだ終わらない
-            CollectionAssert.AreEqual(new[] { "village.shake-head", "miko.say.t4-not-here", "sea.footprint" }, CuesFrom(4));
+            CollectionAssert.AreEqual(new[] { "miko.say.t4-not-here", "sea.footprint" }, CuesFrom(4));
             Assert.IsFalse(_memory.Has("delivered-by-standing"));
 
             sea.Deliver("fish", DeliveryKind.Requested);
@@ -177,7 +177,7 @@ namespace MouthOfGod.Tutorial.Tests
 
             sea.Deliver("apple", DeliveryKind.Foreign);
             Assert.IsTrue(Advance(play));
-            CollectionAssert.AreEqual(new[] { "sea.shake-head", "miko.say.t4-walk" }, CuesFrom(4));
+            CollectionAssert.AreEqual(new[] { "miko.say.t4-walk" }, CuesFrom(4));
         }
 
         [Test]
