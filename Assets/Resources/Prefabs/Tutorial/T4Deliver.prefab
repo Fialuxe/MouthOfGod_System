@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7206843125520245290
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2912982676938914361}
+  - component: {fileID: 7312551268228923605}
+  - component: {fileID: 5174364459639352701}
+  m_Layer: 0
+  m_Name: T4Deliver
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2912982676938914361
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7206843125520245290}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7312551268228923605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7206843125520245290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbd3910ea8988d444a7c01bcc324d83b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  field: sea
+  food: fish
+  walkLine: t4-walk
+  hereLine: t4-here
+  notHereLine: t4-not-here
+  wrongFoodLine: t4-walk
+  splendidLine: t4-splendid
+  trueGodLine: t4-true-god
+  glowSuffix: glow
+  glowOffSuffix: glow-off
+  footprintSuffix: footprint
+  footprintOffSuffix: footprint-off
+  cheerSuffix: cheer
+  shakeHeadSuffix: shake-head
+  mikoFollowCue: miko.follow
+  mikoStayCue: miko.stay
+  hintSeconds: 15
+  giveUpSeconds: 60
+  pauseAfterSplendid: 2
+  pauseAfterTrueGod: 5
+--- !u!114 &5174364459639352701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7206843125520245290}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6411f8459331c3542aed6b2d12b00812, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lines:
+  - id: t4-walk
+    text: Walk to the sea, and create the fish there.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t4-here
+    text: Now, create it here.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t4-not-here
+    text: "Not here \u2014 go to the place that glows."
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t4-splendid
+    text: Splendid!
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t4-true-god
+    text: Find what each place needs, go there, and create it. Now you are a true
+      god.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0

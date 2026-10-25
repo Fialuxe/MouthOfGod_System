@@ -1,0 +1,19 @@
+{
+    "name": "MouthOfGod.Tutorial.Editor",
+    "rootNamespace": "MouthOfGod.Tutorial.Editor",
+    "references": [
+        "MouthOfGod.Tutorial",
+        "MouthOfGod.Miko"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

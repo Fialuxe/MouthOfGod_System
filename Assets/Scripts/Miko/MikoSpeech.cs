@@ -49,9 +49,9 @@ namespace MouthOfGod.Miko
         /// <summary>id のセリフをしゃべる。見つからなければ false。</summary>
         public bool Say(string id)
         {
-            // セリフの一覧は、親（Miko）の下の LineBook にある。
+            // まず親（Miko）の下の LineBook を見る。無ければ、シーンにある場面ごとの LineBook から探す。
             var book = transform.parent != null ? transform.parent.GetComponentInChildren<MikoLineBook>(true) : GetComponent<MikoLineBook>();
-            var line = book != null ? book.Find(id) : null;
+            var line = (book != null ? book.Find(id) : null) ?? MikoLineBook.FindAny(id);
             if (line == null) return false;
             // 言っている最中に来たセリフは、上書きせず、言い終わるのを待つ。
             if (Busy) _queue.Enqueue(line);
