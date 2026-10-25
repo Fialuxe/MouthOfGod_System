@@ -56,6 +56,13 @@ namespace MouthOfGod.Tutorial.Tests
         }
 
         [Test]
+        public void ScreenWidth_CoversTheViewAngle()
+        {
+            Assert.AreEqual(6f, VideoScreen.ScreenWidth(3f, 90f), 0.0001f);
+            Assert.AreEqual(2f * 3f * Mathf.Tan(50f * Mathf.Deg2Rad), VideoScreen.ScreenWidth(3f, 100f), 0.0001f);
+        }
+
+        [Test]
         public void ScreenHeight_UnknownSize_Uses16By9()
         {
             Assert.AreEqual(2f * 9f / 16f, VideoScreen.ScreenHeight(2f, 0, 0), 0.0001f);

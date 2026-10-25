@@ -7,14 +7,17 @@ using UnityEngine.Video;
 namespace MouthOfGod.Tutorial
 {
     /// <summary>
-    /// VR で動画を見せる画面。体験者の正面の空間に、平らな画面を置いて流す（頭には付けない）。
+    /// VR で動画を見せる画面。体験者の正面の空間に、視界をほぼ覆う大きな画面を置いて流す（頭には付けない）。
+    /// 流している間は、周りを暗い球で囲み、村やミニチュアを見せない。
     /// プロローグ（<see cref="PrologueVideo"/>）が使う。エンディングなど、ほかの場面でも使える。
     /// </summary>
     /// <remarks>
     /// VR 酔いを避けるための決まり:
     /// - 画面は空間に固定する。頭を少し回しても動かない。大きく向きを変えたときだけ、ゆっくり正面へ回り込む（Recenter）。
+    ///   頭に付けた画面は、頭と一緒に動くので酔いやすい。そのため、画面いっぱいに見せるときも、頭には付けない。
+    /// - 画面の大きさは、水平の視野の角度で決める（初期値: 3 m 先に 100 度。Quest の視野は水平におよそ 100〜110 度）。
+    /// - 暗い球と画面は、ほかのどの物よりも手前に描く。近くにあるミニチュアも隠れる。
     /// - 出し入れは、フェードで行う。視界を急に暗くしない。
-    /// - 画面の大きさは、視野の 40 度くらいに収める（初期値: 3 m 先に幅 2.2 m）。
     /// - 読み込みに失敗したとき・動画が無いときは、警告を出してすぐ終わる。体験を止めない。
     /// シーンは切り替えない。同じシーンの中で流すので、XR リグと AprilTag の位置合わせが残る。
     /// </remarks>
@@ -46,8 +49,8 @@ namespace MouthOfGod.Tutorial
         [Tooltip("頭から画面までの距離（m）")]
         [SerializeField, Min(0.5f)] float distance = 3f;
 
-        [Tooltip("画面の幅（m）。高さは動画の縦横比で決まる")]
-        [SerializeField, Min(0.1f)] float width = 2.2f;
+        [Tooltip("画面の幅を、水平の視野の角度（度）で決める。100 で視界をほぼ覆う。高さは動画の縦横比で決まる")]
+        [SerializeField, Range(10f, 170f)] float viewDegrees = 100f;
 
         [Tooltip("画面の中心を、目の高さからずらす量（m）。負なら下")]
         [SerializeField] float heightOffset = -0.1f;
@@ -59,7 +62,13 @@ namespace MouthOfGod.Tutorial
         [SerializeField, Min(0.1f)] float recenterSpeed = 1.5f;
 
         [Header("見え方")]
-        [Tooltip("画面のマテリアル。空なら Sprites/Default で作る。色（_Color / _BaseColor）の透明度でフェードする")]
+        [Tooltip("流している間、周りを暗い球で囲み、村やミニチュアを見せない")]
+        [SerializeField] bool darkSurround = true;
+
+        [Tooltip("周りの球の色")]
+        [SerializeField] Color surroundColor = Color.black;
+
+        [Tooltip("画面のマテリアル。空なら UI/Default で作る。色（_Color / _BaseColor）の透明度でフェードする")]
         [SerializeField] Material screenMaterial;
 
         [Tooltip("出す・消すときのフェードの秒数")]
@@ -75,6 +84,8 @@ namespace MouthOfGod.Tutorial
         RenderTexture _texture;
         GameObject _quad;
         Material _material;
+        GameObject _surround;
+        Material _surroundMaterial;
         bool _ended;
         bool _skip;
         bool _shown; // 画面を出したか。出していなければ、隠す物を戻さない
@@ -156,12 +167,19 @@ namespace MouthOfGod.Tutorial
         void LateUpdate()
         {
             if (_quad != null && _quad.activeSelf) PlaceInFront(false);
+            if (_surround != null && _surround.activeSelf)
+            {
+                Transform eye = Eye();
+                if (eye != null) _surround.transform.position = eye.position; // 色は一様なので、位置だけ頭に合わせる
+            }
         }
+
+        Transform Eye() => head != null ? head : (Camera.main != null ? Camera.main.transform : null);
 
         // 体験者の正面（水平）に置く。snap なら、いまの向きにすぐ置く。そうでなければ、大きくずれたときだけ回り込む。
         void PlaceInFront(bool snap)
         {
-            Transform eye = head != null ? head : (Camera.main != null ? Camera.main.transform : null);
+            Transform eye = Eye();
             if (eye == null || _quad == null) return;
 
             Vector3 forward = eye.forward;
@@ -183,6 +201,10 @@ namespace MouthOfGod.Tutorial
         // 画面の中心。目の位置から、水平の正面へ distance、上下に heightOffset。
         internal static Vector3 ScreenPosition(Vector3 eye, Vector3 flatForward, float distance, float heightOffset)
             => eye + flatForward * distance + Vector3.up * heightOffset;
+
+        // 画面の幅。distance 先で、水平に degrees 度を覆う幅。
+        internal static float ScreenWidth(float distance, float degrees)
+            => 2f * distance * Mathf.Tan(Mathf.Clamp(degrees, 1f, 179f) * 0.5f * Mathf.Deg2Rad);
 
         // 画面の高さ。動画の縦横比に合わせる。大きさが分からなければ 16:9。
         internal static float ScreenHeight(float width, uint videoWidth, uint videoHeight)
@@ -207,18 +229,24 @@ namespace MouthOfGod.Tutorial
 
         void SetAlpha(float alpha)
         {
-            if (_material == null) return;
-            if (_material.HasProperty("_BaseColor"))
+            SetAlpha(_material, alpha);
+            SetAlpha(_surroundMaterial, alpha);
+        }
+
+        static void SetAlpha(Material material, float alpha)
+        {
+            if (material == null) return;
+            if (material.HasProperty("_BaseColor"))
             {
-                Color c = _material.GetColor("_BaseColor");
+                Color c = material.GetColor("_BaseColor");
                 c.a = alpha;
-                _material.SetColor("_BaseColor", c);
+                material.SetColor("_BaseColor", c);
             }
-            if (_material.HasProperty("_Color"))
+            if (material.HasProperty("_Color"))
             {
-                Color c = _material.GetColor("_Color");
+                Color c = material.GetColor("_Color");
                 c.a = alpha;
-                _material.SetColor("_Color", c);
+                material.SetColor("_Color", c);
             }
         }
 
@@ -226,6 +254,7 @@ namespace MouthOfGod.Tutorial
         {
             _shown = visible;
             if (_quad != null) _quad.SetActive(visible);
+            if (_surround != null) _surround.SetActive(visible && darkSurround);
             foreach (GameObject go in hideWhilePlaying) if (go != null) go.SetActive(!visible);
             foreach (GameObject go in showWhilePlaying) if (go != null) go.SetActive(visible);
         }
@@ -263,18 +292,44 @@ namespace MouthOfGod.Tutorial
                 Collider col = _quad.GetComponent<Collider>();
                 if (col != null) Destroy(col);
                 _quad.SetActive(false);
-                _material = CreateMaterial();
+                _material = CreateMaterial(screenMaterial, Color.white, SurroundQueue + 1);
                 _quad.GetComponent<Renderer>().sharedMaterial = _material;
-                SetAlpha(0f);
             }
+
+            if (_surround == null)
+            {
+                // 内側から見る球。UI/Default は裏面も描くので、法線を裏返さなくてよい。
+                _surround = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                _surround.name = "VideoSurround";
+                Collider col = _surround.GetComponent<Collider>();
+                if (col != null) Destroy(col);
+                _surround.transform.localScale = Vector3.one * SurroundDiameter;
+                _surround.SetActive(false);
+                _surroundMaterial = CreateMaterial(null, surroundColor, SurroundQueue);
+                _surround.GetComponent<Renderer>().sharedMaterial = _surroundMaterial;
+            }
+            SetAlpha(0f);
         }
 
-        Material CreateMaterial()
+        // 暗い球の描く順番。Overlay（4000）にして、村・ミニチュア・字幕より後に描く。画面は、その次に描く。
+        const int SurroundQueue = 4000;
+        const float SurroundDiameter = 4f; // 深さを比べずに描くので、頭を囲めば大きさは何でもよい
+
+        // 深さを比べずに（いつも手前に）描くマテリアル。UI/Default は、透明度でフェードでき、深さの比べ方を変えられる。
+        static Material CreateMaterial(Material source, Color color, int queue)
         {
-            if (screenMaterial != null) return new Material(screenMaterial);
-            Shader shader = Shader.Find("Sprites/Default"); // いつもビルドに入るシェーダー。色の透明度でフェードできる
-            if (shader == null) shader = Shader.Find("Unlit/Texture");
-            return new Material(shader);
+            Material material;
+            if (source != null) material = new Material(source);
+            else
+            {
+                Shader shader = Shader.Find("UI/Default");
+                if (shader == null) shader = Shader.Find("Sprites/Default");
+                material = new Material(shader) { color = color };
+            }
+            // UI/Default は、この値を Properties に出していない（Canvas が入れる）。HasProperty は false になるので、確かめずに入れる。
+            material.SetInt("unity_GUIZTestMode", (int)UnityEngine.Rendering.CompareFunction.Always);
+            material.renderQueue = queue;
+            return material;
         }
 
         // 動画の大きさが分かってから、RenderTexture と画面の縦横比を合わせる。
@@ -291,6 +346,7 @@ namespace MouthOfGod.Tutorial
             _player.targetTexture = _texture;
             _material.mainTexture = _texture;
             if (_material.HasProperty("_BaseMap")) _material.SetTexture("_BaseMap", _texture);
+            float width = ScreenWidth(distance, viewDegrees);
             _quad.transform.localScale = new Vector3(width, ScreenHeight(width, w, h), 1f);
         }
 
@@ -322,6 +378,8 @@ namespace MouthOfGod.Tutorial
         {
             if (_quad != null) Destroy(_quad);
             if (_material != null) Destroy(_material);
+            if (_surround != null) Destroy(_surround);
+            if (_surroundMaterial != null) Destroy(_surroundMaterial);
             if (_texture != null) _texture.Release();
         }
     }
