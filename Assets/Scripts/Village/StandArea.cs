@@ -50,6 +50,9 @@ namespace MouthOfGod.Village
         [Tooltip("Play の始めに、床の印を消しておく（合図で出す）")]
         [SerializeField] bool hideFootprintAtStart = true;
 
+        [Tooltip("立った・離れたを Console に出す")]
+        [SerializeField] bool logEvents = true;
+
         // いま頭が入っている場所（入った順）。最後が、いま立っている場所。
         static readonly List<StandArea> Occupied = new List<StandArea>();
 
@@ -147,6 +150,7 @@ namespace MouthOfGod.Village
             Occupied.Remove(this);
             Occupied.Add(this);
             Standing.Set(field);
+            if (logEvents) Debug.Log($"[StandArea] {field} に立った（{name}）", this);
             if (hideFootprintOnArrive && footprint != null) footprint.SetActive(false);
         }
 
@@ -156,6 +160,7 @@ namespace MouthOfGod.Village
             _inside = false;
             Occupied.Remove(this);
             Standing.Leave(Field);
+            if (logEvents) Debug.Log($"[StandArea] {Field} から離れた（{name}）", this);
             // 重なった場所に、まだ入っていれば、そちらに戻す（最後に入った場所）。
             if (Standing.Field.IsEmpty && Occupied.Count > 0)
             {

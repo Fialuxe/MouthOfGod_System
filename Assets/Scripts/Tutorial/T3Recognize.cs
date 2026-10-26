@@ -154,7 +154,11 @@ namespace MouthOfGod.Tutorial
                 ReportWarning($"[T3Recognize] フィールド「{requestField}」が見つからないので、欲しい物を出さずに進みます。");
                 return;
             }
-            if (!field.Open(new FoodId(requestFood)))
+            var food = new FoodId(requestFood);
+            if (field.IsOpen || field.Open(food)) return;
+            // もう届けてあって、欲しがらせる枠が無い。はじめに戻して、やり直す。
+            field.Restart();
+            if (!field.Open(food))
                 ReportWarning($"[T3Recognize] フィールド「{requestField}」に「{requestFood}」の欲しい物を出せませんでした（もう出ている・上限・その物のステップが無い）。そのまま進みます。");
         }
     }

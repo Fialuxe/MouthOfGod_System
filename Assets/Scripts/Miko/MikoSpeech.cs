@@ -20,6 +20,12 @@ namespace MouthOfGod.Miko
         [SerializeField] Font font; // 空なら、Unity 組み込みのフォント（英語向け）。日本語を出すときは指定する
         [Tooltip("見ている人から字幕までの距離（m）。台のミニチュア（およそ 0.9 m 先）より手前にする")]
         [SerializeField] float subtitleDistanceMeters = 0.7f;
+        [Tooltip("字幕の長さ（秒）= 文字数 × この値 + 余白。Seconds が 0 で、音声もないときに使う。英語を読む速さの目安")]
+        [SerializeField, Min(0f)] float secondsPerCharacter = 0.06f;
+        [Tooltip("字幕の長さの余白（秒）。読み始めるまでの間")]
+        [SerializeField, Min(0f)] float subtitlePaddingSeconds = 1.5f;
+        [Tooltip("字幕の長さの下限（秒）。短いセリフでも、これだけは出す")]
+        [SerializeField, Min(0f)] float minSubtitleSeconds = 2f;
         [Tooltip("視線より、この角度だけ下に出す（度）。見ている物を字幕でふさがないため")]
         [SerializeField] float subtitleBelowGaze = 12f;
         [Tooltip("見下ろす・見上げるのに合わせて、字幕の上下を追う範囲（度。下が負）。台を見下ろしても字幕が視界に入るようにする")]
@@ -129,7 +135,7 @@ namespace MouthOfGod.Miko
                 voiceSource.Play();
                 if (duration <= 0f) duration = line.voice.length + 0.5f;
             }
-            if (duration <= 0f) duration = Mathf.Max(4f, (line.text?.Length ?? 0) * 0.3f + 2.5f);
+            if (duration <= 0f) duration = Mathf.Max(minSubtitleSeconds, (line.text?.Length ?? 0) * secondsPerCharacter + subtitlePaddingSeconds);
             _hideAt = Time.time + duration;
             SnapSubtitle();
         }

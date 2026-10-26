@@ -1,6 +1,7 @@
 using System.Collections;
 using MouthOfGod.Core;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace MouthOfGod.Tutorial
 {
@@ -11,6 +12,7 @@ namespace MouthOfGod.Tutorial
     /// <remarks>
     /// - シーンは切り替えない。同じシーンの中で流すので、XR リグと AprilTag の位置合わせ、村がそのまま残る。
     /// - 動画が無い・読み込めないときは、警告を出してすぐ次へ進む（体験を止めない）。
+    /// - 動画は、途中でスキップできる。スキップのキー（既定は K）を押すと、動画をフェードして消し、巫女のセリフへ進む。展示では、スタッフが PC のキーボードで押す。
     /// 出す合図:
     /// - <c>prologue.start</c>: 動画を流し始める前。暗くする・BGM を止めるなどを、受ける側が足す
     /// - <c>prologue.end</c>: 動画が終わった
@@ -36,6 +38,9 @@ namespace MouthOfGod.Tutorial
         [Tooltip("セリフのあと、次へ進むまでの秒数")]
         [SerializeField, Min(0f)] float holdAfterSeconds = 4f;
 
+        [Tooltip("動画を飛ばすキー。動画を流している間だけ効く。スタッフが PC のキーボードで押す")]
+        [SerializeField] InputAction skipAction = new InputAction("SkipVideo", InputActionType.Button, "<Keyboard>/k");
+
         public override PhaseId Phase => new PhaseId("prologue");
 
         public override IEnumerator Play()
@@ -45,7 +50,17 @@ namespace MouthOfGod.Tutorial
             if (delayBeforeSeconds > 0f) yield return new WaitForSeconds(delayBeforeSeconds);
             Cue(startCue);
 
-            if (screen != null) yield return screen.PlayAndWait();
+            if (screen != null)
+            {
+                skipAction.Enable();
+                screen.Play();
+                while (screen.IsBusy)
+                {
+                    if (skipAction.WasPressedThisFrame()) screen.Skip();
+                    yield return null;
+                }
+                skipAction.Disable();
+            }
             else Debug.LogWarning("[PrologueVideo] VideoScreen が無いので、動画を流さずに進みます。");
 
             Cue(endCue);
@@ -56,6 +71,7 @@ namespace MouthOfGod.Tutorial
         // Stop で途中でやめたとき、画面を消す。
         protected override void OnAborted()
         {
+            skipAction.Disable();
             if (screen != null && screen.IsBusy) screen.Skip();
         }
     }
