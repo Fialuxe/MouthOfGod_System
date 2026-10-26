@@ -9,8 +9,8 @@ a:hover text{text-decoration:underline}.bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:
 <text class="t1" x="20" y="54" font-size="20" font-weight="600">M2 デモが通しで動く</text>
 <text class="t1" x="840" y="54" font-size="16" text-anchor="end">期限 10/24（2 日過ぎ）</text>
 <rect class="track" x="20" y="68" width="820" height="10" rx="5"/>
-<rect class="bar" x="20" y="68" width="664" height="10" rx="5"/>
-<text class="t2" x="20" y="98" font-size="13">34/42 完了・残り 8 件・待ちの最長 2 段</text>
+<rect class="bar" x="20" y="68" width="683" height="10" rx="5"/>
+<text class="t2" x="20" y="98" font-size="13">35/42 完了・残り 7 件・待ちの最長 2 段</text>
 <text class="warn" x="840" y="98" font-size="13" text-anchor="end">⚠ 期限を過ぎている</text>
 <text class="t1" x="20" y="130" font-size="13" font-weight="600">着手中</text>
 <a href="https://github.com/Fialuxe/MouthOfGod_System/issues/91" target="_blank"><text class="t1" x="32" y="152" font-size="13">#91 ミニチュアの台を作る @Fialuxe @peachamomomo @mitorow @tkazuto0403 @ebiharak…</text></a>
@@ -18,7 +18,7 @@ a:hover text{text-decoration:underline}.bg{fill:#fcfcfb;stroke:#d0cfca}.t1{fill:
 <a href="https://github.com/Fialuxe/MouthOfGod_System/issues/182" target="_blank"><text class="t1" x="32" y="196" font-size="13">#182 シナリオブック（仮）をレビューし、プロローグの形式など未決のことを決める @Fialuxe @peachamomomo @mit…</text></a>
 <text class="t1" x="20" y="224" font-size="13" font-weight="600">すぐ着手できる（担当なし）</text>
 <a href="https://github.com/Fialuxe/MouthOfGod_System/issues/55" target="_blank"><text class="t1" x="32" y="246" font-size="13">#55 物が生まれる瞬間の演出と音を作る</text></a>
-<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/115" target="_blank"><text class="t1" x="32" y="268" font-size="13">#115 各自のフィールドを共有シーンに貼り合わせ、台と同じ座標に置く</text></a>
+<a href="https://github.com/Fialuxe/MouthOfGod_System/issues/67" target="_blank"><text class="t1" x="32" y="268" font-size="13">#67 共有シーンにチュートリアル 1〜4 を組み、Mock で 1 から 4 まで通す</text></a>
 <a href="https://github.com/Fialuxe/MouthOfGod_System/issues/289" target="_blank"><text class="t1" x="32" y="290" font-size="13">#289 撮影（10/26〜）までの担当と、M2 の範囲を決める</text></a>
 <text class="t2" x="20" y="344" font-size="11">詳しくはピン留めのロードマップ Issue。着手したら自分を Assignee にする。</text>
 </svg>
