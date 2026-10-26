@@ -679,7 +679,7 @@ MonoBehaviour:
   fieldId: mountain
   rows:
   - texture: placeholder-a
-    food: {fileID: 3768823326474000095, guid: 16bb685fcba64d64abf36eaba53c0f40, type: 3}
+    food: {fileID: 3768823326474000095, guid: a87158f9c174eee419f7a36c3be84821, type: 3}
   - texture: placeholder-b
     food: {fileID: 5680947829894292994, guid: e8ab356fc01797d46beae35a3378db54, type: 3}
   - texture: placeholder-c
