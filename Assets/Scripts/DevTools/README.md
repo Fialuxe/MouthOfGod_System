@@ -13,7 +13,7 @@ Quest なしで、エディタの Play だけでプロローグとチュート�
 | 物 | 中身 |
 |---|---|
 | Main Camera | 目の高さ 1.6 m の頭です。`DesktopHead` で動きます。子の `MouthAnchor` が口の位置です |
-| ForkTip | フォークの先です。手の代わりに、頭の右下前に固定しています |
+| ForkTip | フォークの先です。手の代わりに、頭の右下前に固定しています。頭を少し右へ回すと、雲に触れて刺せます |
 | CloudRing | 刺す雲です。合図で光る `CloudCues` も付いています |
 | FoodSpawner | 食べ物を生む装置と、共通の表です |
 | Field_village / Field_sea | 村と海の台です。届く範囲と、欲しい物のステップがあります。子の `Glow`・`Cheer`・`ShakeHead` は、合図で出る仮の印です（下の表） |

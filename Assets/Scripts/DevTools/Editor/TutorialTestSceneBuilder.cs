@@ -88,11 +88,12 @@ namespace MouthOfGod.DevTools.Editor
         }
 
         // フォークの先。手の代わりに、頭の右下前に固定する。刺す・口に入れるは、P と M のキーで行う。
+        // 雲（半径 0.45 m・高さ -0.3 m）の輪に、少し頭を右へ回すと触れる位置にする。正面を向いたままでは、触れない（始めから刺さらない）。
         static void ForkTipUnder(Transform head, Transform mouth)
         {
             var tip = new GameObject("ForkTip");
             tip.transform.SetParent(head, false);
-            tip.transform.localPosition = new Vector3(0.12f, -0.25f, 0.35f);
+            tip.transform.localPosition = new Vector3(0.12f, -0.3f, 0.42f);
             ForkTip fork = tip.AddComponent<ForkTip>();
 
             GameObject piece = Shape(PrimitiveType.Sphere, "LoadedPiece", tip.transform, Vector3.zero, Vector3.one * 0.04f, Color.white);

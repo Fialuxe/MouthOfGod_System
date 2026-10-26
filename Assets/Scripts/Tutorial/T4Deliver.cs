@@ -111,6 +111,7 @@ namespace MouthOfGod.Tutorial
         [SerializeField, Min(0f)] float pauseAfterTrueGod = 5f;
 
         bool _openWarned; // 欲しがらせられなかった警告を、もう出したか
+        bool _restarted; // 欲しがらせられず、フィールドをはじめに戻したか
 
         public override PhaseId Phase => new PhaseId("deliver");
 
@@ -119,6 +120,7 @@ namespace MouthOfGod.Tutorial
             var target = new FieldId(field);
             var wanted = new FoodId(food);
             _openWarned = false;
+            _restarted = false;
 
             // 1. 準備
             IFieldRequests requests = Fields.Find(target);
@@ -246,7 +248,15 @@ namespace MouthOfGod.Tutorial
         // 目当ての物を欲しがっていなければ、欲しがらせる。出せないときは警告を 1 回だけ出す（体験は止めない）。
         void EnsureOpen(IFieldRequests requests, FoodId wanted)
         {
-            if (requests.IsOpen || requests.Open(wanted) || _openWarned) return;
+            if (requests.IsOpen || requests.Open(wanted)) return;
+            // もう届けてしまって、欲しがらせる枠が無い（T3 で、海の前に立ったまま魚を生んだときなど）。1 回だけ、はじめに戻してやり直す。
+            if (!_restarted)
+            {
+                _restarted = true;
+                requests.Restart();
+                if (requests.Open(wanted)) return;
+            }
+            if (_openWarned) return;
             _openWarned = true;
             ReportWarning($"[T4Deliver] フィールド「{field}」に「{food}」を欲しがらせられませんでした（そのフィールドのデータに、この物のステップがあるかを確かめる）。");
         }

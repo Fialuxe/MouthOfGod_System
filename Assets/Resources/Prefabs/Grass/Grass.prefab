@@ -6494,6 +6494,7 @@ GameObject:
   - component: {fileID: 7497828650378240209}
   - component: {fileID: 9073087520004813787}
   - component: {fileID: 3528975872303092285}
+  - component: {fileID: 7770000000000000001}
   m_Layer: 0
   m_Name: Grass
   m_TagString: Untagged
@@ -6632,6 +6633,26 @@ MonoBehaviour:
   fieldId: grassland
   requestOrder: 0
   maxOpenRequests: 1
+--- !u!114 &7770000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4211588451141696924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e20bc7ec88144282b6e1b2b8998f90ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fieldId: grassland
+  rows:
+  - texture: placeholder-a
+    food: {fileID: 2676174945490884697, guid: 6cf52826ab2b7094881e156a9058f7c6, type: 3}
+  - texture: placeholder-b
+    food: {fileID: 7978039674701303498, guid: df1511ee40f79bc468d156c8d5de970f, type: 3}
+  - texture: placeholder-c
+    food: {fileID: 8280665287723641000, guid: d85a49f1699f5784db66c79f05a49039, type: 3}
 --- !u!1 &4216301496077157380
 GameObject:
   m_ObjectHideFlags: 0
