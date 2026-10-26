@@ -1,0 +1,148 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &9045380643741969004
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5791220422592303337}
+  - component: {fileID: 5256586637878909578}
+  - component: {fileID: 8452887230779484990}
+  m_Layer: 0
+  m_Name: T1Fork
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5791220422592303337
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9045380643741969004}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5256586637878909578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9045380643741969004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bcfe71d8a99ca11468b6745e76520879, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  standField: 
+  standCueSuffix: .footprint
+  standLine: 
+  standGiveUpSeconds: 15
+  pierceGlowCue: cloud.glow
+  pierceLine: t1-pierce
+  pierceHintSeconds: 10
+  pierceHintCue: cloud.approach
+  pierceGiveUpSeconds: 45
+  mouthLine: t1-mouth
+  mouthHintSeconds: 10
+  mouthHintLine: t1-mouth-again
+  mouthAlertSeconds: 20
+  mouthAlertCue: staff.alert
+  mouthGiveUpSeconds: 45
+  changingLine: t1-changing
+  textureChanges: 3
+  changingGiveUpSeconds: 30
+  buttonGlowCue: device.button.glow
+  buttonLine: t1-button
+  buttonHintSeconds: 10
+  buttonHintCue: device.button.glow-strong
+  buttonGiveUpSeconds: 45
+  calmCue: cloud.calm
+  buttonOffCue: device.button.glow-off
+  goodLine: t1-good
+  endHoldSeconds: 2
+  beatPauseSeconds: 0.5
+--- !u!114 &8452887230779484990
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9045380643741969004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6411f8459331c3542aed6b2d12b00812, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lines:
+  - id: t1-pierce
+    text: Take the fork in your hand. Pierce that glowing cloud.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t1-mouth
+    text: Now bring it to your mouth.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t1-mouth-again
+    text: Bring it to your mouth.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t1-changing
+    text: Keep it in your mouth. Feel it? The texture keeps changing.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t1-button
+    text: When it feels right, press the button.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t1-good
+    text: Good.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0

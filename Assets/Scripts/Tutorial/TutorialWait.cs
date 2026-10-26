@@ -52,7 +52,18 @@ namespace MouthOfGod.Tutorial
         public void Cancel() => Finish();
 
         // 条件が満たされた。
-        protected void Complete() => Finish();
+        protected void Complete()
+        {
+            if (IsDone) return;
+            Finish();
+            Completed?.Invoke();
+        }
+
+        // 条件が満たされて終わったときに呼ぶもの（時間切れ・取り消しでは呼ばない）。TutorialScript が、使った記録を進めるのに使う。
+        internal Action Completed { get; set; }
+
+        // 待ち始める前に、もう満たされていた（先回りした操作。TutorialHistory で分かる）。記録は、呼ぶ側が使ったことにする。
+        internal void CompleteNow() => Finish();
 
         void Finish()
         {
@@ -121,6 +132,13 @@ namespace MouthOfGod.Tutorial
 
         public TextureId Result { get; private set; }
 
+        // 待ち始める前に、もう決定していた。
+        internal void CompleteWith(TextureId texture)
+        {
+            Result = texture;
+            CompleteNow();
+        }
+
         void Bind(IDevice device)
         {
             if (IsDone) return;
@@ -184,6 +202,123 @@ namespace MouthOfGod.Tutorial
             }
             _fork = null;
         }
+    }
+
+    /// <summary>
+    /// 食べ物が生まれるのを待つ（<see cref="IFoodSpawner.Spawned"/>）。<c>only</c> を指定すれば、その食べ物だけ。指定しなければ、何が生まれてもよい。
+    /// 終わったあとの <see cref="Result"/> で、何が生まれたかが分かる。時間切れなら null。
+    /// </summary>
+    public sealed class SpawnWait : TutorialWait
+    {
+        readonly FoodId _only;
+        IFoodSpawner _spawner;
+
+        internal SpawnWait(FoodId only, float timeoutSeconds, Func<float> clock) : base(timeoutSeconds, clock)
+        {
+            _only = only;
+            FoodSpawners.WhenReady(Bind); // 食べ物を生む所があとから用意されても聞く
+        }
+
+        public Spawned? Result { get; private set; }
+
+        // 待ち始める前に、もう生まれていた。
+        internal void CompleteWith(Spawned spawned)
+        {
+            Result = spawned;
+            CompleteNow();
+        }
+
+        void Bind(IFoodSpawner spawner)
+        {
+            if (IsDone) return;
+            _spawner = spawner;
+            _spawner.Spawned += OnSpawned;
+        }
+
+        void OnSpawned(Spawned spawned)
+        {
+            if (IsDone) return;
+            if (!_only.IsEmpty && spawned.Food != _only) return;
+            Result = spawned;
+            Complete();
+        }
+
+        protected override void Unsubscribe()
+        {
+            FoodSpawners.CancelWhenReady(Bind);
+            if (_spawner != null) _spawner.Spawned -= OnSpawned;
+            _spawner = null;
+        }
+    }
+
+    /// <summary>
+    /// 噛んでいる間に、食感が <c>count</c> 回切り替わるのを待つ（<see cref="IDevice.TextureChanged"/>）。待ち始めてからの回数を数える。
+    /// 噛み始めの最初の食感も 1 回に数える。待ち始める前の回数（先回りした分）を <c>already</c> で渡せる。
+    /// </summary>
+    public sealed class TextureChangeWait : TutorialWait
+    {
+        readonly int _count;
+        IDevice _device;
+
+        internal TextureChangeWait(int count, float timeoutSeconds, Func<float> clock, int already = 0) : base(timeoutSeconds, clock)
+        {
+            _count = Math.Max(1, count);
+            Changes = Math.Max(0, already);
+            if (Changes >= _count)
+            {
+                CompleteNow();
+                return;
+            }
+            Devices.WhenReady(Bind); // デバイスがあとから用意されても聞く
+        }
+
+        /// <summary>食感が切り替わった回数（先回りした分を含む）。</summary>
+        public int Changes { get; private set; }
+
+        void Bind(IDevice device)
+        {
+            if (IsDone) return;
+            _device = device;
+            _device.TextureChanged += OnChanged;
+        }
+
+        void OnChanged(TextureId texture)
+        {
+            if (IsDone) return;
+            Changes++;
+            if (Changes >= _count) Complete();
+        }
+
+        protected override void Unsubscribe()
+        {
+            Devices.CancelWhenReady(Bind);
+            if (_device != null) _device.TextureChanged -= OnChanged;
+            _device = null;
+        }
+    }
+
+    /// <summary>
+    /// 体験者が、あるフィールドの前に立つのを待つ（<see cref="Standing"/>）。<c>field</c> を空にすると、どこかのフィールドの前に立てばよい。
+    /// 待ち始めたときに、もうその場所に立っていれば、すぐ終わる。
+    /// </summary>
+    public sealed class StandWait : TutorialWait
+    {
+        readonly FieldId _field;
+
+        internal StandWait(FieldId field, float timeoutSeconds, Func<float> clock) : base(timeoutSeconds, clock)
+        {
+            _field = field;
+            Standing.Changed += OnChanged;
+            OnChanged(Standing.Field);
+        }
+
+        void OnChanged(FieldId field)
+        {
+            if (IsDone || field.IsEmpty) return;
+            if (_field.IsEmpty || field == _field) Complete();
+        }
+
+        protected override void Unsubscribe() => Standing.Changed -= OnChanged;
     }
 
     /// <summary><see cref="ForkWait"/> が待つもの。</summary>

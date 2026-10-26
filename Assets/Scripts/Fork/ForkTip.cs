@@ -39,11 +39,14 @@ namespace MouthOfGod.Fork
         [Tooltip("Quest なしで試すときの「刺す」。展示では使わない")]
         [SerializeField] InputAction pierceAction = new InputAction("Pierce", InputActionType.Button, "<Keyboard>/p");
 
-        [Tooltip("Quest なしで試すときの「口に入れる」（押している間）。展示では使わない")]
+        [Tooltip("Quest なしで試すときの「口に入れる」（押している間）。M キーのほか、ハンドトラッキングで右手を握っている間も、口の中にあることにする。展示では使わない")]
         [SerializeField] InputAction mouthAction = new InputAction("Mouth", InputActionType.Button, "<Keyboard>/m");
 
         [Tooltip("刺す・口・食べたを Console に出す")]
         [SerializeField] bool logEvents = true;
+
+        // ハンドトラッキングで、右手を握っている間（モック用）。
+        const string MockMouthHandBinding = "<HandInteraction>{RightHand}/graspValue";
 
         ForkLogic _logic;
         IDevice _device;
@@ -71,6 +74,7 @@ namespace MouthOfGod.Fork
         {
             Forks.Register(this);
             pierceAction.Enable();
+            AddBindingOnce(mouthAction, MockMouthHandBinding);
             mouthAction.Enable();
             Devices.WhenReady(Attach);
         }
@@ -83,6 +87,13 @@ namespace MouthOfGod.Fork
             if (_device != null) _device.Confirmed -= OnConfirmed;
             _device = null;
             Forks.Unregister(this);
+        }
+
+        static void AddBindingOnce(InputAction action, string path)
+        {
+            foreach (InputBinding binding in action.bindings)
+                if (binding.path == path) return;
+            action.AddBinding(path);
         }
 
         void Attach(IDevice device)

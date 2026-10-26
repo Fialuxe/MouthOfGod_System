@@ -63,7 +63,7 @@
 
 - ステップが済むたびに、元気な村人が `Victory` を 1 回やって喜びます。
 - 何がいつ戻るかは、`Village.prefab` の `Steps` の下の並びと、各 `FieldStep` で決めます。
-- 下書きでは、`AppearsAt` `GoneAt` `HelpedAt` と `VillageLayout.Steps` で決めていました。
+- 下書きの生成コード（`Village/Editor/Draft/`）にも、同じ並びを決める値があります。`AppearsAt` `GoneAt` `HelpedAt` と `VillageLayout.Steps` です。今の村は、これらの値ではなく Prefab で決めます。
 - 〔 〕の欲しい物の ID は仮です（#31）。
 
 ## 村人のアニメーション
@@ -113,7 +113,7 @@
 ## 演出（出方・煙・音）
 
 - **出方**: ステップの子の物は、出るとき小さい所から「ぽんっ」と大きくなります（`PopInEffect`）。`Steps` の下に物を置くだけで効きます。出方を自分で作る物には、`SkipPopIn` を付けます。ステップごとにやめるには、`FieldStep` の `Pop In` を外します。
-- **喜びの粒と音**: `StepDoneFx`（Village の根に付きます）が、ステップが済むと、助かった村人の頭の上に星の粒を出し、短い音を鳴らします。粒は `Fx_Joy` です。音は `Assets/ArtisticResources/ThirdParty/Kenney/Audio/` の `jingles_PIZZI02` です。聞いて合わなければ、Inspector の `Done Clip` を `jingles_PIZZI00`〜`05` の別のものにします。
+- **喜びの粒と音**: `DeliveryFx`（Village の根に付きます）が、ステップが済むと、助かった村人の頭の上に星の粒を出し、短い音を鳴らします。粒は `Fx_Joy` です。音は `Assets/ArtisticResources/ThirdParty/Kenney/Audio/` の `jingles_PIZZI02` です。聞いて合わなければ、Inspector の `Done Clip` を `jingles_PIZZI00`〜`05` の別のものにします。
 - **作り方**: 粒の Prefab は、メニューの `MouthOfGod > Village > Generate Effects` で作ります（`Generate Prefabs` からも呼ばれます）。作り直すときは、`Fx_*.prefab` を消してから実行します。
 - **素材**: Kenney の Particle Pack と Music Jingles です（どちらも CC0。ライセンスは各フォルダの `License.txt`）。
 - **Quest 向け**: 粒の数は 20 までにします。衝突・軌跡・ライトは使いません。

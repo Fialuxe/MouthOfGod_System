@@ -45,7 +45,7 @@ namespace MouthOfGod.Village.Editor.Draft
             var root = new GameObject("Village");
             var stages = root.AddComponent<FieldStages>();
             root.AddComponent<SurfaceAnchor>();
-            AddStepDoneFx(root);
+            AddDeliveryFx(root);
             AddDeliveryZone(root);
             AddFoodTable(root);
             var so = new SerializedObject(stages);
@@ -119,9 +119,9 @@ namespace MouthOfGod.Village.Editor.Draft
         }
 
         // ステップが済んだときの音と喜びの粒。素材が無ければ、空のまま付ける（Inspector で後から入れる）。
-        static void AddStepDoneFx(GameObject root)
+        static void AddDeliveryFx(GameObject root)
         {
-            var fx = root.AddComponent<StepDoneFx>();
+            var fx = root.AddComponent<DeliveryFx>();
             var so = new SerializedObject(fx);
             var joy = AssetDatabase.LoadAssetAtPath<GameObject>(PartsFolder + "Fx_Joy.prefab");
             so.FindProperty("joy").objectReferenceValue = joy != null ? joy.GetComponent<ParticleSystem>() : null;
