@@ -37,7 +37,7 @@ namespace MouthOfGod.Game
         /// <summary>残り 10 秒以下になった（カウントダウン開始。1 回）。</summary>
         public event Action CountdownStarted;
 
-        /// <summary>時間切れ。この直後に場面が game-over になる（1 回）。</summary>
+        /// <summary>時間切れ（1 回）。場面を game-over にしてから出す。</summary>
         public event Action TimeUp;
 
         /// <summary>本編が動いている。</summary>
@@ -79,7 +79,13 @@ namespace MouthOfGod.Game
 
         void Update()
         {
-            if (IsRunning) _clock.Tick(Time.deltaTime);
+            Tick(Time.deltaTime);
+        }
+
+        // Update から呼ぶ。テストからも呼ぶ。
+        internal void Tick(float deltaSeconds)
+        {
+            if (IsRunning) _clock.Tick(deltaSeconds);
         }
 
         void OnRemainingChanged(int seconds) => RemainingChanged?.Invoke(seconds);
@@ -87,8 +93,8 @@ namespace MouthOfGod.Game
 
         void OnTimeUp()
         {
+            Phases.Set(GameOver); // 先に場面を変える（TimeUp の購読先が Phases.Current を読めるように）
             TimeUp?.Invoke();
-            Phases.Set(GameOver);
         }
 
         void Detach()
