@@ -544,6 +544,8 @@ def expected_foods(world, field):
     return foods
 
 
+RESULTS = []  # (フィールド, OK/NG/WARN, ラベル, 詳細)
+CTX = {"f": ""}  # いま確かめているフィールド（図にまとめるため）
 COLLIDERS = ("BoxCollider", "SphereCollider", "CapsuleCollider", "MeshCollider")
 REQUEST_OPENERS = ("OpenAllRequestsAfterTutorial", "GameRunner")
 
@@ -616,6 +618,7 @@ def check_events(world, project, builder, textures, check, warn):
         if not icon:
             warn("%s: 吹き出しのアイコンがありません。名前の文字で出ます" % food)
 
+    CTX["f"] = ""
     openers = [c.cls for n in world.nodes if n.active_in_hierarchy() for c in n.comps if c.cls in REQUEST_OPENERS and c.enabled]
     print("\n== 欲しい物を出す役: %s" % (", ".join(openers) or "なし"))
     check(bool(openers), "欲しい物を出す役が、シーンにある（なければ、吹き出しは出ない）")
@@ -624,11 +627,13 @@ def check_events(world, project, builder, textures, check, warn):
 
     regs = [(n, str(c.props.get("fieldId") or "")) for n in world.nodes if n.active_in_hierarchy() for c in n.comps if c.cls in world.field_requests and c.enabled]
     dup = sorted({i for _, i in regs if [j for _, j in regs].count(i) > 1})
+    CTX["f"] = dup[0] if dup else ""
     check(not dup and all(i for _, i in regs), "フィールドの ID が、空でも重なってもいない",
           "; ".join("%s: %s" % (d, " と ".join(n.path() for n, i in regs if i == d)) for d in dup) + "。先に登録された方だけが使われ、あとの方は警告が出て外れます")
 
     for field in sorted(world.field_tables):
         print("\n[%s]" % field)
+        CTX["f"] = field
         root, stages = field_root(world, field)
         if root is None:
             check(False, "フィールド（FieldStages）がある")
@@ -895,7 +900,97 @@ def render_svg(world, textures, out_path, title):
     print("  図を書きました: %s" % out_path)
 
 
-def run(project_root, scene_rel, svg_path=None):
+SUMMARY_ROWS = [
+    ("立つと、そのフィールドになる", ("Standing が", "遠くへ離れると", "フィールドが決まる", "Head が")),
+    ("専用の食べ物が出る（a〜c）", ("は専用の表の食べ物", "欲しい物に入る", "専用の食べ物の表がある")),
+    ("食べ物が飛んで届く準備", ("食べ物が届く範囲", "DeliveryZone）が、すべて", "Prefab が見つかる", "Rigidbody", "Collider がある", "FoodSpawner")),
+    ("吹き出しが出る", ("欲しい物を出せる", "欲しい物を出す役", "Helped", "吹き出し")),
+    ("物の表示と非表示", ("済むと、見た目が変わる", "全部見える", "全部消える", "はじめに戻す", "消す物の指定")),
+    ("フィールドの登録", ("フィールドの ID",)),
+]
+
+
+def commit_label(project_root):
+    import subprocess
+    try:
+        sha = subprocess.run(["git", "-C", project_root, "rev-parse", "--short", "HEAD"], capture_output=True, text=True, timeout=10).stdout.strip()
+        return "コミット " + sha if sha else os.path.basename(project_root)
+    except Exception:
+        return os.path.basename(project_root)
+
+
+def summary_notes():
+    """表の下に書く、注意と通らなかったことの説明。"""
+    lines = []
+    for f, st, label, detail in RESULTS:
+        if st == "NG" and "FieldStages" in label:
+            lines.append("× %s: 村のフィールドが 2 つ重なっています（Village と Village (1)）。食べ物が届かないことがあります（当たる順番は未確認）" % f)
+        elif st == "NG" and "フィールドの ID" in label:
+            lines.append("× %s: フィールドの ID が重なり、先に登録された 1 つだけが使われます" % f)
+        elif st == "NG":
+            lines.append("× %s: %s" % (f, label))
+    helped = sorted({f for f, st, label, _ in RESULTS if st == "WARN" and "Helped" in label})
+    if helped:
+        lines.append("△ %s: 助かる村人（Helped）が空で、吹き出しは村人の上ではなく、ステップの場所に出ます" % "・".join(helped))
+    if any(st == "WARN" and "OpenAllRequestsAfterTutorial" in label for _, st, label, _ in RESULTS):
+        lines.append("△ 欲しい物を出す役は、サンドボックス用の仮のスクリプトだけです（チュートリアル後に全フィールドへ出します）")
+    overlaps = []
+    for _, st, label, _ in RESULTS:
+        if st == "WARN" and "箱が重なっています" in label:
+            a, b = label.split(" と ")[0].split("/")[-2], label.split(" と ")[1].split(" の箱")[0].split("/")[-2]
+            overlaps.append("%s と %s（%s）" % (a, b, label.split("（")[-1].rstrip("）。").split("）")[0]))
+    if overlaps:
+        lines.append("△ 立つ場所の箱が重なっています: " + "、".join(overlaps))
+    return lines
+
+
+def render_summary(out_path, fields, title, footer):
+    """確認の結果を、フィールド × 項目の表にして SVG に書く。"""
+    colw, rowh, left, top = 190.0, 76.0, 250.0, 118.0
+    W = left + colw * len(fields) + 20
+    H = top + rowh * len(SUMMARY_ROWS) + 60 + 20 * len(footer)
+    out = ['<rect width="100%" height="100%" fill="#fafafa"/>',
+           '<text x="16" y="30" font-size="20" font-weight="bold" fill="#111">%s</text>' % title,
+           '<text x="16" y="54" font-size="12" fill="#444">○ 通った　△ 通ったが注意あり　× 通らなかった（シーンと Prefab のファイルから再現した結果です）</text>']
+    for j, f in enumerate(fields):
+        out.append('<text x="%.1f" y="%.1f" font-size="15" font-weight="bold" fill="%s" text-anchor="middle">%s</text>'
+                   % (left + colw * j + colw / 2, top - 14, FIELD_COLORS.get(f, "#333"), f))
+    for i, (name, keys) in enumerate(SUMMARY_ROWS):
+        y = top + rowh * i
+        out.append('<line x1="16" x2="%.1f" y1="%.1f" y2="%.1f" stroke="#ddd"/>' % (W - 16, y, y))
+        out.append('<text x="16" y="%.1f" font-size="13" font-weight="bold" fill="#222">%s</text>' % (y + rowh / 2 + 4, name))
+        for j, f in enumerate(fields):
+            rel = [r for r in RESULTS if r[0] == f and any(k in r[2] for k in keys)]
+            if name == "フィールドの登録":
+                everyone = [r for r in RESULTS if any(k in r[2] for k in keys)]
+                rel = [r for r in everyone if r[0] == f] or [(f, "OK", "登録", "")] * (1 if everyone else 0)
+            ng = [r for r in rel if r[1] == "NG"]
+            wr = [r for r in rel if r[1] == "WARN"]
+            ok = [r for r in rel if r[1] == "OK"]
+            if ng:
+                mark, col, note = "×", "#c33", "通らない（下の注記）"
+            elif wr:
+                mark, col, note = "△", "#d90", "注意あり（下の注記）"
+            elif ok:
+                mark, col, note = "○", "#2a8", "%d 件 通過" % len(ok) if name != "フィールドの登録" else "ID が重ならない"
+            else:
+                mark, col, note = "－", "#999", "対象なし"
+            cx = left + colw * j + colw / 2
+            out.append('<text x="%.1f" y="%.1f" font-size="30" font-weight="bold" fill="%s" text-anchor="middle">%s</text>' % (cx, y + 40, col, mark))
+            out.append('<text x="%.1f" y="%.1f" font-size="10" fill="#555" text-anchor="middle">%s</text>' % (cx, y + 60, note))
+    y = top + rowh * len(SUMMARY_ROWS) + 24
+    out.append('<line x1="16" x2="%.1f" y1="%.1f" y2="%.1f" stroke="#ddd"/>' % (W - 16, y - 10, y - 10))
+    for k, line in enumerate(footer):
+        out.append('<text x="16" y="%.1f" font-size="12" fill="#444">%s</text>' % (y + 12 + 18 * k, line))
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" '
+           'font-family="IPAGothic, IPAPGothic, sans-serif">%s</svg>' % (W, H, W, H, "".join(out)))
+    with open(out_path, "w", encoding="utf-8") as fh:
+        fh.write(svg)
+    print("  まとめの図を書きました: %s" % out_path)
+
+
+
+def run(project_root, scene_rel, svg_path=None, summary_path=None):
     project = Project(project_root)
     scene = os.path.join(project_root, scene_rel)
     builder = Builder(project)
@@ -906,11 +1001,13 @@ def run(project_root, scene_rel, svg_path=None):
     warns = []
 
     def check(ok, label, detail=""):
+        RESULTS.append((CTX["f"], "NG" if not ok else "OK", label, detail))
         print("  %s %s%s" % ("OK  " if ok else "NG  ", label, (" … " + detail) if (detail and not ok) else ""))
         if not ok:
             fails.append(label + (" … " + detail if detail else ""))
 
     def warn(label):
+        RESULTS.append((CTX["f"], "WARN", label, ""))
         print("  !!   %s" % label)
         warns.append(label)
 
@@ -934,6 +1031,7 @@ def run(project_root, scene_rel, svg_path=None):
     centers = {}
     for area in world.areas:
         field = world.area_field(area)
+        CTX["f"] = field
         print("  - %s  → Field=%r" % (area.node.path(), field))
         check(bool(field), "%s: フィールドが決まる" % area.node.path(),
               "Field Id が空で、親にも FieldStages が無いので、立っても Standing が変わりません" if not field else "")
@@ -948,6 +1046,7 @@ def run(project_root, scene_rel, svg_path=None):
     print("\n== フィールドごとの食べ物")
     for field in sorted(set(list(world.field_tables) + list(centers))):
         print("\n[%s]" % field)
+        CTX["f"] = field
         areas = centers.get(field, [])
         check(bool(areas), "立つ場所がある")
         want = expected_foods(world, field)
@@ -1027,6 +1126,12 @@ def run(project_root, scene_rel, svg_path=None):
     if svg_path:
         render_svg(world, textures, svg_path, "%s の立つ場所と判定（%s）" % (os.path.basename(scene_rel), os.path.basename(project_root)))
 
+    if summary_path:
+        footer = summary_notes()
+        footer.append("この確認で見ていないこと: 食べ物が飛んで当たる物理 / 吹き出しの描画 / 実機（HMD・デバイス・AprilTag）での動き。")
+        footer.append("これは「データと判定コードの上で、そうなる」ことの確認です。動作の保証ではありません。Unity の Play で別に確かめてください。")
+        render_summary(summary_path, sorted(world.field_tables), "Main.unity の確認結果（%s）" % commit_label(project_root), footer)
+
     print("\n== 結果: %s（注意 %d 件）" % ("すべて通りました" if not fails else "%d 件が通りませんでした" % len(fails), len(warns)))
     for f in fails:
         print("  - %s" % f)
@@ -1038,9 +1143,10 @@ def main():
     ap.add_argument("--project", default=".", help="Unity プロジェクトの場所（Assets の親）")
     ap.add_argument("--scene", default="Assets/Scenes/Main.unity")
     ap.add_argument("--svg", help="真上から見た図を、この SVG に書く")
+    ap.add_argument("--summary-svg", help="確認の結果を、フィールド × 項目の表にして、この SVG に書く")
     args = ap.parse_args()
     sys.setrecursionlimit(10000)
-    sys.exit(run(os.path.abspath(args.project), args.scene, args.svg))
+    sys.exit(run(os.path.abspath(args.project), args.scene, args.svg, args.summary_svg))
 
 
 if __name__ == "__main__":
