@@ -534,6 +534,22 @@ def device_textures(project, builder):
 FIELD_COLORS = {"village": "#e0a030", "mountain": "#3a9a5a", "grassland": "#9acd32", "sea": "#3a7bd5"}
 
 
+def field_zone(world, field):
+    """フィールドの「食べ物が届く範囲」（DeliveryZone と同じ GameObject にある、Trigger の BoxCollider）。(4 隅, 中心) か None。"""
+    for n in world.nodes:
+        if not any(c.cls in world.field_requests and str(c.props.get("fieldId") or "") == field for c in n.comps):
+            continue
+        for c in n.comps:
+            if c.cls == "BoxCollider" and c.props.get("m_IsTrigger"):
+                ce, sz = c.props["m_Center"], c.props["m_Size"]
+                ce = [float(ce["x"]), float(ce["y"]), float(ce["z"])]
+                sz = [float(sz["x"]), float(sz["y"]), float(sz["z"])]
+                corners = [local_to_world(n, [ce[0] + dx * sz[0] / 2, ce[1], ce[2] + dz * sz[2] / 2])
+                           for dx, dz in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+                return corners, local_to_world(n, ce)
+    return None
+
+
 def render_svg(world, textures, out_path, title):
     """真上から見た図を SVG に書く。床を一定の間隔で歩かせ、どのフィールドと判定されるかを色にする。"""
     boxes = []
@@ -547,7 +563,8 @@ def render_svg(world, textures, out_path, title):
     x0, x1, z0, z1 = min(xs) - 0.6, max(xs) + 0.6, min(zs) - 0.6, max(zs) + 0.6
     scale = 150.0  # 1 m = 150 px
     W, H = (x1 - x0) * scale, (z1 - z0) * scale
-    top = 80.0
+    top = 100.0
+    H += 20.0
 
     def px(x, z):
         return (x - x0) * scale, top + (z1 - z) * scale
@@ -588,17 +605,31 @@ def render_svg(world, textures, out_path, title):
         out.append('<circle cx="%.1f" cy="%.1f" r="7" fill="%s" stroke="#fff" stroke-width="2"/>' % (cu, cv, col if got == field else "#d33"))
         rows = world.rows(world.field_tables[field]) if field in world.field_tables else []
         label = "  ".join("%s=%s" % (t.replace("placeholder-", ""), f) for t, f in rows[:4])
+        shared = "  ".join("%s=%s(共通)" % (t.replace("placeholder-", ""), world.resolve(field, t)) for t in textures
+                           if world.find(rows, t) is None and world.resolve(field, t) is not None)
+        zone = field_zone(world, field)
+        if zone:
+            zpts = " ".join("%.1f,%.1f" % px(q[0], q[2]) for q in zone[0])
+            out.append('<polygon points="%s" fill="%s" fill-opacity="0.10" stroke="%s" stroke-width="2" stroke-dasharray="6 4"/>' % (zpts, col, col))
+            zu, zv = px(zone[1][0], zone[1][2])
+            out.append('<rect x="%.1f" y="%.1f" width="10" height="10" fill="%s" stroke="#fff" stroke-width="1.5"/>' % (zu - 5, zv - 5, col))
+            dist = math.hypot(zone[1][0] - center[0], zone[1][2] - center[2])
+            out.append('<text x="%.1f" y="%.1f" font-size="11" fill="#222" text-anchor="middle">立つ場所の中心 ⇔ フィールドの中心: %.2f m</text>' % (cu, cv + 70, dist))
         out.append('<text x="%.1f" y="%.1f" font-size="15" font-weight="bold" fill="%s" text-anchor="middle">%s</text>' % (cu, cv - 14, col, field))
         out.append('<text x="%.1f" y="%.1f" font-size="12" fill="#222" text-anchor="middle">%s</text>' % (cu, cv + 22, label))
         out.append('<text x="%.1f" y="%.1f" font-size="12" fill="#222" text-anchor="middle">立つと Standing=%s</text>' % (cu, cv + 38, got or "なし"))
+        if shared:
+            out.append('<text x="%.1f" y="%.1f" font-size="11" fill="#a33" text-anchor="middle">%s</text>' % (cu, cv + 54, shared))
 
+    out.append('<text x="14" y="%.1f" font-size="12" fill="#a33">どこにも立っていないとき（Standing が空）は、共通の表だけが使われます: %s</text>'
+               % (H + top - 10, "  ".join("%s=%s" % (t.replace("placeholder-", ""), world.resolve("", t) or "なし") for t in textures)))
     ou, ov = px(0.0, 0.0)
     out.append('<path d="M%.1f %.1f l-8 0 l16 0 M%.1f %.1f l0 -8 l0 16" stroke="#555" stroke-width="2"/>' % (ou, ov, ou, ov))
     out.append('<text x="%.1f" y="%.1f" font-size="11" fill="#555">ワールド原点（リグの根元）</text>' % (ou + 10, ov - 8))
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" '
            'font-family="IPAGothic, IPAPGothic, sans-serif"><rect width="100%%" height="100%%" fill="#fafafa"/>'
            '<text x="14" y="26" font-size="18" font-weight="bold" fill="#111">%s</text>'
-           '<text x="14" y="48" font-size="12" fill="#444">真上から見た図（1 マス 4 cm）。色の付いた床に頭を置くと、その色のフィールドに「立った」と判定されます。</text><text x="14" y="64" font-size="12" fill="#444">枠は立つ場所の箱、点は箱の中心（赤い点は、中心に立っても期待したフィールドにならなかった所）。</text>%s</svg>'
+           '<text x="14" y="48" font-size="12" fill="#444">真上から見た図（1 マス 4 cm）。色の付いた床に頭を置くと、その色のフィールドに「立った」と判定されます。</text><text x="14" y="64" font-size="12" fill="#444">枠は立つ場所の箱、丸い点は箱の中心（赤い点は、中心に立っても期待したフィールドにならなかった所）。</text><text x="14" y="82" font-size="12" fill="#444">破線の四角と■は、フィールド（食べ物が届く範囲）とその中心です。立つ場所は、フィールドの外側にあります。</text>%s</svg>'
            % (W, H + top, W, H + top, title, "".join(out)))
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write(svg)
@@ -692,6 +723,17 @@ def run(project_root, scene_rel, svg_path=None):
             # 出る側から外へ歩く
             world.move_head([center[0] + 50.0, center[1], center[2] + 50.0])
             check(world.standing == "", "遠くへ離れると Standing が空になる", "実際: %r" % world.standing)
+
+    # --- どこにも立っていないとき
+    print("\n== どこにも立っていないとき（Standing が空）")
+    world.standing = ""
+    only = []
+    for tex in textures:
+        food = world.resolve("", tex)
+        print("    %-14s → %s" % (tex, food))
+        if food is not None:
+            only.append(tex)
+    print("  反応するのは: %s だけ（共通の表にある食感）" % (", ".join(only) or "なし"))
 
     # --- 4 つのフィールドで、食べ物が違うこと
     print("\n== フィールドどうしの違い")
