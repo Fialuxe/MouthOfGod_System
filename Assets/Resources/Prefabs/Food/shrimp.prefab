@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: aa773925f9e13984593b218ddd11dc2d, type: 3}
       propertyPath: m_LocalScale.x
-      value: 67.88098
+      value: 42.89404
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aa773925f9e13984593b218ddd11dc2d, type: 3}
       propertyPath: m_LocalScale.y
-      value: 64.81483
+      value: 40.95653
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aa773925f9e13984593b218ddd11dc2d, type: 3}
       propertyPath: m_LocalScale.z
-      value: 155.97725
+      value: 98.562126
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: aa773925f9e13984593b218ddd11dc2d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -103,8 +103,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.002003668, y: 0.00071875856, z: 0.00051849004}
-  m_Center: {x: 0.00014713398, y: 0.00000031400742, z: 0.00024604544}
+  m_Size: {x: 0.0010432241, y: 0.0017644643, z: 0.0010145887}
+  m_Center: {x: 0.00014713412, y: 0.00000031448442, z: 0.00024604483}
 --- !u!54 &7426967811281146923
 Rigidbody:
   m_ObjectHideFlags: 0
