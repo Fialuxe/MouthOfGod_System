@@ -13,15 +13,15 @@ namespace MouthOfGod.Device
     public sealed class MockDevice : MonoBehaviour, IDevice
     {
         [Tooltip("噛んでいる間に順に切り替わる食感 ID。既定はプレースホルダー。実際の ID に差し替える。Play 中に変えても反映されない")]
-        [SerializeField] string[] textureIds = { "placeholder-a", "placeholder-b", "placeholder-c" };
+        [SerializeField] string[] textureIds = { "placeholder-a", "placeholder-b", "placeholder-c", "placeholder-d", "placeholder-e", "placeholder-f" };
 
         [Tooltip("食感が切り替わる間隔（秒）。暫定。Play 中に変えても反映されない")]
         [SerializeField] float switchIntervalSeconds = 1.5f;
 
-        [Tooltip("噛む操作（押している間が噛んでいる間）。Inspector でバインドを変えられる。暫定: Quest 右トリガー / Space / ゲームパッド A")]
+        [Tooltip("噛む操作（押している間が噛んでいる間）。Inspector でバインドを変えられる。暫定: Quest 右トリガー / 左手を握る（ハンドトラッキング） / Space / ゲームパッド A")]
         [SerializeField] InputAction biteAction = new InputAction("Bite", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
 
-        [Tooltip("決定操作。Inspector でバインドを変えられる。暫定: Quest 右 A ボタン / Enter / ゲームパッド Start。実機の「ハードのボタン 1 つ」の代わり")]
+        [Tooltip("決定操作。Inspector でバインドを変えられる。暫定: Quest 右 A ボタン / 左手のつまみ（ハンドトラッキング） / Enter / ゲームパッド Start。実機の「ハードのボタン 1 つ」の代わり")]
         [SerializeField] InputAction confirmAction = new InputAction("Confirm", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
 
         [Tooltip("噛む・食感・決定を Console に出す（受け取る側がまだ無くても、動いているか分かるように）")]
@@ -56,8 +56,10 @@ namespace MouthOfGod.Device
         {
             AddBindingOnce(biteAction, "<Keyboard>/space");
             AddBindingOnce(biteAction, "<Gamepad>/buttonSouth");
+            AddBindingOnce(biteAction, "<HandInteraction>{LeftHand}/graspValue"); // ハンドトラッキング: 左手を握っている間（右手は棒を持つのに使う）
             AddBindingOnce(confirmAction, "<Keyboard>/enter");
             AddBindingOnce(confirmAction, "<Gamepad>/startButton");
+            AddBindingOnce(confirmAction, "<HandInteraction>{LeftHand}/pinchValue"); // ハンドトラッキング: 左手のつまみ
         }
 
         /// <summary>同じパスの割り当てが無いときだけ足す。</summary>

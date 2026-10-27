@@ -27,6 +27,8 @@ namespace MouthOfGod.Tracking
         [Tooltip("タグのローカル座標でのオフセット（メートル）。")]
         [SerializeField] Vector3 _localPositionOffset;
         [SerializeField] Vector3 _localEulerOffset;
+        [Tooltip("ワールド軸での回転オフセット（度）。タグの位置を軸に、全体を回す。タグの座標系ではなく、ワールドの軸で指定する（Y が鉛直軸まわりの向き）。位置とローカルのオフセットは、回したあとの向きで足す。")]
+        [SerializeField] Vector3 _worldEulerOffset;
 
         [Header("Stabilization: tilt")]
         [Tooltip("タグの法線を鉛直に揃え、傾き（ピッチ・ロール）を捨てる。水平な面（机・床）に置いたタグ用。壁のタグではオフにする。")]
@@ -43,6 +45,10 @@ namespace MouthOfGod.Tracking
         [SerializeField, Min(0f)] float _calibrationPositionOutlierMeters = 0.02f;
         [Tooltip("平均の向きからこの角度（度）より離れた観測を、外れ値として捨てる。")]
         [SerializeField, Min(0f)] float _calibrationAngleOutlierDegrees = 10f;
+
+        [Header("Alignment")]
+        [Tooltip("オンにすると、対象を動かす代わりに、OVRCameraRig（ユーザー側）を動かして、観測したタグを、対象のいまのワールド姿勢に重ねる。Terrain のように回せないものが子にあるときに使う。固定モード（Lock After Calibration）と Keep Normal Vertical を、自動で有効にする。リグは、位置と鉛直軸まわりの向きだけ動かす（傾きは変えない）。対象の向きは Y が上、前（Z）が水平になるようにし、タグの向きとの差は Local Euler Offset で合わせる。固定が終わったときに 1 回だけ合わせ、取り直すとまた合わせる。")]
+        [SerializeField] bool _alignRigInstead;
 
         [Header("Stabilization: follow mode")]
         [Tooltip("平滑化の時定数（秒）。大きいほどなめらかだが、遅れる。0 で平滑化しない。固定モードでは使わない。")]
@@ -61,10 +67,10 @@ namespace MouthOfGod.Tracking
         public int TagId => _tagId;
 
         /// <summary>追従モードでは、いまタグが見えているか。固定モードでは、位置が固定済みか。</summary>
-        public bool IsTracked => _lockAfterCalibration ? _isLocked : (_tracker != null && _tracker.IsTracked);
+        public bool IsTracked => LockMode ? _isLocked : (_tracker != null && _tracker.IsTracked);
 
         /// <summary>固定モードで、観測を集めている最中か。</summary>
-        public bool IsCalibrating => _lockAfterCalibration && !_isLocked && _calibrator != null;
+        public bool IsCalibrating => LockMode && !_isLocked && _calibrator != null;
 
         /// <summary>固定モードの進み具合（0〜1）。</summary>
         public float CalibrationProgress =>
@@ -74,6 +80,9 @@ namespace MouthOfGod.Tracking
         public event Action Lost;
 
         Transform Target => _target != null ? _target : transform;
+
+        // リグを合わせるモードは、固定モードを前提にする（追従すると、リグが動くたびに観測が変わって、振動するため）。
+        bool LockMode => _lockAfterCalibration || _alignRigInstead;
 
         // Domain Reload を切っていても、Play のたびに初期化する。
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -123,7 +132,7 @@ namespace MouthOfGod.Tracking
         [ContextMenu("Recalibrate")]
         public void Recalibrate()
         {
-            if (!_lockAfterCalibration || _calibrator == null) return;
+            if (!LockMode || _calibrator == null) return;
 
             _calibrator.Reset();
             if (_isLocked)
@@ -135,9 +144,9 @@ namespace MouthOfGod.Tracking
 
         void Update()
         {
-            if (_lockAfterCalibration)
+            if (LockMode)
             {
-                if (_isLocked) Apply(_lockedPose);
+                if (_isLocked && !_alignRigInstead) Apply(_lockedPose);
                 return;
             }
 
@@ -152,12 +161,12 @@ namespace MouthOfGod.Tracking
                 if (observations[i].Id != _tagId) continue;
 
                 var pose = observations[i].WorldPose;
-                if (_keepNormalVertical)
+                if (_keepNormalVertical || _alignRigInstead)
                 {
                     pose = new Pose(pose.position, AprilTagGeometry.AlignNormalToVertical(pose.rotation, _tagNormalAxis));
                 }
 
-                if (_lockAfterCalibration) Calibrate(pose);
+                if (LockMode) Calibrate(pose);
                 else _tracker.Observe(pose, observations[i].ReceivedAt);
                 return;
             }
@@ -172,20 +181,32 @@ namespace MouthOfGod.Tracking
 
             _lockedPose = result;
             _isLocked = true;
+            if (_alignRigInstead) AlignRig(result);
             Found?.Invoke();
         }
 
         void Apply(Pose tagPose)
         {
-            var position = tagPose.position + tagPose.rotation * _localPositionOffset;
-            if (_followRotation)
+            var pose = AprilTagGeometry.ApplyOffsets(tagPose, _localPositionOffset, _localEulerOffset, _worldEulerOffset);
+            if (_followRotation) Target.SetPositionAndRotation(pose.position, pose.rotation);
+            else Target.position = pose.position;
+        }
+
+        // 観測したタグが、対象のいまの姿勢に重なるように、リグを動かす。対象は動かさない。
+        void AlignRig(Pose tagPose)
+        {
+            var rig = FindFirstObjectByType<OVRCameraRig>();
+            if (rig == null)
             {
-                Target.SetPositionAndRotation(position, tagPose.rotation * Quaternion.Euler(_localEulerOffset));
+                Debug.LogWarning("[AprilTag] OVRCameraRig が見つからないので、リグを合わせられません。", this);
+                return;
             }
-            else
-            {
-                Target.position = position;
-            }
+
+            var observed = AprilTagGeometry.ApplyOffsets(tagPose, _localPositionOffset, _localEulerOffset, _worldEulerOffset);
+            var desired = new Pose(Target.position, Target.rotation);
+            var current = new Pose(rig.transform.position, rig.transform.rotation);
+            var aligned = AprilTagGeometry.AlignRigToTarget(current, observed, desired, _followRotation);
+            rig.transform.SetPositionAndRotation(aligned.position, aligned.rotation);
         }
 
         void RaiseFound()

@@ -111,5 +111,113 @@ namespace MouthOfGod.Tracking.Tests
             Assert.IsFalse(AprilTagGeometry.IsValidRotation(default));
             Assert.IsTrue(AprilTagGeometry.IsValidRotation(Quaternion.identity));
         }
+
+        const float OffsetTolerance = 1e-4f;
+
+        [Test]
+        public void ApplyOffsets_NoWorldRotation_MatchesTagFrame()
+        {
+            var tag = new Pose(new Vector3(1f, 0f, 0f), Quaternion.Euler(0f, 90f, 0f));
+
+            var result = AprilTagGeometry.ApplyOffsets(tag, new Vector3(0f, 0f, 1f), new Vector3(0f, 30f, 0f), Vector3.zero);
+
+            // タグの前（+Z）は、ワールドの +X を向く
+            Assert.AreEqual(2f, result.position.x, OffsetTolerance);
+            Assert.AreEqual(0f, result.position.z, OffsetTolerance);
+            Assert.AreEqual(0f, Quaternion.Angle(Quaternion.Euler(0f, 120f, 0f), result.rotation), OffsetTolerance);
+        }
+
+        [Test]
+        public void ApplyOffsets_WorldYaw_RotatesWholeThingAroundTagPosition()
+        {
+            var tag = new Pose(new Vector3(1f, 0f, 0f), Quaternion.identity);
+
+            var result = AprilTagGeometry.ApplyOffsets(tag, new Vector3(0f, 0f, 1f), Vector3.zero, new Vector3(0f, 90f, 0f));
+
+            // タグの前 1 m が、ワールドの Y 軸まわり 90 度で +X に回る
+            Assert.AreEqual(2f, result.position.x, OffsetTolerance);
+            Assert.AreEqual(0f, result.position.z, OffsetTolerance);
+            Assert.AreEqual(0f, Quaternion.Angle(Quaternion.Euler(0f, 90f, 0f), result.rotation), OffsetTolerance);
+        }
+
+        [Test]
+        public void ApplyOffsets_WorldRotationIsAboutWorldAxisEvenWhenTagIsTilted()
+        {
+            // タグが X まわりに 90 度倒れていても、ワールドの Y まわりに 90 度回る
+            var tag = new Pose(Vector3.zero, Quaternion.Euler(90f, 0f, 0f));
+
+            var result = AprilTagGeometry.ApplyOffsets(tag, Vector3.zero, Vector3.zero, new Vector3(0f, 90f, 0f));
+
+            var expected = Quaternion.Euler(0f, 90f, 0f) * tag.rotation;
+            Assert.AreEqual(0f, Quaternion.Angle(expected, result.rotation), OffsetTolerance);
+        }
+
+        static Vector3 InRig(Pose rig, Vector3 worldPoint) =>
+            Quaternion.Inverse(rig.rotation) * (worldPoint - rig.position);
+
+        [Test]
+        public void AlignRigToTarget_AlreadyAligned_LeavesRigAlone()
+        {
+            var tag = new Pose(new Vector3(1f, 0.5f, 2f), Quaternion.Euler(0f, 40f, 0f));
+            var rig = new Pose(new Vector3(0f, 0f, 0f), Quaternion.Euler(0f, 10f, 0f));
+
+            var result = AprilTagGeometry.AlignRigToTarget(rig, tag, tag, alignYaw: true);
+
+            Assert.AreEqual(0f, Vector3.Distance(rig.position, result.position), OffsetTolerance);
+            Assert.AreEqual(0f, Quaternion.Angle(rig.rotation, result.rotation), OffsetTolerance);
+        }
+
+        [Test]
+        public void AlignRigToTarget_PositionOnly_ShiftsRigByTheGap()
+        {
+            var observed = new Pose(new Vector3(1f, 0f, 0f), Quaternion.identity);
+            var desired = new Pose(Vector3.zero, Quaternion.identity);
+            var rig = new Pose(new Vector3(2f, 0f, 0f), Quaternion.identity);
+
+            var result = AprilTagGeometry.AlignRigToTarget(rig, observed, desired, alignYaw: false);
+
+            Assert.AreEqual(0f, Vector3.Distance(new Vector3(1f, 0f, 0f), result.position), OffsetTolerance);
+            Assert.AreEqual(0f, Quaternion.Angle(Quaternion.identity, result.rotation), OffsetTolerance);
+        }
+
+        [Test]
+        public void AlignRigToTarget_Yaw_TurnsRigAroundTheTag()
+        {
+            var observed = new Pose(new Vector3(1f, 0f, 0f), Quaternion.identity);
+            var desired = new Pose(Vector3.zero, Quaternion.Euler(0f, 90f, 0f));
+            var rig = new Pose(new Vector3(2f, 0f, 0f), Quaternion.identity);
+
+            var result = AprilTagGeometry.AlignRigToTarget(rig, observed, desired, alignYaw: true);
+
+            Assert.AreEqual(0f, Vector3.Distance(new Vector3(0f, 0f, -1f), result.position), OffsetTolerance);
+            Assert.AreEqual(0f, Quaternion.Angle(Quaternion.Euler(0f, 90f, 0f), result.rotation), OffsetTolerance);
+        }
+
+        [Test]
+        public void AlignRigToTarget_KeepsTagPositionSeenFromRig()
+        {
+            var observed = new Pose(new Vector3(0.5f, 0.8f, 1.2f), Quaternion.Euler(0f, 30f, 0f));
+            var desired = new Pose(new Vector3(-2f, 0.75f, 0.3f), Quaternion.Euler(0f, 140f, 0f));
+            var rig = new Pose(new Vector3(1f, 0f, -1f), Quaternion.Euler(0f, 10f, 0f));
+
+            var result = AprilTagGeometry.AlignRigToTarget(rig, observed, desired, alignYaw: true);
+
+            // リグから見たタグの位置が、動かす前後で変わらない（動かす前は観測、動かした後は基準の位置にタグが見える）
+            Assert.AreEqual(0f, Vector3.Distance(InRig(rig, observed.position), InRig(result, desired.position)), OffsetTolerance);
+            // 傾きは変えない
+            Assert.AreEqual(0f, (result.rotation * Vector3.up - Vector3.up).magnitude, OffsetTolerance);
+        }
+
+        [Test]
+        public void YawDelta_ForwardVertical_ComparesRightAxis()
+        {
+            // 前（Z）が鉛直を向く姿勢（机に寝かせたタグ）でも、右（X）で向きを比べられる
+            var from = Quaternion.Euler(-90f, 0f, 0f);
+            var to = Quaternion.Euler(0f, 90f, 0f) * Quaternion.Euler(-90f, 0f, 0f);
+
+            var delta = AprilTagGeometry.YawDelta(from, to);
+
+            Assert.AreEqual(90f, Mathf.Abs(delta), 1e-2f);
+        }
     }
 }

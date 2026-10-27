@@ -151,6 +151,9 @@ MonoBehaviour:
   - placeholder-a
   - placeholder-b
   - placeholder-c
+  - placeholder-d
+  - placeholder-e
+  - placeholder-f
   switchIntervalSeconds: 1.5
   biteAction:
     m_Name: Bite
@@ -184,6 +187,14 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Bite
       m_Flags: 0
+    - m_Name: 
+      m_Id: 18748f3e-dbcd-427a-a710-279eb1813f1e
+      m_Path: <HandInteraction>{LeftHand}/graspValue
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Bite
+      m_Flags: 0
     m_Flags: 0
   confirmAction:
     m_Name: Confirm
@@ -212,6 +223,14 @@ MonoBehaviour:
     - m_Name: 
       m_Id: c31d67ef-4a39-4b0a-ae59-5085e9b7760e
       m_Path: <Gamepad>/startButton
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Confirm
+      m_Flags: 0
+    - m_Name: 
+      m_Id: e0c5cb84-d772-403c-9c3d-56184a988994
+      m_Path: <HandInteraction>{LeftHand}/pinchValue
       m_Interactions: 
       m_Processors: 
       m_Groups: 

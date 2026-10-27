@@ -23,8 +23,18 @@ namespace MouthOfGod.Tutorial
         internal static Action<string> ReportWarning = Debug.LogWarning;
         internal static Action<Exception> ReportException = Debug.LogException;
 
+        [Tooltip("入れると、Play を始めたときに自動で Begin する。入れないときは、呼ぶ側（台の前に立った、など）が Begin を呼ぶ")]
+        [SerializeField] bool beginOnStart;
+
+        [Tooltip("Begin On Start のとき、Quest をかぶるまで待ってから始める。かぶっているかが分からない（エディタなど）ときは、待たない")]
+        [SerializeField] bool waitUntilWorn = true;
+
+        [Tooltip("Begin On Start のとき、始めるまで待つ秒数")]
+        [SerializeField, Min(0f)] float beginDelaySeconds;
+
         Coroutine _running;
         TutorialScript _current;
+        TutorialHistory _history;
 
         /// <summary>チュートリアルのあいだで引き継ぐ、覚えたこと。</summary>
         public TutorialMemory Memory { get; } = new TutorialMemory();
@@ -60,8 +70,15 @@ namespace MouthOfGod.Tutorial
             if (!IsRunning) return;
             if (_running != null) StopCoroutine(_running);
             _running = null;
-            if (_current != null) _current.CancelWaits();
+            if (_current != null)
+            {
+                _current.CancelWaits();
+                try { _current.Abort(); }
+                catch (Exception e) { ReportException(e); }
+            }
             _current = null;
+            _history?.Dispose();
+            _history = null;
             Phases.Set(PhaseId.None);
         }
 
@@ -71,7 +88,8 @@ namespace MouthOfGod.Tutorial
             foreach (TutorialScript script in CollectScripts())
             {
                 _current = script;
-                script.Attach(Memory);
+                _history = new TutorialHistory(); // このチュートリアルが始まってからの操作を記録する（先回りした操作を数える）
+                script.Attach(Memory, _history);
                 if (script.Phase.IsEmpty) ReportWarning("[TutorialRunner] " + script + " の Phase が空です。");
                 Phases.Set(script.Phase);
                 Raise(ScriptStarted, script.Phase);
@@ -80,6 +98,8 @@ namespace MouthOfGod.Tutorial
                 while (body.MoveNext()) yield return body.Current;
 
                 script.CancelWaits();
+                _history.Dispose();
+                _history = null;
                 _current = null;
                 Raise(ScriptFinished, script.Phase);
             }
@@ -153,6 +173,23 @@ namespace MouthOfGod.Tutorial
 
         [ContextMenu("Stop")]
         void StopFromMenu() => Stop();
+
+        IEnumerator Start()
+        {
+            if (!beginOnStart) yield break;
+            if (waitUntilWorn) yield return new WaitUntil(IsWorn);
+            if (beginDelaySeconds > 0f) yield return new WaitForSeconds(beginDelaySeconds);
+            if (!IsRunning) Begin();
+        }
+
+        // Quest をかぶっているか（頭のデバイスの userPresence）。分からないときは true。
+        static bool IsWorn()
+        {
+            UnityEngine.XR.InputDevice device = UnityEngine.XR.InputDevices.GetDeviceAtXRNode(UnityEngine.XR.XRNode.Head);
+            if (!device.isValid) return true;
+            bool present;
+            return !device.TryGetFeatureValue(UnityEngine.XR.CommonUsages.userPresence, out present) || present;
+        }
 
         void OnDisable() => Stop();
     }

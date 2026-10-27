@@ -9,7 +9,7 @@
 | 部品 | 付ける所 | 役割 |
 |---|---|---|
 | `ForkTip` | フォークの先の位置に置いた、空のオブジェクト | 雲に触れたら「刺した」、口に近づいたら「口に入った」とします。有効になると、自分で `Forks` に登録します。先の当たり判定（小さな球のトリガー）と、動かない Rigidbody は、起動時に自分で付けます |
-| `Cloud` | 刺せる雲の見た目（Collider を付けます） | 刺されると隠れます。`Respawn Seconds` たつと戻ります |
+| `Cloud` | 刺せる雲の見た目（Collider を付けます） | 刺されると隠れます。`Respawn Seconds` たつと戻ります。Collider は起動時にトリガーになります。口から飛ばした物は、雲をすり抜けます |
 | `CloudRing` | シーンのどこか 1 か所 | 体験者の前に、雲を半円状に浮かべます。体験者が歩くと、ついて来ます |
 
 ### 判定の決まり
@@ -22,7 +22,7 @@
 ## ほかの機能とのつなぎ方
 
 - 参照するのは Core だけです。ほかの機能は、Core の `Forks` から `IFork` を受け取ります。
-- フォークの位置は、手（ハンドトラッキング）と AprilTag から推定します。手の位置からフォークの位置を逆算する部品は、まだありません。この部品は人が作ります。
+- フォークの位置は、手（ハンドトラッキング）と AprilTag から推定します。手の位置にオフセットを足す部品は、`Tracking` の `HandHeldPose` です（`ForkTip` のオブジェクトかその親に付けます）。AprilTag で位置を補正する部品は、まだありません。
 - `ForkTip` は、位置の取り方を知りません。そのため、推定の部品ができても、`ForkTip` を直す必要はありません。
 - 雲を光らせる・近くへ寄せるなどの見せ方は、まだありません。合図（`Cues`）を受ける側が足します。
 
@@ -48,6 +48,7 @@ yield return WaitForMouth();
 1. フォークの先の位置に、空のオブジェクトを作ります。名前は `ForkTip` にし、`ForkTip` を付けます。
 2. このオブジェクトは、フォークの模型やその当たり判定とは別にします。`ForkTip` が同じオブジェクトの `SphereCollider` を書き換えるためです。自分用の小さなトリガーにします。フォークの位置を推定する部品は、このオブジェクトか、その親を動かします。
 3. `ForkTip` の `Mouth` に、Main Camera の子の `MouthAnchor` を入れます。
+   `Assets/Resources/Prefabs/Fork/ForkTip.prefab` は、`ForkTip` と `HandHeldPose`（手の位置にオフセットを足して先を動かす）を付けた Prefab です。`Mouth` は空なので、置いたあとに入れます。空のままなら、Main Camera から `Mouth Offset` だけずらした所を口とします。
 4. 刺した雲のかけらの見た目があれば、`ForkTip` の子に置きます。`Loaded Piece` に入れると、刺している間だけ表示されます。
 5. メニュー **MouthOfGod > Fork > Generate Cloud Prefab** で、雲の Prefab を作ります。白い球を重ねた、仮の見た目です。`Assets/Resources/Prefabs/Fork/Cloud.prefab` にできます。
 6. シーンに空のオブジェクトを作り、`CloudRing` を付けます。Play すると、体験者の前に雲が 5 つ浮かびます。

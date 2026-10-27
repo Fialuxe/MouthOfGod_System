@@ -67,6 +67,48 @@ namespace MouthOfGod.Tracking
             return Quaternion.FromToRotation(normal, target) * rotation;
         }
 
+        /// <summary>
+        /// タグの姿勢に、オフセットを足した、対象の姿勢を求める。
+        /// 基準の向きは「ワールド軸の回転 × タグの回転」。ワールドの回転を 0 にすれば、タグの向きそのまま。
+        /// 位置のオフセットとローカルのオイラー角は、この基準の座標系で足す。そのため、ワールドの回転は、タグの位置を軸に全体を回す。
+        /// </summary>
+        public static Pose ApplyOffsets(Pose tag, Vector3 localPosition, Vector3 localEuler, Vector3 worldEuler)
+        {
+            var frame = Quaternion.Euler(worldEuler) * tag.rotation;
+            return new Pose(tag.position + frame * localPosition, frame * Quaternion.Euler(localEuler));
+        }
+
+        /// <summary>
+        /// 観測したタグの姿勢を、シーンの基準の姿勢に重ねるために、リグ（ユーザー側）を動かした後の姿勢を求める。
+        /// 動かすのは、位置と、鉛直軸まわりの向き（<paramref name="alignYaw"/> のとき）だけ。傾きは変えない（VR の水平線が傾かないように）。
+        /// 「タグから見たリグの位置」を、動かす前後で変えない。つまり、シーン空間でのユーザーの姿勢 = 基準の姿勢 × 観測したタグの姿勢の逆 × ワールドでのユーザーの姿勢。
+        /// </summary>
+        /// <param name="rig">いまのリグの姿勢（ワールド）。</param>
+        /// <param name="observed">観測したタグの姿勢（ワールド）。オフセットを足したあと。</param>
+        /// <param name="desired">タグがあるべき、シーンの基準の姿勢（ワールド）。</param>
+        public static Pose AlignRigToTarget(Pose rig, Pose observed, Pose desired, bool alignYaw)
+        {
+            var yaw = alignYaw
+                ? Quaternion.AngleAxis(YawDelta(observed.rotation, desired.rotation), Vector3.up)
+                : Quaternion.identity;
+            return new Pose(
+                desired.position + yaw * (rig.position - observed.position),
+                yaw * rig.rotation);
+        }
+
+        /// <summary>from から to へ、鉛直軸まわりに回す角度（度）。前（Z）が鉛直に近いときは、右（X）で比べる。</summary>
+        public static float YawDelta(Quaternion from, Quaternion to)
+        {
+            var a = Vector3.ProjectOnPlane(from * Vector3.forward, Vector3.up);
+            var b = Vector3.ProjectOnPlane(to * Vector3.forward, Vector3.up);
+            if (a.sqrMagnitude < 1e-4f || b.sqrMagnitude < 1e-4f)
+            {
+                a = Vector3.ProjectOnPlane(from * Vector3.right, Vector3.up);
+                b = Vector3.ProjectOnPlane(to * Vector3.right, Vector3.up);
+            }
+            return Vector3.SignedAngle(a, b, Vector3.up);
+        }
+
         /// <summary>回転が (0,0,0,0)（未取得）でないか。</summary>
         public static bool IsValidRotation(Quaternion rotation)
         {

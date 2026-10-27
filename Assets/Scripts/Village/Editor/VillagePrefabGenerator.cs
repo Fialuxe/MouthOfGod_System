@@ -80,6 +80,8 @@ namespace MouthOfGod.Village.Editor
         //   Worried: 悩んでいる。Idle をゆっくり（0.6 倍）再生して、肩を落として立っている感じにする（止まって見えないように動きは残す）。
         //   Slump: 悩んでいる間に、ときどきがっくりうなだれる。Defeat（ループさせず、最後の姿勢で止まる）。
         //   Idle: 元気。Victory: 届いたときに 1 回 → Idle に戻る。
+        //   Missed: 違う物が届いたとき（トリガー Missed。DeliveryFx が送る）に 1 回 → 元の姿勢に戻る。いまは Defeat を速く再生する。
+        //     首を振るなどの動きにするときは、MissedClip を変える（このステートの Motion が変わるだけで、コードは直さない）。
         //   使わない: Walk/Run（どこかへ行ってしまう）、Death（暗すぎる）、Punch/SwordSlash/Shoot/Roll/RecieveHit（戦闘）、
         //   PickUp（拾う物が無いと不自然）。
         static AnimatorController BuildVillagerController()
@@ -103,6 +105,7 @@ namespace MouthOfGod.Village.Editor
             controller.AddParameter("Worried", AnimatorControllerParameterType.Bool);
             controller.AddParameter("Slump", AnimatorControllerParameterType.Bool);
             controller.AddParameter("Delivered", AnimatorControllerParameterType.Trigger);
+            controller.AddParameter(VillagerMood.MissedTrigger, AnimatorControllerParameterType.Trigger);
             var machine = controller.layers[0].stateMachine;
             var idleState = machine.AddState("Idle");
             idleState.motion = idle;
@@ -125,8 +128,37 @@ namespace MouthOfGod.Village.Editor
             back.hasExitTime = true;
             back.exitTime = 1f;
             back.duration = 0.2f;
+            AddMissedState(machine, LoadClip(fbxPath, MissedClip) ?? defeat, worriedState, idleState);
             EditorUtility.SetDirty(controller);
             return controller;
+        }
+
+        // 違う物が届いたときの動き。どの状態からでも入り、終わったら、悩んでいれば Worried、元気なら Idle に戻る。
+        const string MissedClip = "Defeat";
+
+        /// <summary>Missed のトリガーとステートを足す。既にあれば何もしない。生成し直さずに、今の Villager.controller に足すときにも使う。</summary>
+        public static void AddMissedState(AnimatorStateMachine machine, Motion motion, AnimatorState worried, AnimatorState idle)
+        {
+            foreach (var child in machine.states)
+                if (child.state.name == VillagerMood.MissedTrigger) return;
+            var missed = machine.AddState(VillagerMood.MissedTrigger);
+            missed.motion = motion;
+            missed.speed = 1.5f;
+            var enter = machine.AddAnyStateTransition(missed);
+            enter.AddCondition(AnimatorConditionMode.If, 0f, VillagerMood.MissedTrigger);
+            enter.canTransitionToSelf = false;
+            enter.hasExitTime = false;
+            enter.duration = 0.15f;
+            var toWorried = missed.AddTransition(worried);
+            toWorried.AddCondition(AnimatorConditionMode.If, 0f, "Worried");
+            toWorried.hasExitTime = true;
+            toWorried.exitTime = 0.9f;
+            toWorried.duration = 0.3f;
+            var toIdle = missed.AddTransition(idle);
+            toIdle.AddCondition(AnimatorConditionMode.IfNot, 0f, "Worried");
+            toIdle.hasExitTime = true;
+            toIdle.exitTime = 0.9f;
+            toIdle.duration = 0.3f;
         }
 
         static void AddTransition(AnimatorState from, AnimatorState to, AnimatorConditionMode mode, string parameter, float duration)
@@ -360,6 +392,38 @@ namespace MouthOfGod.Village.Editor
             }
             if (removed == 0) Debug.LogWarning($"[Village] {RuinedHouseName}: 名前が Roof_ で始まる部品が見つからない。House_Sample の中の名前を確かめる");
             return instance;
+        }
+
+        // 今の Villager.controller に、Missed のトリガーとステートを足す（作り直さない。村人の Prefab も触らない）。
+        [MenuItem("MouthOfGod/Village/Add Missed To Villager Controller")]
+        public static void AddMissedToController()
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
+            if (controller == null)
+            {
+                Debug.LogWarning($"[Village] {ControllerPath} が無い。先に Generate Prefabs を実行する");
+                return;
+            }
+            var has = false;
+            foreach (var p in controller.parameters) if (p.name == VillagerMood.MissedTrigger) has = true;
+            if (!has) controller.AddParameter(VillagerMood.MissedTrigger, AnimatorControllerParameterType.Trigger);
+            var machine = controller.layers[0].stateMachine;
+            AnimatorState worried = null, idle = null, slump = null;
+            foreach (var child in machine.states)
+            {
+                if (child.state.name == "Worried") worried = child.state;
+                else if (child.state.name == "Idle") idle = child.state;
+                else if (child.state.name == "Slump") slump = child.state;
+            }
+            if (worried == null || idle == null || slump == null)
+            {
+                Debug.LogWarning($"[Village] {ControllerPath} に Worried / Idle / Slump のステートが無い。Generate Prefabs で作り直す");
+                return;
+            }
+            AddMissedState(machine, slump.motion, worried, idle);
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[Village] {ControllerPath} に Missed を足しました");
         }
 
         [MenuItem("MouthOfGod/Village/Generate Prefabs")]

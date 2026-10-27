@@ -1,0 +1,26 @@
+{
+    "name": "MouthOfGod.DevTools.Editor",
+    "rootNamespace": "MouthOfGod.DevTools.Editor",
+    "references": [
+        "MouthOfGod.Core",
+        "MouthOfGod.DevTools",
+        "MouthOfGod.Tutorial",
+        "MouthOfGod.Fork",
+        "MouthOfGod.Food",
+        "MouthOfGod.Village",
+        "MouthOfGod.UI",
+        "MouthOfGod.Miko",
+        "MouthOfGod.Tutorial.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -17,7 +17,7 @@ namespace MouthOfGod.Food.Editor
         const string OutputFolder = "Assets/Resources/Prefabs/Food/";
 
         // 食べ物の ID → FBX の場所と、一番長い辺の長さ（m）。長さは仮。口から飛ばして見やすい大きさにしている。
-        // pumpkin / carrot / turnip / tomato は、村の欲しい物（Draft/VillageLayout）。sheep / pig / apple / fish / cow は、ほかのフィールドと試験用。
+        // pumpkin / carrot / turnip / tomato は、村の欲しい物（Draft/VillageLayout）。fish / shrimp / shell は、海の産物。sheep / pig / apple / cow は、ほかのフィールドと試験用。
         static readonly Dictionary<string, (string Path, float Size)> Sources = new Dictionary<string, (string, float)>
         {
             { "carrot", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Carrot.fbx", 0.1f) },
@@ -29,6 +29,9 @@ namespace MouthOfGod.Food.Editor
             { "apple", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Apple.fbx", 0.06f) },
             { "fish", (Quaternius + "Ultimate Food Pack - Oct 2019/FBX/Fish.fbx", 0.15f) },
             { "cow", (Quaternius + "Farm Animals by @Quaternius/FBX/Cow.fbx", 0.225f) },
+            // 海フィールドの産物（魚介）。素材の FBX は Prefabs/Sea に置いている。
+            { "shrimp", ("Assets/Resources/Prefabs/Sea/low_poly_shrimp.fbx", 0.1f) },
+            { "shell", ("Assets/Resources/Prefabs/Sea/low_poly_shell.fbx", 0.08f) },
         };
 
         const float Mass = 0.3f; // kg。飛び方は FoodSpawner の Launch Speed と、この重さで決まる

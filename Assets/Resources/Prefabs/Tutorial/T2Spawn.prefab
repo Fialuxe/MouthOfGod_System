@@ -1,0 +1,241 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1189292311296973852
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8206533244384517090}
+  - component: {fileID: 7879446894507991039}
+  - component: {fileID: 9189934474187708078}
+  m_Layer: 0
+  m_Name: Offering
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &8206533244384517090
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1189292311296973852}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.4, y: 1.5, z: 0.9}
+  m_LocalScale: {x: 0.12, y: 0.12, z: 0.12}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2281863497812444178}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &7879446894507991039
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1189292311296973852}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &9189934474187708078
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1189292311296973852}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 47787d9ac9555334f9030e86b994b6a8, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8936432043360096920
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2281863497812444178}
+  - component: {fileID: 3889531720620855563}
+  - component: {fileID: 5741337256916837411}
+  m_Layer: 0
+  m_Name: T2Spawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2281863497812444178
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8936432043360096920}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8206533244384517090}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3889531720620855563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8936432043360096920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4510a32bc8278024da32688caff6ab9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetFood: apple
+  missesBeforeEmphasize: 3
+  offering: {fileID: 1189292311296973852}
+  pierceHintSeconds: 10
+  mouthHintSeconds: 10
+  spawnHintSeconds: 20
+  giveUpSeconds: 90
+  bornDelaySeconds: 0.5
+  endPauseSeconds: 4
+  rememberLine: t2-remember
+  rememberShortLine: t2-remember-short
+  pierceHintLine: t2-hint-pierce
+  mouthHintLine: t2-hint-mouth
+  waitAppleLine: t2-wait-apple
+  wrongLine: t2-wrong
+  bornLine: t2-born
+  giveUpLine: 
+  offeringShowCue: offering.show
+  offeringHideCue: offering.hide
+  cloudGlowCue: cloud.glow
+  shadowShowCue: shadow.show
+  shadowEmphasizeCue: shadow.emphasize
+  shadowHideCue: shadow.hide
+--- !u!114 &5741337256916837411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8936432043360096920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6411f8459331c3542aed6b2d12b00812, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lines:
+  - id: t2-remember
+    text: Remember the apple the villagers offered? Pierce a cloud and put it in
+      your mouth.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t2-remember-short
+    text: Remember the apple the villagers offered? Try it again.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t2-hint-pierce
+    text: Pierce a cloud with your fork.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t2-hint-mouth
+    text: Bring it to your mouth.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t2-wait-apple
+    text: As the feel changes, so does the blessing. Wait for the apple.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t2-wrong
+    text: "That too is a blessing \u2014 but now, the apple."
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
+  - id: t2-born
+    text: Look! A blessing is born from your mouth! Remember that feel.
+    voice: {fileID: 0}
+    changeExpression: 0
+    expression: 0
+    point: 0
+    pointTarget: {fileID: 0}
+    moveTo: {fileID: 0}
+    speakAfterMove: 0
+    seconds: 0
