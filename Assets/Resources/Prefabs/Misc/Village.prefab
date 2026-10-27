@@ -131,7 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03db789b3756bdb4e806d2d739680edb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fieldId: 
+  fieldId: village
   center: {x: 0, y: 1, z: 0}
   size: {x: 2, y: 2, z: 2}
   ignoreHeight: 1
@@ -153,9 +153,6 @@ GameObject:
   - component: {fileID: 3475681009402318843}
   - component: {fileID: 1745715266048707932}
   - component: {fileID: 6298305494165311163}
-  - component: {fileID: 7663165516323823061}
-  - component: {fileID: 28498913107726781}
-  - component: {fileID: 7673345049954739589}
   m_Layer: 0
   m_Name: Village
   m_TagString: Untagged
@@ -254,60 +251,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7663165516323823061
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8710465304365194868}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ec19ea87a8c0de44b184ee86eaaf217, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fieldId: village
-  requestOrder: 0
-  maxOpenRequests: 2
---- !u!65 &28498913107726781
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8710465304365194868}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.0726761, y: 2.5, z: 1}
-  m_Center: {x: 0.00032716326, y: 0.7500005, z: 0.00000010003094}
---- !u!114 &7673345049954739589
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8710465304365194868}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07e1d78b1ad59dd46882b157cc6de308, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fieldId: 
-  consumeRequested: 1
-  consumeOthers: 0
-  vanishOthers: 1
-  vanishSeconds: 1
-  vanishFx: {fileID: 0}
 --- !u!1001 &66810789309324305
 PrefabInstance:
   m_ObjectHideFlags: 0
