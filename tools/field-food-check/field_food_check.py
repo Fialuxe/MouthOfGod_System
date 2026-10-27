@@ -531,7 +531,81 @@ def device_textures(project, builder):
     return []
 
 
-def run(project_root, scene_rel):
+FIELD_COLORS = {"village": "#e0a030", "mountain": "#3a9a5a", "grassland": "#9acd32", "sea": "#3a7bd5"}
+
+
+def render_svg(world, textures, out_path, title):
+    """真上から見た図を SVG に書く。床を一定の間隔で歩かせ、どのフィールドと判定されるかを色にする。"""
+    boxes = []
+    for area in world.areas:
+        c, sz = world.vec(area, "center"), world.vec(area, "size")
+        corners = [local_to_world(area.node, [c[0] + dx * sz[0] / 2, c[1], c[2] + dz * sz[2] / 2])
+                   for dx, dz in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+        boxes.append((area, corners, local_to_world(area.node, c)))
+    xs = [p[0] for _, cs, _ in boxes for p in cs] + [0.0]
+    zs = [p[2] for _, cs, _ in boxes for p in cs] + [0.0]
+    x0, x1, z0, z1 = min(xs) - 0.6, max(xs) + 0.6, min(zs) - 0.6, max(zs) + 0.6
+    scale = 150.0  # 1 m = 150 px
+    W, H = (x1 - x0) * scale, (z1 - z0) * scale
+    top = 80.0
+
+    def px(x, z):
+        return (x - x0) * scale, top + (z1 - z) * scale
+
+    out = []
+    step = 0.04
+    saved = (world.standing, list(world.occupied), dict(world.inside))
+    z = z0
+    while z < z1:
+        x = x0
+        while x < x1:
+            world.standing = ""
+            world.occupied.clear()
+            for a in world.areas:
+                world.inside[a] = False
+            world.move_head([x, 1.6, z])
+            if world.standing:
+                u, v = px(x, z + step)
+                out.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="%s" fill-opacity="0.28"/>'
+                           % (u, v, step * scale + 0.5, step * scale + 0.5, FIELD_COLORS.get(world.standing, "#888")))
+            x += step
+        z += step
+    world.standing, world.occupied[:], world.inside = saved[0], saved[1], saved[2]
+    world.occupied[:] = saved[1]
+
+    for area, corners, center in boxes:
+        field = world.area_field(area)
+        col = FIELD_COLORS.get(field, "#888")
+        pts = " ".join("%.1f,%.1f" % px(p[0], p[2]) for p in corners)
+        out.append('<polygon points="%s" fill="none" stroke="%s" stroke-width="3"/>' % (pts, col))
+        world.standing = ""
+        world.occupied.clear()
+        for a in world.areas:
+            world.inside[a] = False
+        world.move_head(center)
+        got = world.standing
+        cu, cv = px(center[0], center[2])
+        out.append('<circle cx="%.1f" cy="%.1f" r="7" fill="%s" stroke="#fff" stroke-width="2"/>' % (cu, cv, col if got == field else "#d33"))
+        rows = world.rows(world.field_tables[field]) if field in world.field_tables else []
+        label = "  ".join("%s=%s" % (t.replace("placeholder-", ""), f) for t, f in rows[:4])
+        out.append('<text x="%.1f" y="%.1f" font-size="15" font-weight="bold" fill="%s" text-anchor="middle">%s</text>' % (cu, cv - 14, col, field))
+        out.append('<text x="%.1f" y="%.1f" font-size="12" fill="#222" text-anchor="middle">%s</text>' % (cu, cv + 22, label))
+        out.append('<text x="%.1f" y="%.1f" font-size="12" fill="#222" text-anchor="middle">立つと Standing=%s</text>' % (cu, cv + 38, got or "なし"))
+
+    ou, ov = px(0.0, 0.0)
+    out.append('<path d="M%.1f %.1f l-8 0 l16 0 M%.1f %.1f l0 -8 l0 16" stroke="#555" stroke-width="2"/>' % (ou, ov, ou, ov))
+    out.append('<text x="%.1f" y="%.1f" font-size="11" fill="#555">ワールド原点（リグの根元）</text>' % (ou + 10, ov - 8))
+    svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" '
+           'font-family="IPAGothic, IPAPGothic, sans-serif"><rect width="100%%" height="100%%" fill="#fafafa"/>'
+           '<text x="14" y="26" font-size="18" font-weight="bold" fill="#111">%s</text>'
+           '<text x="14" y="48" font-size="12" fill="#444">真上から見た図（1 マス 4 cm）。色の付いた床に頭を置くと、その色のフィールドに「立った」と判定されます。</text><text x="14" y="64" font-size="12" fill="#444">枠は立つ場所の箱、点は箱の中心（赤い点は、中心に立っても期待したフィールドにならなかった所）。</text>%s</svg>'
+           % (W, H + top, W, H + top, title, "".join(out)))
+    with open(out_path, "w", encoding="utf-8") as fh:
+        fh.write(svg)
+    print("  図を書きました: %s" % out_path)
+
+
+def run(project_root, scene_rel, svg_path=None):
     project = Project(project_root)
     scene = os.path.join(project_root, scene_rel)
     builder = Builder(project)
@@ -627,19 +701,28 @@ def run(project_root, scene_rel):
         print("  %-10s %s" % (field, sets[field]))
     check(len(set(sets.values())) == len(sets), "フィールドごとに食べ物の並びが違う")
 
-    # --- 立つ場所の重なり
+    # --- 立つ場所の重なり（箱の床を 5 cm 間隔で調べる）
     print("\n== 立つ場所の重なり")
-    overlaps = 0
     for i, a in enumerate(world.areas):
         for b in world.areas[i + 1:]:
-            ca, cb = local_to_world(a.node, world.vec(a, "center")), local_to_world(b.node, world.vec(b, "center"))
-            # 中心どうしを、どちらの箱にも入るか調べる（広さで判定）
-            for src, dst, pt in ((a, b, ca), (b, a, cb)):
-                local = world_to_local(dst.node, pt)
-                if world.contains(local, world.vec(dst, "center"), world.vec(dst, "size"), 0.0, bool(dst.props["ignoreHeight"])):
-                    overlaps += 1
-                    print("  !! %s の中心は %s の箱にも入っています" % (src.node.path(), dst.node.path()))
-    check(overlaps == 0, "立つ場所が重なっていない")
+            ca, sa = world.vec(a, "center"), world.vec(a, "size")
+            hits, step = 0, 0.05
+            gx = -abs(sa[0]) / 2
+            while gx <= abs(sa[0]) / 2:
+                gz = -abs(sa[2]) / 2
+                while gz <= abs(sa[2]) / 2:
+                    w = local_to_world(a.node, [ca[0] + gx, ca[1], ca[2] + gz])
+                    local = world_to_local(b.node, w)
+                    if world.contains(local, world.vec(b, "center"), world.vec(b, "size"), 0.0, bool(b.props["ignoreHeight"])):
+                        hits += 1
+                    gz += step
+                gx += step
+            if hits:
+                warn("%s と %s の箱が重なっています（約 %d 点）。重なった所では、あとから入った方が選ばれます" % (a.node.path(), b.node.path(), hits))
+    print("  （重なりは、立つ場所の箱の大きさを決めた人が意図したものか、確かめてください）")
+
+    if svg_path:
+        render_svg(world, textures, svg_path, "%s の立つ場所と判定（%s）" % (os.path.basename(scene_rel), os.path.basename(project_root)))
 
     print("\n== 結果: %s（注意 %d 件）" % ("すべて通りました" if not fails else "%d 件が通りませんでした" % len(fails), len(warns)))
     for f in fails:
@@ -651,9 +734,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", default=".", help="Unity プロジェクトの場所（Assets の親）")
     ap.add_argument("--scene", default="Assets/Scenes/Main.unity")
+    ap.add_argument("--svg", help="真上から見た図を、この SVG に書く")
     args = ap.parse_args()
     sys.setrecursionlimit(10000)
-    sys.exit(run(os.path.abspath(args.project), args.scene))
+    sys.exit(run(os.path.abspath(args.project), args.scene, args.svg))
 
 
 if __name__ == "__main__":
