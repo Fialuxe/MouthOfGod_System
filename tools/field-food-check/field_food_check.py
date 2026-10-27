@@ -550,6 +550,62 @@ def field_zone(world, field):
     return None
 
 
+def result_panel(world, textures, y0, width):
+    """決定ボタンを押したとき、食感ごとに何が出るかの表（SVG の部品, 高さ）。"""
+    cam = world.main_camera()
+    pre_like = any(world.area_head(a)[1] and world.area_head(a)[0] is not cam for a in world.areas)
+    cols = []  # (見出し, 色, Standing)
+    if pre_like:
+        # Head がカメラ以外を指している（修正前）。頭は動かないので、その位置の判定を 1 つ出す。
+        world.standing = ""
+        world.occupied.clear()
+        for a in world.areas:
+            world.inside[a] = False
+        world.move_head([0.0, 1.6, 0.0])
+        repro = world.standing
+        cols.append(("実機の状態: どこにも立っていない判定", "#a33", ""))
+        cols.append(("私の再現: %s に立っている判定" % (repro or "どこにも立っていない"), "#555", repro))
+        note = "Head がリグの根元を指すため、体験者が動いても立つ場所は変わらない。台の位置合わせ（AprilTag）で箱が動くと、実機では左の状態になる。"
+    else:
+        for f in sorted(world.field_tables):
+            cols.append((f + " に立つ", FIELD_COLORS.get(f, "#555"), f))
+        note = "Head は Main Camera を指す。各フィールドの立つ場所に立つと、そのフィールド専用の食べ物が出る。"
+    rows = []
+    for tex in textures:
+        cells = []
+        for _, _, st in cols:
+            food = world.resolve(st, tex)
+            own = world.find(world.rows(world.field_tables[st]), tex) if st in world.field_tables else None
+            if food is None:
+                cells.append("何も生まれない（警告）")
+            elif st and own is None:
+                cells.append("%s（共通の表）" % food)
+            elif not st:
+                cells.append("%s（共通の表）" % food)
+            else:
+                cells.append(food)
+        rows.append((tex.replace("placeholder-", ""), cells))
+    x0, cw = 14.0, (width - 28.0 - 60.0) / max(len(cols), 1)
+    out = ['<text x="14" y="%.1f" font-size="15" font-weight="bold" fill="#111">決定ボタンを押したとき、食感ごとに出る食べ物</text>' % (y0 + 6)]
+    y = y0 + 34
+    out.append('<text x="%.1f" y="%.1f" font-size="12" fill="#444">食感</text>' % (x0, y))
+    for i, (head, col, _) in enumerate(cols):
+        out.append('<text x="%.1f" y="%.1f" font-size="12" font-weight="bold" fill="%s">%s</text>' % (x0 + 60 + i * cw, y, col, head))
+    for tex, cells in rows:
+        y += 22
+        out.append('<line x1="14" x2="%.1f" y1="%.1f" y2="%.1f" stroke="#ddd"/>' % (width - 14, y - 15, y - 15))
+        out.append('<text x="%.1f" y="%.1f" font-size="13" fill="#111">%s</text>' % (x0, y, tex))
+        for i, c in enumerate(cells):
+            bad = c.startswith("何も")
+            out.append('<text x="%.1f" y="%.1f" font-size="13" fill="%s">%s</text>' % (x0 + 60 + i * cw, y, "#a33" if bad else "#111", c))
+    y += 26
+    for line in note.split("。"):
+        if line:
+            out.append('<text x="14" y="%.1f" font-size="12" fill="#444">%s。</text>' % (y, line))
+            y += 18
+    return "".join(out), (y + 6) - (y0 - 16.0) + 16.0
+
+
 def render_svg(world, textures, out_path, title):
     """真上から見た図を SVG に書く。床を一定の間隔で歩かせ、どのフィールドと判定されるかを色にする。"""
     boxes = []
@@ -626,11 +682,14 @@ def render_svg(world, textures, out_path, title):
     ou, ov = px(0.0, 0.0)
     out.append('<path d="M%.1f %.1f l-8 0 l16 0 M%.1f %.1f l0 -8 l0 16" stroke="#555" stroke-width="2"/>' % (ou, ov, ou, ov))
     out.append('<text x="%.1f" y="%.1f" font-size="11" fill="#555">ワールド原点（リグの根元）</text>' % (ou + 10, ov - 8))
+    panel, extra = result_panel(world, textures, H + top + 16.0, max(W, 760.0))
+    out.append(panel)
+    W = max(W, 760.0)
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="%.0f" height="%.0f" viewBox="0 0 %.0f %.0f" '
            'font-family="IPAGothic, IPAPGothic, sans-serif"><rect width="100%%" height="100%%" fill="#fafafa"/>'
            '<text x="14" y="26" font-size="18" font-weight="bold" fill="#111">%s</text>'
            '<text x="14" y="48" font-size="12" fill="#444">真上から見た図（1 マス 4 cm）。色の付いた床に頭を置くと、その色のフィールドに「立った」と判定されます。</text><text x="14" y="64" font-size="12" fill="#444">枠は立つ場所の箱、丸い点は箱の中心（赤い点は、中心に立っても期待したフィールドにならなかった所）。</text><text x="14" y="82" font-size="12" fill="#444">破線の四角と■は、フィールド（食べ物が届く範囲）とその中心です。立つ場所は、フィールドの外側にあります。</text>%s</svg>'
-           % (W, H + top, W, H + top, title, "".join(out)))
+           % (W, H + top + extra, W, H + top + extra, title, "".join(out)))
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write(svg)
     print("  図を書きました: %s" % out_path)
