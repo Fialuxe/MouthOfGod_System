@@ -28,3 +28,5 @@
 | `spawn` | 口から物が生まれる（チュートリアル 2。S4） | `T2Spawn` |
 | `recognize` | 食感で物が変わる・欲しい物を知る（チュートリアル 3。S5） | `T3Recognize` |
 | `deliver` | 立つ場所で届ける（チュートリアル 4。S6） | `T4Deliver` |
+| `main-game` | 本編（制限時間のあいだ。チュートリアル 4 のあと） | `GameRunner` |
+| `game-over` | 本編の時間切れ（終わり） | `GameRunner` |
