@@ -46,13 +46,19 @@ namespace MouthOfGod.Game
         /// <summary>残り秒。本編が始まる前は制限時間。</summary>
         public float Remaining => _clock != null ? _clock.Remaining : timeLimitSeconds;
 
-        void OnEnable()
+        void OnEnable() => Attach();
+
+        void OnDisable() => Unattach();
+
+        // 場面の変化を見はじめる／やめる。EditMode では OnEnable が呼ばれないので、テストからも呼ぶ。
+        internal void Attach()
         {
+            Phases.Changed -= OnPhaseChanged; // 二重に付けない
             _last = Phases.Current;
             Phases.Changed += OnPhaseChanged;
         }
 
-        void OnDisable()
+        internal void Unattach()
         {
             Phases.Changed -= OnPhaseChanged;
         }

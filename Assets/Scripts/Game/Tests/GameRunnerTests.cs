@@ -20,12 +20,14 @@ namespace MouthOfGod.Game.Tests
         {
             Phases.Reset();
             _go = new GameObject("GameRunnerTest");
-            _runner = _go.AddComponent<GameRunner>(); // OnEnable で Phases を見はじめる
+            _runner = _go.AddComponent<GameRunner>();
+            _runner.Attach(); // EditMode では OnEnable が呼ばれないので、自分で Phases を見はじめる
         }
 
         [TearDown]
         public void TearDown()
         {
+            _runner.Unattach();
             Object.DestroyImmediate(_go);
             Phases.Reset();
         }
