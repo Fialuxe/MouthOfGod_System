@@ -63,6 +63,8 @@ namespace MouthOfGod.Food
                 return null;
             }
 
+            Debug.Log("[FoodSpawner] " + (field.IsEmpty ? "フィールドなし（共通の表）" : field.Value) + " / " + texture + " → " + prefab.name);
+
             Transform origin = spawnPoint != null ? spawnPoint : transform;
             GameObject instance = Instantiate(prefab, origin.position, origin.rotation);
             instance.name = prefab.name;

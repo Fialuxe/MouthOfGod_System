@@ -15,7 +15,7 @@ namespace MouthOfGod.Tutorial
     /// VR 酔いを避けるための決まり:
     /// - 画面は空間に固定する。頭を少し回しても動かない。大きく向きを変えたときだけ、ゆっくり正面へ回り込む（Recenter）。
     ///   頭に付けた画面は、頭と一緒に動くので酔いやすい。そのため、画面いっぱいに見せるときも、頭には付けない。
-    /// - 画面の大きさは、水平の視野の角度で決める（初期値: 3 m 先に 100 度。Quest の視野は水平におよそ 100〜110 度）。
+    /// - 画面の大きさは、水平と縦の視野の角度で決める（初期値: 3 m 先に水平 80 度・縦 55 度まで。Quest の視野は水平におよそ 100〜110 度だが、端は見えにくい）。
     /// - 暗い球と画面は、ほかのどの物よりも手前に描く。近くにあるミニチュアも隠れる。
     /// - 出し入れは、フェードで行う。視界を急に暗くしない。
     /// - 読み込みに失敗したとき・動画が無いときは、警告を出してすぐ終わる。体験を止めない。
@@ -49,8 +49,11 @@ namespace MouthOfGod.Tutorial
         [Tooltip("頭から画面までの距離（m）")]
         [SerializeField, Min(0.5f)] float distance = 3f;
 
-        [Tooltip("画面の幅を、水平の視野の角度（度）で決める。100 で視界をほぼ覆う。高さは動画の縦横比で決まる")]
-        [SerializeField, Range(10f, 170f)] float viewDegrees = 100f;
+        [Tooltip("画面の幅を、水平の視野の角度（度）で決める。Quest の視野（水平 100〜110 度）は、端が見えにくいので、80 でほぼ視界いっぱいに収まる。高さは動画の縦横比で決まる")]
+        [SerializeField, Range(10f, 170f)] float viewDegrees = 80f;
+
+        [Tooltip("画面の高さを、縦の視野の角度（度）で抑える。縦長の動画でも、画面が上下にはみ出さないようにする")]
+        [SerializeField, Range(10f, 170f)] float maxVerticalDegrees = 55f;
 
         [Tooltip("画面の中心を、目の高さからずらす量（m）。負なら下")]
         [SerializeField] float heightOffset = -0.1f;
@@ -206,6 +209,15 @@ namespace MouthOfGod.Tutorial
         internal static float ScreenWidth(float distance, float degrees)
             => 2f * distance * Mathf.Tan(Mathf.Clamp(degrees, 1f, 179f) * 0.5f * Mathf.Deg2Rad);
 
+        // 画面の幅。水平 horizontalDegrees と、縦 verticalDegrees の両方に収まる、大きい方の幅。縦横比は動画に合わせる（分からなければ 16:9）。
+        internal static float FitWidth(float distance, float horizontalDegrees, float verticalDegrees, uint videoWidth, uint videoHeight)
+        {
+            float aspect = videoWidth > 0 && videoHeight > 0 ? (float)videoWidth / videoHeight : 16f / 9f;
+            float byHorizontal = ScreenWidth(distance, horizontalDegrees);
+            float byVertical = ScreenWidth(distance, verticalDegrees) * aspect; // 縦の視野で決まる高さ × 縦横比
+            return Mathf.Min(byHorizontal, byVertical);
+        }
+
         // 画面の高さ。動画の縦横比に合わせる。大きさが分からなければ 16:9。
         internal static float ScreenHeight(float width, uint videoWidth, uint videoHeight)
             => videoWidth > 0 && videoHeight > 0 ? width * videoHeight / videoWidth : width * 9f / 16f;
@@ -346,7 +358,7 @@ namespace MouthOfGod.Tutorial
             _player.targetTexture = _texture;
             _material.mainTexture = _texture;
             if (_material.HasProperty("_BaseMap")) _material.SetTexture("_BaseMap", _texture);
-            float width = ScreenWidth(distance, viewDegrees);
+            float width = FitWidth(distance, viewDegrees, maxVerticalDegrees, w, h);
             _quad.transform.localScale = new Vector3(width, ScreenHeight(width, w, h), 1f);
         }
 

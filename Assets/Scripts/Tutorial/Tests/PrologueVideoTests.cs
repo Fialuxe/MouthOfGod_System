@@ -63,6 +63,31 @@ namespace MouthOfGod.Tutorial.Tests
         }
 
         [Test]
+        public void FitWidth_WideVideo_IsLimitedByTheHorizontalAngle()
+        {
+            // 16:9 は、水平 80 度の幅（約 5.03 m）のほうが、縦 55 度から決まる幅（約 5.55 m）より小さい。
+            float width = VideoScreen.FitWidth(3f, 80f, 55f, 1920, 1080);
+
+            Assert.AreEqual(VideoScreen.ScreenWidth(3f, 80f), width, 0.0001f);
+        }
+
+        [Test]
+        public void FitWidth_SquareVideo_IsLimitedByTheVerticalAngle()
+        {
+            // 正方形は、縦 55 度で決まる高さ（約 3.12 m）が、そのまま幅になる。水平の幅（約 5.03 m）まで広げると、上下にはみ出す。
+            float width = VideoScreen.FitWidth(3f, 80f, 55f, 1080, 1080);
+
+            Assert.AreEqual(VideoScreen.ScreenWidth(3f, 55f), width, 0.0001f);
+            Assert.Less(width, VideoScreen.ScreenWidth(3f, 80f));
+        }
+
+        [Test]
+        public void FitWidth_UnknownSize_Uses16By9()
+        {
+            Assert.AreEqual(VideoScreen.FitWidth(3f, 80f, 55f, 1920, 1080), VideoScreen.FitWidth(3f, 80f, 55f, 0, 0), 0.0001f);
+        }
+
+        [Test]
         public void ScreenHeight_UnknownSize_Uses16By9()
         {
             Assert.AreEqual(2f * 9f / 16f, VideoScreen.ScreenHeight(2f, 0, 0), 0.0001f);

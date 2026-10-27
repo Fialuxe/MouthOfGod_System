@@ -27,6 +27,7 @@ namespace MouthOfGod.Miko
 
         MikoFloat _float;
         Transform _goal;
+        MikoMode _modeAfterGo; // Go に入る前の居方。着いたら、ここへ戻る（ついてきていたなら、またついてくる）
 
         public MikoMode Mode => mode;
 
@@ -50,6 +51,7 @@ namespace MouthOfGod.Miko
         public void GoTo(Transform goal)
         {
             if (goal == null) return;
+            if (mode != MikoMode.Go) _modeAfterGo = mode;
             _goal = goal;
             mode = MikoMode.Go;
         }
@@ -60,9 +62,13 @@ namespace MouthOfGod.Miko
             switch (mode)
             {
                 case MikoMode.Go:
-                    if (_goal == null) { mode = MikoMode.Stay; break; }
+                    if (_goal == null) { mode = _modeAfterGo; break; }
                     _float.Anchor = Vector3.MoveTowards(_float.Anchor, _goal.position, moveSpeed * Time.deltaTime);
-                    if ((_float.Anchor - _goal.position).sqrMagnitude < 1e-4f) mode = MikoMode.Stay;
+                    if ((_float.Anchor - _goal.position).sqrMagnitude < 1e-4f)
+                    {
+                        mode = _modeAfterGo;
+                        _goal = null;
+                    }
                     break;
                 case MikoMode.Follow:
                     UpdateFollow();

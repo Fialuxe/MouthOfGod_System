@@ -486,6 +486,8 @@ MonoBehaviour:
     food: {fileID: 3048745929501445134, guid: f9b986c57110e1e4b912f3cdbb909ddf, type: 3}
   - texture: placeholder-c
     food: {fileID: 5964104816730550264, guid: 222afe5a41860824bbb5c2c46ca87da8, type: 3}
+  - texture: placeholder-d
+    food: {fileID: 6847438048219240567, guid: 19d847f83f13adb4bba31c86bd4d30fa, type: 3}
 --- !u!1001 &8565985572401945
 PrefabInstance:
   m_ObjectHideFlags: 0
