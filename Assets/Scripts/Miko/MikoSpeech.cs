@@ -26,6 +26,8 @@ namespace MouthOfGod.Miko
         [SerializeField, Min(0f)] float subtitlePaddingSeconds = 1.5f;
         [Tooltip("字幕の長さの下限（秒）。短いセリフでも、これだけは出す")]
         [SerializeField, Min(0f)] float minSubtitleSeconds = 2f;
+        [Tooltip("言っている最中に次のセリフが来たとき、いまのセリフを最低これだけ（秒）は見せてから、次のセリフに移る")]
+        [SerializeField, Min(0f)] float minShowSeconds = 1f;
         [Tooltip("視線より、この角度だけ下に出す（度）。見ている物を字幕でふさがないため")]
         [SerializeField] float subtitleBelowGaze = 12f;
         [Tooltip("見下ろす・見上げるのに合わせて、字幕の上下を追う範囲（度。下が負）。台を見下ろしても字幕が視界に入るようにする")]
@@ -45,7 +47,8 @@ namespace MouthOfGod.Miko
         Material _onTopMaterial;
         bool _restoreExpression;
         Coroutine _pending; // 着くのを待っているセリフ
-        readonly Queue<MikoLine> _queue = new Queue<MikoLine>(); // しゃべっている間に来たセリフ。順に言う
+        readonly MikoLineQueue _queue = new MikoLineQueue(); // しゃべっている間に来たセリフ。新しい 1 つだけ残す
+        float _shownAt; // いまのセリフを出しはじめた時刻
 
         // しゃべっている、または着くのを待っている。
         bool Busy => IsSpeaking || _pending != null;
@@ -59,9 +62,14 @@ namespace MouthOfGod.Miko
             var book = transform.parent != null ? transform.parent.GetComponentInChildren<MikoLineBook>(true) : GetComponent<MikoLineBook>();
             var line = (book != null ? book.Find(id) : null) ?? MikoLineBook.FindAny(id);
             if (line == null) return false;
-            // 言っている最中に来たセリフは、上書きせず、言い終わるのを待つ。
-            if (Busy) _queue.Enqueue(line);
-            else Speak(line);
+            if (!Busy) Speak(line);
+            else if (IsSpeaking)
+            {
+                // 言っている最中に来たセリフは、いまのセリフを少し見せたら切り上げて言う。待ちが増えても、新しい 1 つだけ残す。
+                _queue.Enqueue(line);
+                _hideAt = MikoLineQueue.CutAt(_hideAt, _shownAt, minShowSeconds, Time.time);
+            }
+            else Speak(line); // 着くのを待っているセリフは、捨てて新しい方を言う
             return true;
         }
 
@@ -136,7 +144,8 @@ namespace MouthOfGod.Miko
                 if (duration <= 0f) duration = line.voice.length + 0.5f;
             }
             if (duration <= 0f) duration = Mathf.Max(minSubtitleSeconds, (line.text?.Length ?? 0) * secondsPerCharacter + subtitlePaddingSeconds);
-            _hideAt = Time.time + duration;
+            _shownAt = Time.time;
+            _hideAt = _shownAt + duration;
             SnapSubtitle();
         }
 
@@ -145,7 +154,7 @@ namespace MouthOfGod.Miko
             if (_subtitle == null || !_subtitle.activeSelf) return;
             if (Time.time < _hideAt) return;
             Stop();
-            if (_queue.Count > 0) Speak(_queue.Dequeue());
+            if (_queue.HasWaiting) Speak(_queue.Dequeue());
         }
 
         void LateUpdate()
