@@ -101,6 +101,20 @@ class Node:
             yield from c.walk()
 
 
+class AnyId(dict):
+    """どの fileID で引いても、同じ Node を返す（FBX の中身は読まないので、入れ物 1 つに寄せる）。"""
+
+    def __init__(self, node):
+        super().__init__()
+        self.node = node
+
+    def get(self, key, default=None):
+        return self.node
+
+    def __getitem__(self, key):
+        return self.node
+
+
 class Comp:
     def __init__(self, cls, props, node, ctx):
         self.cls = cls
@@ -168,8 +182,12 @@ class Builder:
             src_guid = body["m_SourcePrefab"]["guid"]
             src_path = self.p.guid_path.get(src_guid)
             if src_path is None or not src_path.endswith(".prefab"):
-                continue  # 飾りの FBX などは読まない
-            sroots, smap, snodes = self.instantiate(src_path)
+                if src_path is None:
+                    continue
+                model = Node(os.path.splitext(os.path.basename(src_path))[0])  # FBX など。1 つの Node として扱う
+                sroots, smap, snodes = [model], AnyId(model), [model]
+            else:
+                sroots, smap, snodes = self.instantiate(src_path)
             instance_maps[fid] = smap
             nodes.extend(snodes)
             for mod in body["m_Modification"]["m_Modifications"] or []:
@@ -245,6 +263,15 @@ class Builder:
                 self.attach(idmap[father], n)
             elif not father:
                 roots.append(n)
+        for cls, fid, stripped, data in docs:  # 兄弟の並びは、Transform の m_Children の順（ステップの順番になる）
+            if stripped or cls not in (4, 224):
+                continue
+            body = list(data.values())[0]
+            n = idmap.get(body["m_GameObject"]["fileID"])
+            if n is None or not body.get("m_Children"):
+                continue
+            ordered = [idmap[c["fileID"]] for c in body["m_Children"] if isinstance(idmap.get(c["fileID"]), Node)]
+            n.children = [c for c in ordered if c in n.children] + [c for c in n.children if c not in ordered]
         for r, parent_id in pending_parents:
             parent = idmap.get(parent_id)
             if parent is None:
@@ -264,7 +291,7 @@ class Builder:
         target = smap.get(mod["target"]["fileID"])
         path = mod["propertyPath"]
         if target is None:
-            if path in ("head", "fieldId", "margin", "rows") or path.startswith(("size.", "center.")):
+            if path in ("head", "fieldId", "margin", "rows") or path.startswith(("size.", "center.", "hideWhenDone", "helped")):
                 self.unresolved.append("上書きの対象が見つかりません: %s の %s" % (mod["target"]["fileID"], path))
             return
         value, ref = mod.get("value"), mod.get("objectReference") or {}
@@ -515,6 +542,179 @@ def expected_foods(world, field):
                         if s.cls == "FieldStep" and s.props.get("food"):
                             foods.append(str(s.props["food"]))
     return foods
+
+
+COLLIDERS = ("BoxCollider", "SphereCollider", "CapsuleCollider", "MeshCollider")
+REQUEST_OPENERS = ("OpenAllRequestsAfterTutorial", "GameRunner")
+
+
+def ref_node(world, ref, comp):
+    t = resolve_ref(world.p, ref, comp)
+    if isinstance(t, Node):
+        return t
+    if isinstance(t, Comp):
+        return t.node
+    return None
+
+
+def field_root(world, field):
+    for n in world.nodes:
+        for c in n.comps:
+            if c.cls in world.field_requests and str(c.props.get("fieldId") or "") == field:
+                return n, c
+    return None, None
+
+
+def steps_in_order(root):
+    return [c for m in root.walk() for c in m.comps if c.cls == "FieldStep"]
+
+
+def apply_steps(steps, done, hides):
+    """FieldStages.Apply と同じ。済んだステップの子を出し、消す物を消す（「消す」が「出す」に勝つ）。"""
+    for i, st in enumerate(steps):
+        for go in hides[i]:
+            go.active = True
+    for i, st in enumerate(steps):
+        for child in st.node.children:
+            child.active = done[i]
+    for i, st in enumerate(steps):
+        if done[i]:
+            for go in hides[i]:
+                go.active = False
+
+
+def check_events(world, project, builder, textures, check, warn):
+    """食べ物が出る・吹き出しが出る・物の表示と非表示が切り替わる、の流れを、フィールドごとに確かめる。"""
+    print("\n== 食べ物が出る流れ（デバイス → 食べ物を生む所 → 表 → Prefab）")
+    spawner = next((c for n in world.nodes for c in n.comps if c.cls == "FoodSpawner"), None)
+    check(spawner is not None and spawner.enabled and spawner.node.active_in_hierarchy(), "FoodSpawner が、シーンで有効になっている")
+    if spawner is not None:
+        point = ref_node(world, spawner.props.get("spawnPoint"), spawner)
+        print("  生む位置: %s / 初速 %s m/s" % (point.path() if point else "FoodSpawner 自身の位置", spawner.props.get("launchSpeed")))
+    device_prefab = os.path.join(project.root, "Assets/Resources/Prefabs/Device/MockDevice.prefab")
+    check(os.path.exists(device_prefab), "MockDevice の Prefab がある（実機がなければ、これが自動で置かれる）")
+
+    seen = {}
+    for field in sorted(world.field_tables):
+        for tex, food in world.rows(world.field_tables[field]):
+            if not food or food in seen:
+                continue
+            ref = next((r.get("food") for r in world.field_tables[field].props.get("rows") or [] if r.get("texture") == tex), None)
+            path = resolve_ref(project, ref, world.field_tables[field])
+            roots, _, _ = builder.instantiate(path) if path else ([], None, None)
+            comps = [c.cls for r in roots for m in r.walk() for c in m.comps]
+            scale = roots[0].scale if roots else None
+            seen[food] = (path, comps, scale)
+    for food, (path, comps, scale) in sorted(seen.items()):
+        icon = os.path.exists(os.path.join(project.root, "Assets/Resources/Icons/Food", food + ".png"))
+        print("  - %-9s Prefab=%s  Rigidbody=%s  Collider=%s  アイコン=%s" % (
+            food, "あり" if path else "なし", "あり" if "Rigidbody" in comps else "なし",
+            "あり" if any(c in COLLIDERS for c in comps) else "なし", "あり" if icon else "なし（名前の文字で出る）"))
+        check(path is not None, "%s: 食べ物の Prefab が見つかる" % food)
+        check("Rigidbody" in comps, "%s: Rigidbody がある（飛んで、DeliveryZone に当たる）" % food)
+        check(any(c in COLLIDERS for c in comps), "%s: Collider がある（DeliveryZone に当たる）" % food)
+        if not icon:
+            warn("%s: 吹き出しのアイコンがありません。名前の文字で出ます" % food)
+
+    openers = [c.cls for n in world.nodes if n.active_in_hierarchy() for c in n.comps if c.cls in REQUEST_OPENERS and c.enabled]
+    print("\n== 欲しい物を出す役: %s" % (", ".join(openers) or "なし"))
+    check(bool(openers), "欲しい物を出す役が、シーンにある（なければ、吹き出しは出ない）")
+    if "OpenAllRequestsAfterTutorial" in openers:
+        warn("欲しい物を出す役は、サンドボックス用の仮のスクリプト（OpenAllRequestsAfterTutorial）です。チュートリアルが終わると、全フィールドにいっぺんに出します")
+
+    regs = [(n, str(c.props.get("fieldId") or "")) for n in world.nodes if n.active_in_hierarchy() for c in n.comps if c.cls in world.field_requests and c.enabled]
+    dup = sorted({i for _, i in regs if [j for _, j in regs].count(i) > 1})
+    check(not dup and all(i for _, i in regs), "フィールドの ID が、空でも重なってもいない",
+          "; ".join("%s: %s" % (d, " と ".join(n.path() for n, i in regs if i == d)) for d in dup) + "。先に登録された方だけが使われ、あとの方は警告が出て外れます")
+
+    for field in sorted(world.field_tables):
+        print("\n[%s]" % field)
+        root, stages = field_root(world, field)
+        if root is None:
+            check(False, "フィールド（FieldStages）がある")
+            continue
+        steps = steps_in_order(root)
+        hides = []
+        for st in steps:
+            nodes = []
+            for r in st.props.get("hideWhenDone") or []:
+                n = ref_node(world, r, st)
+                if n is not None:
+                    nodes.append(n)
+            hides.append(nodes)
+            check(len(nodes) == len(st.props.get("hideWhenDone") or []), "%s: 消す物の指定が、全部見つかる" % st.node.name)
+        print("  ステップ: %s" % ", ".join("%s(%s)" % (st.node.name, st.props.get("food")) for st in steps))
+
+        # --- 届く範囲
+        zone = next((c for m in root.walk() for c in m.comps if c.cls == "DeliveryZone"), None)
+        box = next((c for c in (zone.node.comps if zone else []) if c.cls in COLLIDERS and c.enabled and c.props.get("m_IsTrigger")), None)
+        check(zone is not None and box is not None and zone.node.active_in_hierarchy(),
+              "食べ物が届く範囲（DeliveryZone と Trigger の BoxCollider）が、有効である")
+
+        zones = [c for m in root.walk() for c in m.comps if c.cls == "DeliveryZone" and c.enabled and m.active_in_hierarchy()]
+        targets = {}
+        for z in zones:
+            fid = str(z.props.get("fieldId") or "")
+            if fid:
+                targets[z.node.path()] = "ID「%s」の登録先" % fid
+                continue
+            owner = next((n for n in z.node.ancestors() if any(c.cls in world.field_requests for c in n.comps)), None)
+            targets[z.node.path()] = owner.path() if owner else "(なし)"
+        if len(zones) > 1:
+            print("  DeliveryZone が %d つ: %s" % (len(zones), "; ".join("%s → %s" % (k.split("/")[-1], v.split("/")[-1]) for k, v in targets.items())))
+        check(len(set(targets.values())) <= 1, "届く範囲（DeliveryZone）が、すべて同じ FieldStages に届ける",
+              "別々の FieldStages に届きます。片方は Fields に登録されず、欲しい物も出ません。食べ物が両方の範囲に入ると、先に当たった範囲が「頼まれていない物」として印を付けることがあり、そのとき頼まれた物は届きません（当たる順番は未確認）")
+
+        # --- 欲しい物を出す → 吹き出し
+        maxopen = int(stages.props.get("maxOpenRequests") or 2)
+        opened = [i for i, st in enumerate(steps) if st.props.get("food")][:maxopen]
+        check(bool(opened), "欲しい物を出せるステップがある")
+        for i in opened:
+            st = steps[i]
+            helped = [ref_node(world, r, st) for r in st.props.get("helped") or []]
+            first = helped[0] if helped else None
+            mood = next((c for c in (first.comps if first else []) if c.cls == "VillagerMood"), None)
+            mark = ref_node(world, mood.props.get("worryMark"), mood) if mood else None
+            anchor = mark or first or st.node
+            food = str(st.props.get("food"))
+            icon = os.path.exists(os.path.join(project.root, "Assets/Resources/Icons/Food", food + ".png"))
+            print("  吹き出し: %-8s を欲しがる（%s）→ 出る場所: %s%s / %s" % (
+                food, st.node.name, anchor.path().split("/")[-1], "" if anchor.active_in_hierarchy() else "（いまは非表示）",
+                "アイコン" if icon else "名前の文字"))
+            if first is None:
+                warn("%s: 吹き出しを出す村人（Helped）が空です。吹き出しは、ステップの場所に出ます" % st.node.name)
+
+        # --- 表示と非表示
+        everything = [n for n in root.walk()] + [g for h in hides for g in h]
+        authored = {id(n): n.active for n in everything}
+        done = [False] * len(steps)
+        apply_steps(steps, done, hides)  # Start() で呼ばれる
+        start = {id(n): n.active for n in everything}
+        changed = [n.name for n in everything if authored[id(n)] != start[id(n)]]
+        print("  始めの見た目に直される物: %s" % (", ".join(changed) or "なし"))
+        def names(nodes):
+            nodes = list(nodes)
+            return ", ".join(n.name for n in nodes[:4]) + (" …ほか %d 個" % (len(nodes) - 4) if len(nodes) > 4 else "") if nodes else "なし"
+
+        for i, st in enumerate(steps):
+            kids = list(st.node.children)
+            hide_now = [g for g in hides[i]]
+            before_kids = [c.active for c in kids]
+            before_hide = [g.active for g in hide_now]
+            done[i] = True
+            apply_steps(steps, done, hides)
+            shown = [c for c, b in zip(kids, before_kids) if c.active and not b]
+            hidden = [g for g, b in zip(hide_now, before_hide) if b and not g.active]
+            print("  %-12s が済む → 出る(%d): %s / 消える(%d): %s" % (st.node.name, len(shown), names(shown), len(hidden), names(hidden)))
+            check(bool(shown or hidden), "%s: 済むと、見た目が変わる" % st.node.name)
+            invisible = [c for c in kids if not c.active_in_hierarchy()]
+            check(not invisible, "%s: 出るはずの子 %d 個が、全部見える" % (st.node.name, len(kids)), "見えない: %s（親が非表示）" % names(invisible))
+            still = [g for g in hide_now if g.active]
+            check(not still, "%s: 消す物 %d 個が、全部消える" % (st.node.name, len(hide_now)), "残る: %s" % names(still))
+        done = [False] * len(steps)
+        apply_steps(steps, done, hides)  # Restart
+        check(all(n.active == start[id(n)] for n in everything), "はじめに戻すと、始めの見た目になる")
+
 
 
 def device_textures(project, builder):
@@ -782,6 +982,8 @@ def run(project_root, scene_rel, svg_path=None):
             # 出る側から外へ歩く
             world.move_head([center[0] + 50.0, center[1], center[2] + 50.0])
             check(world.standing == "", "遠くへ離れると Standing が空になる", "実際: %r" % world.standing)
+
+    check_events(world, project, builder, textures, check, warn)
 
     # --- どこにも立っていないとき
     print("\n== どこにも立っていないとき（Standing が空）")
