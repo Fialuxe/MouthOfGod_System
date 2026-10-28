@@ -1639,6 +1639,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1296283667665297778}
     m_Modifications:
+    - target: {fileID: 4811766088563235776, guid: 37fa90461819dce43ab17ea10fa1807b, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6318487576014472599, guid: 37fa90461819dce43ab17ea10fa1807b, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.1340936
@@ -7692,6 +7696,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1296283667665297778}
     m_Modifications:
+    - target: {fileID: 5639408109880744519, guid: f1580af4c0acfe44a9342e0f3a91c1bd, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.0111
+      objectReference: {fileID: 0}
+    - target: {fileID: 5639408109880744519, guid: f1580af4c0acfe44a9342e0f3a91c1bd, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.0111
+      objectReference: {fileID: 0}
+    - target: {fileID: 5639408109880744519, guid: f1580af4c0acfe44a9342e0f3a91c1bd, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.0111
+      objectReference: {fileID: 0}
+    - target: {fileID: 5639408109880744519, guid: f1580af4c0acfe44a9342e0f3a91c1bd, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8503093458091985694, guid: f1580af4c0acfe44a9342e0f3a91c1bd, type: 3}
       propertyPath: m_Name
       value: Witch

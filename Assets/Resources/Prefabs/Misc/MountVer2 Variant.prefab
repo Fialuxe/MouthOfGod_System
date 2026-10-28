@@ -149,6 +149,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1296283667665297778, guid: 913aef8f5e456ba44aa22f4eaea266de, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.1203
+      objectReference: {fileID: 0}
     - target: {fileID: 8037770294649978916, guid: 913aef8f5e456ba44aa22f4eaea266de, type: 3}
       propertyPath: m_Name
       value: MountVer2 Variant
