@@ -26,7 +26,7 @@ types: VillagerMood, FieldStep, FieldStages, DeliveryFx, CueReaction
 **あわせて使える変え方**
 
 - 元気になった段で、猫が新しく現れるようにしたい: 猫を、その段の `FieldStep` の子に置きます。段が済むと、小さい所から「ぽんっ」と出てきます。
-- チュートリアルの合図で、猫に何かさせたい: 猫か近くの物に `CueReaction` を付け、合図の名前（例: `grassland.cat-look`）と、On Cue で呼ぶ Animator のトリガーを入れます。チュートリアルからは `Cue("grassland.cat-look");` で合図を出します。
+- チュートリアルの合図で、猫に何かさせたいとき: 猫か近くの物に `CueReaction` を付けます。Cue に合図の名前（例: `grassland.cat-look`）を入れ、On Cue に Animator のトリガーをつなぎます。チュートリアルからは、`Cue("grassland.cat-look");` で合図を出します。
 
 ## creature-ai | 生き物に、自分で考えて動く振る舞い（AI のような動き）を持たせる
 types: Phases, Standing, Fields, IFieldRequests, Delivered, DeliveryKind

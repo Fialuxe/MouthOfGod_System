@@ -41,7 +41,7 @@
 **あわせて使える変え方**
 
 - 元気になった段で、猫が新しく現れるようにしたい: 猫を、その段の [`FieldStep`](Village.md#t-fieldstep) の子に置きます。段が済むと、小さい所から「ぽんっ」と出てきます。
-- チュートリアルの合図で、猫に何かさせたい: 猫か近くの物に [`CueReaction`](UI.md#t-cuereaction) を付け、合図の名前（例: `grassland.cat-look`）と、On Cue で呼ぶ Animator のトリガーを入れます。チュートリアルからは `Cue("grassland.cat-look");` で合図を出します。
+- チュートリアルの合図で、猫に何かさせたいとき: 猫か近くの物に [`CueReaction`](UI.md#t-cuereaction) を付けます。Cue に合図の名前（例: `grassland.cat-look`）を入れ、On Cue に Animator のトリガーをつなぎます。チュートリアルからは、`Cue("grassland.cat-look");` で合図を出します。
 
 使う型: [`VillagerMood`](Village.md#t-villagermood)、[`FieldStep`](Village.md#t-fieldstep)、[`FieldStages`](Village.md#t-fieldstages)、[`DeliveryFx`](Village.md#t-deliveryfx)、[`CueReaction`](UI.md#t-cuereaction)
 
