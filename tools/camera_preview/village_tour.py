@@ -1,5 +1,5 @@
 """Main シーンの実際の位置から、草原 → 村へ引いていく「村の一連」のカットを確かめる。
-使い方: python3 village_tour.py [出力先.mp4]
+使い方: python3 village_tour.py [pullback|zoomout] [出力先.mp4]
 位置は Assets/Scenes/Main.unity と、入れ子の Prefab から読む（scene_loader.py）。山の円錐など、Mesh の大きさが要る所は目安。
 """
 import os, sys
@@ -58,12 +58,29 @@ SHOTS = [
     P.Shot("hold", seconds=0.8, aim="target", target=vil),
 ]
 start = grass + np.array((0.20, 0.12, 0.17))
-frames = P.simulate(SHOTS, start, summit - start)
+
+# ---- もう 1 つ: 村側から草原へズームしている状態から、一直線に引いて村の全体を撮る（回らない）----
+# 向き（村 → 草原）に沿った真後ろへ、一直線に引く。引きながら画角を広げ（ズームアウト）、見る点を草原から村の中心へ移す。
+# 出だしはゆっくり（寄った絵を見せる）、引き始めてからは加速し、最後は静かに止まる。
+toward = grass - village; toward[1] = 0; toward /= np.linalg.norm(toward)
+zoom_start = village + np.array((0.0, 0.10, 0.0)) + toward * 0.12
+zoom_end = zoom_start - toward * 0.95 + np.array((0, 0.42, 0))
+SHOTS_ZOOMOUT = [
+    P.Shot("hold", seconds=1.2, aim="target", target=summit),
+    P.Shot("line", seconds=6.0, ease_kind="inout", strength=2.6, aim="target", target=summit, aim_to=vil, end=zoom_end, fov_to=62.0),
+    P.Shot("hold", seconds=1.0, aim="target", target=vil),
+]
+TOURS = {
+    "pullback": (SHOTS, start, summit - start, 60.0, ["1 hold(grassland)", "2 curve(pull back, grassland->village)", "3 orbit(village)", "4 hold(village)"]),
+    "zoomout": (SHOTS_ZOOMOUT, zoom_start, summit - zoom_start, 24.0, ["1 hold(zoomed on grassland)", "2 line(zoom out, no orbit)", "3 hold(whole village)"]),
+}
 
 if __name__ == "__main__":
     import subprocess
-    out = sys.argv[1] if len(sys.argv) > 1 else "village_tour.mp4"
-    labels = ["1 hold(grassland)", "2 curve(pull back, grassland->village)", "3 orbit(village)", "4 hold(village)"]
+    name = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in TOURS else "pullback"
+    out = sys.argv[-1] if len(sys.argv) > 1 and sys.argv[-1] not in TOURS else "village_tour.mp4"
+    SHOTS, start, fwd0, fov0, labels = TOURS[name]
+    frames = P.simulate(SHOTS, start, fwd0, fov0)
     proc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{P.W}x{P.H}",
                              "-r", str(P.FPS), "-i", "-", "-pix_fmt", "yuv420p", out], stdin=subprocess.PIPE)
     for n, fr in enumerate(frames):
@@ -74,7 +91,7 @@ if __name__ == "__main__":
     T = lambda p: (280 + p[0] * s * 0 + (p[0] + 0.3) * s, 280 - p[2] * s)
     for a, b in seg: d.line(T(a) + T(b), fill=(60, 75, 70))
     pal = [(255, 120, 120), (120, 220, 255), (255, 220, 100), (160, 255, 150)]
-    for p, _, i in frames: d.ellipse([T(p)[0] - 2, T(p)[1] - 2, T(p)[0] + 2, T(p)[1] + 2], fill=pal[i])
+    for p, _, i, *_ in frames: d.ellipse([T(p)[0] - 2, T(p)[1] - 2, T(p)[0] + 2, T(p)[1] + 2], fill=pal[i])
     d.text((10, 10), "top view (red=1, blue=2, yellow=3, green=4)", fill=(220, 220, 220))
     img.save(os.path.splitext(out)[0] + "_topdown.png")
     for i in range(len(SHOTS)):

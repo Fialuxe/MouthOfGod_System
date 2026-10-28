@@ -92,6 +92,10 @@ namespace MouthOfGod.CameraWork
         [Tooltip("向きを新しい向きに合わせるのにかける秒数（カットの頭で、向きが急に変わらないように）")]
         [Min(0f)] public float aimBlendSeconds = 0.3f;
 
+        [Header("ズーム")]
+        [Tooltip("0 より大きいと、このカットの間に、画角（度）をここまで変える。小さいほど寄り、大きいほど引く。0 なら変えない。同じオブジェクトに Camera が必要")]
+        [Min(0f)] public float fieldOfViewEnd;
+
         [Header("このカットの終わり")]
         [Tooltip("到着したときに呼ぶもの（音を鳴らす・次の演出を始める、など）")]
         public UnityEvent onArrived = new UnityEvent();

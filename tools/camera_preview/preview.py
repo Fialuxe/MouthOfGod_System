@@ -65,11 +65,11 @@ def slerp_dir(a, b, k):
     d = a * (1 - k) + b * k
     return d / np.linalg.norm(d)
 
-def simulate(shots, start, fwd0):
+def simulate(shots, start, fwd0, fov0=FOV):
     """全カットを FPS で刻んで、(位置, 前向き, カット番号) の列を返す。"""
-    pos, fwd, frames = np.array(start, float), np.array(fwd0, float), []
+    pos, fwd, frames, fov = np.array(start, float), np.array(fwd0, float), [], fov0
     for idx, shot in enumerate(shots):
-        path = Path(shot, pos); start_fwd = fwd.copy(); n = max(int(round(path.duration * FPS)), 1)
+        path = Path(shot, pos); start_fwd = fwd.copy(); start_fov = fov; n = max(int(round(path.duration * FPS)), 1)
         for i in range(1, n + 1):
             t = i / n; u = ease(shot.ease, t, shot.strength)
             p = path.pos(u)
@@ -80,7 +80,8 @@ def simulate(shots, start, fwd0):
                 want = aim_at - p
             else: want = start_fwd
             fwd = slerp_dir(start_fwd, want / np.linalg.norm(want), min(1, i / (0.3 * FPS)))
-            frames.append((p, fwd.copy(), idx))
+            fov = start_fov + (shot.kw.get("fov_to", start_fov) - start_fov) * u  # ズーム
+            frames.append((p, fwd.copy(), idx, fov))
         pos = path.pos(1.0)
     return frames
 
@@ -109,7 +110,7 @@ def build_scene():
     return seg, col
 
 def project(frame, seg, col):
-    pos, fwd, _ = frame; R = look(fwd); f = 1 / math.tan(math.radians(FOV / 2)); asp = W / H
+    pos, fwd = frame[0], frame[1]; R = look(fwd); f = 1 / math.tan(math.radians((frame[3] if len(frame) > 3 else FOV) / 2)); asp = W / H
     out, near = [], NEAR
     for (a, b), c in zip(seg, col):
         ca, cb = R @ (a - pos), R @ (b - pos)
@@ -132,7 +133,7 @@ def topdown(frames, shots, seg):
     T = lambda p: (240 + p[0] * s, 240 - p[2] * s)
     for a, b in seg: d.line(T(a) + T(b), fill=(50, 60, 60))
     palette = [(255,120,120),(120,220,255),(255,220,100),(160,255,150),(220,150,255)]
-    for p, _, i in frames: d.ellipse([T(p)[0]-1.5, T(p)[1]-1.5, T(p)[0]+1.5, T(p)[1]+1.5], fill=palette[i % 5])
+    for p, _, i, *_ in frames: d.ellipse([T(p)[0]-1.5, T(p)[1]-1.5, T(p)[0]+1.5, T(p)[1]+1.5], fill=palette[i % 5])
     return img
 
 # ---------- 撮るカット ----------

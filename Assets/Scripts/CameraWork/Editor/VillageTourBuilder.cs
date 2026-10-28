@@ -64,6 +64,55 @@ namespace MouthOfGod.CameraWork.Editor
             Debug.Log("[VillageTour] VillageTour を置きました。TourCamera を有効にして、CameraCutPlayer の Play で撮れます。目印を動かすと、軌道が変わります。");
         }
 
+        [MenuItem("MouthOfGod/CameraWork/Add Village Zoom-Out")]
+        static void BuildZoomOut()
+        {
+            GameObject grass = GameObject.Find(GrassPath);
+            GameObject village = GameObject.Find(VillagePath);
+            if (grass == null || village == null)
+            {
+                Debug.LogWarning("[VillageTour] 草原か村が見つかりません（" + GrassPath + " / " + VillagePath + "）。Main シーンを開いて実行してください。");
+                return;
+            }
+
+            Vector3 g = grass.transform.position;
+            Vector3 v = village.transform.position;
+            Vector3 toward = g - v;
+            toward.y = 0f;
+            toward.Normalize();
+
+            var root = new GameObject("VillageZoomOut");
+            Undo.RegisterCreatedObjectUndo(root, "Add Village Zoom-Out");
+            Transform grassLook = Marker(root, "GrassLook", g + new Vector3(0f, 0.05f, 0f));
+            Transform villageLook = Marker(root, "VillageLook", v + new Vector3(0f, 0.03f, 0f));
+            Vector3 start = v + new Vector3(0f, 0.10f, 0f) + toward * 0.12f;
+            Transform pulledBack = Marker(root, "PulledBack", start - toward * 0.95f + new Vector3(0f, 0.42f, 0f));
+
+            var camera = new GameObject("ZoomOutCamera");
+            camera.transform.SetParent(root.transform, false);
+            var cam = camera.AddComponent<Camera>();
+            cam.nearClipPlane = 0.01f;
+            cam.fieldOfView = 24f; // 草原にズームした状態から始める
+            camera.transform.SetPositionAndRotation(start, Quaternion.LookRotation(grassLook.position - start));
+            camera.SetActive(false);
+
+            // 村側から草原へ寄った絵 → 真後ろへ一直線に引きながら画角を広げ、見る点を村の中心へ移す（回らない）
+            camera.AddComponent<CameraCutPlayer>().Shots = new[]
+            {
+                new CameraShot { name = "草原にズーム", kind = ShotKind.Hold, seconds = 1.2f, aim = ShotAim.LookAtTarget, aimTarget = grassLook },
+                new CameraShot
+                {
+                    name = "一直線に引く", kind = ShotKind.Line, seconds = 6f, ease = CameraEase.EaseInOut, easeStrength = 2.6f,
+                    end = pulledBack, fieldOfViewEnd = 62f,
+                    aim = ShotAim.LookAtTarget, aimTarget = grassLook, aimTargetEnd = villageLook,
+                },
+                new CameraShot { name = "村の全体", kind = ShotKind.Hold, seconds = 1f, aim = ShotAim.LookAtTarget, aimTarget = villageLook },
+            };
+
+            Selection.activeGameObject = camera;
+            Debug.Log("[VillageTour] VillageZoomOut を置きました。ZoomOutCamera を有効にして、CameraCutPlayer の Play で撮れます。");
+        }
+
         static Transform Marker(GameObject root, string name, Vector3 position)
         {
             var go = new GameObject(name);

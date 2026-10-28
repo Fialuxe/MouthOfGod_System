@@ -111,6 +111,8 @@ namespace MouthOfGod.CameraWork
         {
             var path = new ShotPath(shot, transform.position, transform.rotation, transform.forward);
             Quaternion startRotation = transform.rotation;
+            Camera zoomCamera = shot.fieldOfViewEnd > 0f ? GetComponent<Camera>() : null;
+            float startFov = zoomCamera != null ? zoomCamera.fieldOfView : 0f;
             float elapsed = 0f;
             float blend = 0f;
 
@@ -123,6 +125,7 @@ namespace MouthOfGod.CameraWork
                 float u = CameraPathMath.Ease(shot.ease, t, shot.easeStrength, shot.easeCurve);
 
                 transform.position = path.Position(u);
+                if (zoomCamera != null) zoomCamera.fieldOfView = Mathf.Lerp(startFov, shot.fieldOfViewEnd, u);
                 ApplyAim(shot, path, startRotation, u, blend);
 
                 if (t >= 1f) yield break;
