@@ -23,7 +23,10 @@ namespace MouthOfGod.Miko
         [SerializeField] float followSide = 0.5f; // プレイヤーの右、この距離（負で左）
         [SerializeField] float followHeight = -0.15f; // 目の高さから、この高さ
         [SerializeField] float followSpeed = 2.5f; // 追いつく速さ（m / 秒）
-        [SerializeField] float followDeadZone = 0.4f; // 目標からこの距離までは、動かない
+        [SerializeField] float followDeadZone = 0.4f; // 目標から横にこの距離までは、動かない
+        [SerializeField, Range(0f, 1f)] float followPitch = 0.6f; // 顔の上下の向きを取り入れる割合（0 で水平、1 で顔の向きどおり）
+        [SerializeField] float followHeightSpeed = 3f; // 高さを追いつく速さ（m / 秒）
+        [SerializeField] float followHeightDeadZone = 0.08f; // 目標から高さにこの距離までは、動かない
 
         MikoFloat _float;
         Transform _goal;
@@ -80,19 +83,33 @@ namespace MouthOfGod.Miko
         {
             var camera = Camera.main;
             if (camera == null) return;
-            var forward = camera.transform.forward;
-            forward.y = 0f;
-            if (forward.sqrMagnitude < 1e-6f) return;
-            forward.Normalize();
-            var right = Vector3.Cross(Vector3.up, forward);
-            var wanted = camera.transform.position + forward * followDistance + right * followSide + Vector3.up * followHeight;
+            var flat = camera.transform.forward;
+            flat.y = 0f;
+            if (flat.sqrMagnitude < 1e-6f) return;
+            flat.Normalize();
+            // 顔の上下の向きも、followPitch のぶんだけ取り入れる（見上げれば上、見下ろせば下に、巫女が来る）
+            var aim = Vector3.Slerp(flat, camera.transform.forward, followPitch);
+            var right = Vector3.Cross(Vector3.up, flat);
+            var wanted = camera.transform.position + aim * followDistance + right * followSide + Vector3.up * followHeight;
 
+            // 横と高さを分けて追う。高さは、小さなずれでも、速く追いつく（目の高さが変わっても巫女が置いていかれない）
             var current = _float.Anchor;
             var gap = wanted - current;
-            if (gap.magnitude <= followDeadZone) return;
-            // 目標のすぐ近く（deadZone の縁）まで、追いかける。
-            var goal = wanted - gap.normalized * followDeadZone * 0.5f;
-            _float.Anchor = Vector3.MoveTowards(current, goal, followSpeed * Time.deltaTime);
+            var flatGap = new Vector2(gap.x, gap.z);
+            var next = current;
+            if (flatGap.magnitude > followDeadZone)
+            {
+                var goal2 = flatGap - flatGap.normalized * followDeadZone * 0.5f;
+                var step = Vector2.ClampMagnitude(goal2, followSpeed * Time.deltaTime);
+                next.x += step.x;
+                next.z += step.y;
+            }
+            if (Mathf.Abs(gap.y) > followHeightDeadZone)
+            {
+                var goalY = gap.y - Mathf.Sign(gap.y) * followHeightDeadZone * 0.5f;
+                next.y += Mathf.Clamp(goalY, -followHeightSpeed * Time.deltaTime, followHeightSpeed * Time.deltaTime);
+            }
+            _float.Anchor = next;
         }
     }
 }

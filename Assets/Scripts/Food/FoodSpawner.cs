@@ -12,6 +12,7 @@ namespace MouthOfGod.Food
     /// - デバイスは Core の <see cref="Devices.WhenReady"/> で受け取る。Mock か実機かは知らない。
     /// - 飛ばす: <c>Launch Speed</c> が 0 より大きく、生んだ食べ物に Rigidbody があれば、<c>Spawn Point</c> の前向きに初速を与える。そのあとの動きは、食べ物の Rigidbody（Mass など）と物理しだい。
     ///   体験者は、顔を向けて狙いを定め、欲しがっている人のところへ飛ばす。どこに届いたかは、落ちた所の DeliveryZone（Village）が決める。
+    /// - <c>Food Parent</c> を入れると、生んだ食べ物をその子にする（位置と向きは Spawn Point のまま）。
     /// - 生んだ食べ物には、どの食べ物かを渡す <see cref="IFoodItem"/>（<c>FoodItemTag</c>）を付ける。
     /// - 「体験者の前のフィールド」は、Core の <see cref="Standing.Field"/> を読む。<see cref="CurrentField"/> に関数を入れたときは、そちらを使う（テストや、別の決め方を試すとき）。
     /// - 有効になると、自分で Core の <see cref="FoodSpawners"/> に登録する。チュートリアルや影の UI は、そこから受け取る。
@@ -21,6 +22,9 @@ namespace MouthOfGod.Food
     {
         [Tooltip("食べ物が生まれる位置と向き（口の位置。MouthAnchor を置いたら、ここに入れる）。空なら、このオブジェクトの位置と向き")]
         [SerializeField] Transform spawnPoint;
+
+        [Tooltip("生んだ食べ物を、この子として置く（Hierarchy が散らからない・まとめて消せる）。位置と向きは Spawn Point のまま。空なら、シーンの直下")]
+        [SerializeField] Transform foodParent;
 
         [Tooltip("生んだ食べ物に、Spawn Point の前向きに与える初速（m/s）。0 以下、または食べ物に Rigidbody がなければ、与えない。そのあとの動きは、食べ物の Rigidbody（Mass など）しだい")]
         [SerializeField, Min(0f)] float launchSpeed = 2f;
@@ -36,6 +40,13 @@ namespace MouthOfGod.Food
         /// 空のままなら、Core の <see cref="Standing.Field"/>（立っている場所。どこにも立っていなければ共通の表だけ）。
         /// </summary>
         public Func<FieldId> CurrentField { get; set; }
+
+        /// <summary>生んだ食べ物の置き場（親）。空ならシーンの直下。</summary>
+        public Transform FoodParent
+        {
+            get => foodParent;
+            set => foodParent = value;
+        }
 
         /// <summary>食べ物を生んだ直後に、1 回出る。</summary>
         public event Action<Spawned> Spawned;
@@ -66,7 +77,7 @@ namespace MouthOfGod.Food
             Debug.Log("[FoodSpawner] " + (field.IsEmpty ? "フィールドなし（共通の表）" : field.Value) + " / " + texture + " → " + prefab.name);
 
             Transform origin = spawnPoint != null ? spawnPoint : transform;
-            GameObject instance = Instantiate(prefab, origin.position, origin.rotation);
+            GameObject instance = Instantiate(prefab, origin.position, origin.rotation, foodParent);
             instance.name = prefab.name;
 
             FoodId food = FoodTables.IdOf(prefab);

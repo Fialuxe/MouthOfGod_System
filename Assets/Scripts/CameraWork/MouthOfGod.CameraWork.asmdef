@@ -1,0 +1,14 @@
+{
+    "name": "MouthOfGod.CameraWork",
+    "rootNamespace": "MouthOfGod.CameraWork",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
