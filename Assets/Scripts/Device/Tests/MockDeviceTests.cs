@@ -201,5 +201,32 @@ namespace MouthOfGod.Device.Tests
             logic.BeginBite();
             Assert.IsTrue(logic.Current.IsEmpty);
         }
+
+        [TestCase("<HandInteraction>{LeftHand}/graspValue", "Hand")]
+        [TestCase("<HandInteraction>{RightHand}/pinchValue", "Hand")]
+        [TestCase("<XRController>{RightHand}/triggerPressed", "Controller")]
+        [TestCase("<XRController>{RightHand}/primaryButton", "Controller")]
+        [TestCase("<OculusTouchController>{RightHand}/grip", "Controller")]
+        [TestCase("<Keyboard>/space", "Other")]
+        [TestCase("<Gamepad>/buttonSouth", "Other")]
+        [TestCase("", "Other")]
+        public void SourceOf_ClassifiesBindingPath(string path, string expected)
+        {
+            // MockInputSource は internal なので、名前で比べる（public なテストの引数に使えない）
+            Assert.AreEqual(expected, MockInput.SourceOf(path).ToString());
+        }
+
+        [Test]
+        public void Accepts_HandModeIgnoresControllers_ControllerModeIgnoresHands_KeyboardAlwaysWorks()
+        {
+            Assert.IsTrue(MockInput.Accepts(MockInputMode.Hand, MockInputSource.Hand));
+            Assert.IsFalse(MockInput.Accepts(MockInputMode.Hand, MockInputSource.Controller));
+            Assert.IsTrue(MockInput.Accepts(MockInputMode.RightController, MockInputSource.Controller));
+            Assert.IsFalse(MockInput.Accepts(MockInputMode.RightController, MockInputSource.Hand));
+            foreach (MockInputMode mode in new[] { MockInputMode.Any, MockInputMode.Hand, MockInputMode.RightController })
+                Assert.IsTrue(MockInput.Accepts(mode, MockInputSource.Other), mode.ToString());
+            Assert.IsTrue(MockInput.Accepts(MockInputMode.Any, MockInputSource.Hand));
+            Assert.IsTrue(MockInput.Accepts(MockInputMode.Any, MockInputSource.Controller));
+        }
     }
 }

@@ -23,7 +23,7 @@
 | 機能 | 役割 | 型の数 |
 |---|---|---|
 | [MouthOfGod.Core](Core.md) | 全体で共有する、小さな基盤です。他の asmdef に依存しません。ロジックは置かず、ID・イベントのデータ・interface・置き場だけを置きます。 | 23 |
-| [MouthOfGod.Device](Device.md) | 触感デバイスの入力です。`MockDevice` が、デバイスなしで、Quest のコントローラやキーボードで「噛む・決定する」を代わりにします。実機は、`IDevice` を実装して `Devices.Register` するだけで差し替わります。 | 3 |
+| [MouthOfGod.Device](Device.md) | 触感デバイスの入力です。`MockDevice` が、デバイスなしで、Quest のコントローラやキーボードで「噛む・決定する」を代わりにします。実機は、`IDevice` を実装して `Devices.Register` するだけで差し替わります。 | 4 |
 | [MouthOfGod.Fork](Fork.md) | 体験者が持つフォークです。雲を刺し、口に含み、決定で食べ終えるまでの状態を持ちます。 | 5 |
 | [MouthOfGod.Food](Food.md) | 食感から食べ物を引いて、生み、前へ飛ばします。「食感 → 食べ物」の表は、全フィールド共通の表（`Field Id` が空）と、フィールドごとの表に分けます。 | 7 |
 | [MouthOfGod.Village](Village.md) | フィールド（村・山・海・草原）の見た目の戻り方と、欲しい物です。物が落ちた場所の判定、届いたときの反応、立つ場所の判定も、ここにあります。 | 17 |
@@ -37,7 +37,7 @@
 
 ## すべての型
 
-<details><summary>名前順の一覧を開く（131 個）</summary>
+<details><summary>名前順の一覧を開く（132 個）</summary>
 
 | 型 | 機能 | 役割 | 説明 |
 |---|---|---|---|
@@ -118,6 +118,7 @@
 | [`MockDevice`](Device.md#t-mockdevice) | Device | コンポーネント | デバイスなしで動かす IDevice。 |
 | [`MockDeviceModel`](Device.md#t-mockdevicemodel) | Device | コンポーネント | MockDevice の雑な見た目。 |
 | [`MockDevicePrefabGenerator`](Device.md#t-mockdeviceprefabgenerator) | Device | エディタ | MockDevice の Prefab を Assets/Resources/Prefabs/Device/ に作る。 |
+| [`MockInputMode`](Device.md#t-mockinputmode) | Device | 選択肢（enum） | Mock を何で操作するか。 |
 | [`MountDeliveryZoneAdder`](DevTools.md#t-mountdeliveryzoneadder) | DevTools | エディタ | 山の Main 用 Prefab（Misc/MountVer2 Variant）に、届ける場所（DeliveryZone）と、それを受けるトリガーの箱を足す。 |
 | [`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial) | Tutorial | 試験用 | チュートリアルが終わったら、すべてのフィールドに、欲しい物をいっぺんに出す仮のスクリプト。 |
 | [`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu) | DevTools | エディタ | Play 中に使うメニュー。 |
