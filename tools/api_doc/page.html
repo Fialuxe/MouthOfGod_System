@@ -114,6 +114,25 @@ tr.grp td { background: color-mix(in srgb, var(--band) 30%, var(--panel)); font-
   main { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
 }
 @media (prefers-reduced-motion: reduce) { nav { transition: none; } }
+.role { display: inline-block; font-size: 12px; font-weight: 700; color: var(--band-ink); background: var(--band); border-radius: 3px; padding: 1px 8px; margin-right: 8px; vertical-align: 3px; }
+.rolenote { color: var(--muted); font-size: 13px; }
+nav .grp { font-size: 11px; color: var(--muted); padding: 6px 16px 1px 28px; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-top: 0; padding: 4px 18px 10px; }
+.notes ul { margin: 8px 0; padding-left: 1.2em; }
+.notes li { margin: 4px 0; max-width: 78ch; }
+.rel { background: var(--panel); border: 1px solid var(--line); border-top: 0; padding: 10px 16px; display: grid; gap: 8px; }
+.rel div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: 10px; }
+.rel b { color: var(--muted); font-weight: 500; font-size: 13px; }
+.rel a { font-family: var(--mono); font-size: 13px; margin-right: 10px; white-space: nowrap; display: inline-block; }
+.mem { background: var(--panel); border: 1px solid var(--line); border-top: 0; }
+.mem h4 { margin: 0; padding: 6px 16px; font-size: 12.5px; color: var(--band-ink); background: color-mix(in srgb, var(--band) 30%, var(--panel)); border-top: 1px solid var(--line); }
+.mem h4:first-child { border-top: 0; }
+.mem article { padding: 10px 16px 12px; border-top: 1px solid var(--line); scroll-margin-top: 12px; }
+.mem h4 + article { border-top: 0; }
+.mem .name { font-family: var(--mono); font-size: 15px; font-weight: 500; }
+.mem .sig { font-family: var(--mono); font-size: 12.5px; color: var(--muted); margin-top: 2px; word-break: break-word; }
+.mem p { margin: 6px 0 0; max-width: 78ch; }
+.none { color: var(--muted); }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 </style>
 <div class="app">
@@ -227,9 +246,13 @@ function buildNav(filter) {
   for (const mod of DATA.modules) {
     const ts = DATA.types.filter(t => t.mod === mod).sort((a, b) => a.name.localeCompare(b.name));
     h += `<a class="mod" href="#m-${mod}" data-k="m-${mod}">MouthOfGod.${mod}<span class="count">${ts.length}</span></a>`;
-    for (const t of ts.filter(t => t.sec === "Runtime")) h += `<a class="t${t.nested_in ? " sub" : ""}" href="#${t.id}" data-k="${t.id}">${esc(t.name)}</a>`;
-    const others = ts.filter(t => t.sec !== "Runtime");
-    if (others.length) h += `<details><summary>エディタ・試験用 ${others.length}</summary>` + others.map(t => `<a class="t" href="#${t.id}" data-k="${t.id}">${esc(t.name)}</a>`).join("") + `</details>`;
+    for (const [role] of DATA.roles) {
+      const g = ts.filter(t => t.role === role);
+      if (!g.length) continue;
+      const links = g.map(t => `<a class="t" href="#${t.id}" data-k="${t.id}">${esc(t.name)}</a>`).join("");
+      if (role === "エディタ" || role === "試験用") h += `<details><summary>${role} ${g.length}</summary>${links}</details>`;
+      else h += `<div class="grp">${role}</div>${links}`;
+    }
   }
   nav.innerHTML = h;
 }
@@ -281,6 +304,24 @@ function pageModule(mod) {
   }
   return wrap;
 }
+function prettyDefault(v, type) {
+  if (!v) {
+    if (type === "bool") return "オフ";
+    if (/^(int|float|double)$/.test(type)) return "0";
+    if (type === "string") return "空";
+    return "なし";
+  }
+  if (v === "true") return "オン";
+  if (v === "false") return "オフ";
+  if (v === '""') return "空";
+  if (/^new [\w<>.]+\[0\]$|^new (List<.*>|UnityEvent)\(\)$|^System\.Array\.Empty<.*>\(\)$/.test(v)) return "空";
+  let m = v.match(/^new (Vector[234]|Color)\((.*)\)$/);
+  if (m) return "(" + m[2].replace(/(\d)f\b/g, "$1") + ")";
+  if (/^-?\d+(\.\d+)?f$/.test(v)) return v.slice(0, -1);
+  m = v.match(/^[A-Z]\w*\.(\w+)$/);
+  if (m && !/^(Vector|Color|Quaternion)/.test(v)) return m[1];
+  return v;
+}
 function sigHtml(m, self) {
   const mods = m.mods.map(x => `<span class="chip">${esc(x)}</span>`).join("");
   return { mods, ret: linkTypes(m.rtype, self) };
@@ -290,7 +331,8 @@ function pageType(t) {
   const mods = t.mods.filter(x => x !== "readonly").join(" ");
   let h = `<div class="crumb"><a href="#m-${t.mod}">MouthOfGod.${esc(t.mod)}</a>${t.ns === "MouthOfGod." + t.mod ? "" : " / " + esc(t.ns)}</div>`;
   h += `<h1 class="title"><span class="kind">${esc((mods ? mods + " " : "") + KIND[t.kind])}</span><span class="tname">${esc(t.name)}</span></h1>`;
-  h += `<div class="meta">`;
+  const note = (DATA.roles.find(r => r[0] === t.role) || [])[1] || "";
+  h += `<div class="meta"><div><span class="role">${esc(t.role)}</span><span class="rolenote">${esc(note)}</span></div>`;
   if (t.bases.length) h += `<div><b>継承・実装</b>${t.bases.map(b => byName.has(b) ? `<a href="#${byName.get(b).id}"><code>${esc(b)}</code></a>` : `<code>${esc(b)}</code>`).join(" ")}</div>`;
   if (t.attrs.length) h += `<div><b>属性</b>${t.attrs.map(a => `<code>${esc(a)}</code>`).join(" ")}</div>`;
   if (t.nested_in) h += `<div><b>入れ子</b><a href="#${byName.get(t.nested_in)?.id}"><code>${esc(t.nested_in)}</code></a> の中の型</div>`;
@@ -298,38 +340,33 @@ function pageType(t) {
   if (t.doc) h += `<p class="lead">${linkTypes(t.doc, t.name)}</p>`;
   if (t.serializable) h += `<p class="lead">Inspector では、配列や List の 1 要素として見えます（<code>[Serializable]</code>）。</p>`;
 
+  if (t.remarks) h += `<h2 class="sec">しくみ・注意</h2><div class="notes">${mdToHtml(t.remarks).replace(/<code>([A-Za-z_]\w*)<\/code>/g, (all, n) => byName.has(n) && n !== t.name ? `<a href="#${byName.get(n).id}"><code>${n}</code></a>` : all)}</div>`;
+  const rel = [];
+  const links = ns => ns.map(n => byName.has(n) ? `<a href="#${byName.get(n).id}">${esc(n)}</a>` : esc(n)).join("");
+  if (t.uses.length) rel.push(`<div><b>この型が使う型</b><span>${links(t.uses)}</span></div>`);
+  if (t.usedBy.length) rel.push(`<div><b>この型を使う所</b><span>${links(t.usedBy)}</span></div>`);
+  if (rel.length) h += `<h2 class="sec">つながり</h2><div class="rel">${rel.join("")}</div>`;
   if (t.values.length) h += `<h2 class="sec">値</h2>` + table(["値", "意味"], t.values.map(v => `<tr><td class="nm">${esc(v.name)}</td><td>${esc(v.doc)}</td></tr>`));
   if (t.fields.length) {
     let last = null, rows = [];
     for (const f of t.fields) {
       if (f.header && f.header !== last) rows.push(`<tr class="grp"><td colspan="4">${esc(f.header)}</td></tr>`);
       last = f.header;
-      rows.push(`<tr><td class="nm" id="f-${esc(f.name)}">${esc(f.label)}</td><td class="ret">${linkTypes(f.type)}</td><td class="ret">${esc(f.default)}</td><td>${esc(f.tooltip)}</td></tr>`);
+      rows.push(`<tr><td class="nm" id="f-${esc(f.name)}">${esc(f.label)}</td><td class="ret">${linkTypes(f.type)}</td><td class="ret">${esc(prettyDefault(f.default, f.type))}</td><td>${esc(f.tooltip)}</td></tr>`);
     }
     h += `<h2 class="sec">Inspector（${t.fields.length} 項目）</h2>` + table(["項目", "型", "既定値", "説明"], rows);
   }
-  const groups = [["ctor", "コンストラクタ"], ["event", "イベント"], ["property", "プロパティ"], ["field", "定数・フィールド"], ["method", "メソッド"]];
+  const groups = [["ctor", "コンストラクタ"], ["event", "イベント（知らせ）"], ["property", "プロパティ（読む値）"], ["field", "定数"], ["method", "メソッド（呼ぶもの）"]];
   const used = groups.filter(([k]) => t.members.some(m => m.kind === k));
-  const slug = (m, i) => "m-" + m.name + "-" + i;
   if (used.length) {
-    h += `<h2 class="sec">メンバー概要</h2>`;
-    const rows = [];
+    h += `<h2 class="sec">メンバー（${t.members.length}）</h2><div class="mem">`;
     for (const [k, label] of used) {
-      rows.push(`<tr class="grp"><td colspan="2">${label}</td></tr>`);
+      h += `<h4>${label}</h4>`;
       t.members.forEach((m, i) => {
         if (m.kind !== k) return;
-        const s = sigHtml(m, t.name);
-        const args = m.kind === "method" || m.kind === "ctor" ? `(${linkTypes(m.params, t.name)})` : (m.acc ? ` <span class="chip">${esc(m.acc.replace(/\s+/g, " "))}</span>` : "");
-        rows.push(`<tr><td class="ret">${s.mods}${s.ret}</td><td class="nm"><a href="#${t.id}" data-go="${slug(m, i)}">${esc(m.name)}</a>${args}${m.brief ? `<span class="brief">${linkTypes(m.brief, t.name)}</span>` : ""}</td></tr>`);
-      });
-    }
-    h += table(["戻り値・型", "名前と説明"], rows);
-    h += `<h2 class="sec">メンバー詳細</h2><div class="det">`;
-    for (const [k, label] of used) {
-      t.members.forEach((m, i) => {
-        if (m.kind !== k) return;
-        const sig = `${m.mods.join(" ")} ${m.rtype} ${m.name}${m.kind === "method" || m.kind === "ctor" ? "(" + m.params + ")" : ""}${m.acc ? " { " + m.acc + " }" : ""}`.replace(/\s+/g, " ").trim();
-        h += `<article id="${slug(m, i)}" data-name="${esc(m.name)}"><h3>${esc(m.name)}</h3><pre><code>${esc(sig)}</code></pre>${m.doc ? `<p>${linkTypes(m.doc, t.name)}</p>` : `<p style="color:var(--muted)">説明はコードにありません。</p>`}</article>`;
+        const args = m.kind === "method" || m.kind === "ctor" ? `(${linkTypes(m.params, t.name)})` : "";
+        const sig = `${m.mods.map(x => esc(x) + " ").join("")}${m.rtype ? linkTypes(m.rtype, t.name) + " " : ""}${esc(m.name)}${args}${m.acc ? " { " + esc(m.acc) + " }" : ""}`;
+        h += `<article id="m-${esc(m.name)}-${i}" data-name="${esc(m.name)}"><div class="name">${esc(m.name)}</div><div class="sig">${sig}</div>${m.doc ? `<p>${linkTypes(m.doc, t.name)}</p>` : `<p class="none">説明はコードにありません。</p>`}</article>`;
       });
     }
     h += `</div>`;

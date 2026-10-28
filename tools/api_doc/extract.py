@@ -34,6 +34,21 @@ def add_field(cur, decl, hdr, tip):
                               "default": (dm.group(3) or "").strip(), "tooltip": tip or ""})
 
 
+def remarks(doc_lines):
+    """<remarks> を、行の形（箇条書き）を残したまま Markdown にする。"""
+    text = "\n".join(doc_lines)
+    m = re.search(r"<remarks>(.*?)</remarks>", text, re.S)
+    if not m: return ""
+    out = []
+    for line in m.group(1).split("\n"):
+        line = re.sub(r'<see cref="(?:[\w.]*\.)?([\w]+)(?:\([^"]*\))?"\s*/>', r"`\1`", line)
+        line = re.sub(r'<paramref name="(\w+)"\s*/>', r"`\1`", line)
+        line = re.sub(r"<c>(.*?)</c>", r"`\1`", line)
+        line = re.sub(r"<[^>]+>", "", line).replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
+        out.append(line.rstrip())
+    return "\n".join(out).strip()
+
+
 def parse(path):
     src = open(path, encoding="utf-8-sig").read().split("\n")
     ns, types, stack = None, [], []   # stack: (indent, type)
@@ -73,7 +88,7 @@ def parse(path):
         if m and not t.endswith(";"):
             cur = {"name": m.group(4), "kind": m.group(3), "access": (m.group(1) or "internal").strip(),
                    "mods": re.findall(r"static|sealed|abstract|readonly", t.split(m.group(3))[0]),
-                   "bases": [b.strip() for b in (m.group(5) or "").split(",") if b.strip()],
+                   "bases": [b.strip() for b in (m.group(5) or "").split(",") if b.strip()], "remarks": remarks(doc),
                    "attrs": [a for a in attrs if not a.startswith("[SerializeField")], "summary": summary(doc),
                    "ns": ns, "file": os.path.relpath(path, ROOT).replace("\\", "/"), "members": [], "fields": [], "menus": [], "values": [],
                    "nested_in": stack[-1][1]["name"] if stack else None}

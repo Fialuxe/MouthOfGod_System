@@ -67,6 +67,54 @@ for t in TYPES:
                   "serializable": "[Serializable]" in t["attrs"], "doc": t["summary"], "brief": first_sentence(t["summary"]),
                   "values": t["values"], "fields": t["fields"], "menus": t["menus"], "members": members, "nested_in": t["nested_in"]})
 
+# ---- 役割（一覧の分け方）----
+def role_of(t, by_name):
+    if t["sec"] == "Editor": return "エディタ"
+    if t["sec"] == "Sandbox": return "試験用"
+    if t["kind"] == "enum": return "選択肢（enum）"
+    if t["kind"] == "interface": return "interface"
+    seen, base = set(), list(t["bases"])
+    while base:
+        b = base.pop(0)
+        if b in seen: continue
+        seen.add(b)
+        if b == "MonoBehaviour": return "コンポーネント"
+        if b == "ScriptableObject": return "設定アセット"
+        if b == "CustomYieldInstruction": return "待ち（yield return）"
+        if b in by_name: base += by_name[b]["bases"]
+    if "static" in t["mods"]: return "static（置き場・計算）"
+    if t["kind"] == "struct" or t["serializable"]: return "データ"
+    return "クラス"
+
+ROLE_NOTE = {"コンポーネント": "GameObject に付ける", "設定アセット": "Project に置くアセット", "待ち（yield return）": "人形劇スクリプトで yield return する",
+             "static（置き場・計算）": "コードから直接呼ぶ", "データ": "値を運ぶ型", "interface": "機能どうしの約束", "選択肢（enum）": "決まった値の中から選ぶ",
+             "クラス": "コードから new して使う", "エディタ": "Unity エディタのメニュー", "試験用": "動作確認用。展示では使わない"}
+by_name = {t["name"]: t for t in types}
+for t in types:
+    t["role"] = role_of(t, by_name)
+    t["remarks"] = next((x["remarks"] for x in TYPES if x["name"] == t["name"] and x["file"] == t["file"]), "")
+
+# ---- つながり（どのファイルが、どの型の名前を使っているか。コメント行は数えない）----
+import glob as _glob
+code = {}
+for path in _glob.glob(os.path.join(ROOT, "Assets", "Scripts", "**", "*.cs"), recursive=True):
+    rel = os.path.relpath(path, os.path.join(ROOT, "Assets", "Scripts")).replace("\\", "/")
+    if "/Tests/" in rel or "/PlayTests/" in rel or rel.endswith("AssemblyInfo.cs"): continue
+    lines = [l for l in open(path, encoding="utf-8-sig").read().split("\n") if not l.strip().startswith("//")]
+    code[rel] = "\n".join(re.sub(r"//.*$", "", re.sub(r'"[^"\n]*"', '""', l)) for l in lines)
+owner = {}
+for t in types:  # ファイルの持ち主は、ファイル名と同じ名前の型。無ければ最初の型
+    base = os.path.splitext(os.path.basename(t["file"]))[0]
+    if t["name"] == base or (t["file"] not in owner and not t["nested_in"]): owner[t["file"]] = t["name"]
+for t in types:
+    pat = re.compile(r"\b" + re.escape(t["name"]) + r"\b")
+    users = sorted({owner[f] for f, c in code.items() if f != t["file"] and f in owner and pat.search(c)})
+    own = code.get(t["file"], "")
+    defined_here = {x["name"] for x in types if x["file"] == t["file"]}
+    uses = sorted({x["name"] for x in types if x["name"] not in defined_here and re.search(r"\b" + re.escape(x["name"]) + r"\b", own)})
+    t["usedBy"], t["uses"] = users, uses
+data_roles = list(ROLE_NOTE.items())
+
 # ---- 章の文章（template.md）----
 def menus_table():
     rows = []
@@ -99,7 +147,7 @@ for sec in sections[1:]:
            "付録 A. メニュー一覧": "menus", "付録 B. Resources の置き場所": "resources"}.get(title.strip())
     if gid: guide.append({"id": "g-" + gid.replace("_", "-"), "title": title.strip(), "md": text.strip()})
 
-data = {"types": types, "guide": guide, "modules": MODS, "intro": module_intro, "preface": sections[0].strip()}
+data = {"roles": data_roles, "types": types, "guide": guide, "modules": MODS, "intro": module_intro, "preface": sections[0].strip()}
 html = open(os.path.join(HERE, "page.html"), encoding="utf-8").read().replace("/*DATA*/null", json.dumps(data, ensure_ascii=False))
 out = os.path.join(ROOT, "docs", "api", "index.html")
 os.makedirs(os.path.dirname(out), exist_ok=True)
