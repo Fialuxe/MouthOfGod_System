@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03db789b3756bdb4e806d2d739680edb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fieldId: 
+  fieldId: mountain
   center: {x: 0, y: 1, z: 0}
   size: {x: 2, y: 2, z: 2}
   ignoreHeight: 1
@@ -199,58 +199,8 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8385906699650114221, guid: 913aef8f5e456ba44aa22f4eaea266de, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6549041968311168630}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8037770294649978916, guid: 913aef8f5e456ba44aa22f4eaea266de, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3612865784809393996}
-    - targetCorrespondingSourceObject: {fileID: 8037770294649978916, guid: 913aef8f5e456ba44aa22f4eaea266de, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 8593652942975163890}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 913aef8f5e456ba44aa22f4eaea266de, type: 3}
---- !u!1 &2612824539236726253 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8037770294649978916, guid: 913aef8f5e456ba44aa22f4eaea266de, type: 3}
-  m_PrefabInstance: {fileID: 5461031727074670025}
-  m_PrefabAsset: {fileID: 0}
---- !u!65 &3612865784809393996
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2612824539236726253}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.64, y: 1.4319806, z: 0.6399999}
-  m_Center: {x: -0.26999998, y: 0.62699056, z: 0.27}
---- !u!114 &8593652942975163890
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2612824539236726253}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07e1d78b1ad59dd46882b157cc6de308, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fieldId: 
-  consumeRequested: 1
-  consumeOthers: 0
-  vanishOthers: 1
-  vanishSeconds: 1
-  vanishFx: {fileID: 0}
 --- !u!4 &4587411939283097444 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8385906699650114221, guid: 913aef8f5e456ba44aa22f4eaea266de, type: 3}
