@@ -133,6 +133,19 @@ nav .grp { font-size: 11px; color: var(--muted); padding: 6px 16px 1px 28px; }
 .mem .sig { font-family: var(--mono); font-size: 12.5px; color: var(--muted); margin-top: 2px; word-break: break-word; }
 .mem p { margin: 6px 0 0; max-width: 78ch; }
 .none { color: var(--muted); }
+.why { background: var(--panel); border: 1px solid var(--line); border-top: 0; padding: 4px 16px 10px; }
+.why section { padding: 10px 0 4px; border-top: 1px solid var(--line); }
+.why section:first-child { border-top: 0; }
+.why h3 { margin: 0 0 4px; font-size: 15px; }
+.why p { margin: 4px 0; max-width: 78ch; }
+.why .more { font-size: 13px; }
+.dp { background: var(--panel); border: 1px solid var(--line); margin: 18px 0; padding: 4px 20px 14px; scroll-margin-top: 12px; }
+.dp > h2 { font-size: 19px; margin: 14px 0 6px; border: 0; padding: 0; }
+.dp h3 { font-size: 13px; letter-spacing: 0.04em; color: var(--muted); margin: 14px 0 2px; font-weight: 700; }
+.dp .src { font-size: 12.5px; color: var(--muted); margin-top: 12px; }
+.dp .tys a { font-family: var(--mono); font-size: 13px; margin-right: 10px; display: inline-block; }
+.dp.hit { box-shadow: 0 0 0 3px var(--mark); }
+.first { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--mark); padding: 10px 16px; margin: 14px 0 22px; }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 </style>
 <div class="app">
@@ -240,7 +253,7 @@ function buildNav(filter) {
     nav.querySelectorAll("a[data-m]").forEach(a => a.addEventListener("click", () => { window.__scrollMember = a.dataset.m; }));
     return;
   }
-  h += `<h2>ガイド</h2><a href="#overview" data-k="overview">概要</a>`;
+  h += `<h2>ガイド</h2><a href="#overview" data-k="overview">概要</a><a href="#g-design" data-k="g-design"><strong>設計の考え方（なぜこの形か）</strong></a>`;
   for (const g of DATA.guide) h += `<a href="#${g.id}" data-k="${g.id}">${esc(g.title)}</a>`;
   h += `<h2>名前空間</h2>`;
   for (const mod of DATA.modules) {
@@ -273,6 +286,9 @@ function pageOverview() {
   const pref = DATA.preface.replace(/^# .*\n/, "");
   const wrap = document.createElement("div"); wrap.className = "page";
   wrap.append(md("# スクリプト API リファレンス\n\n" + pref));
+  const first = document.createElement("div"); first.className = "first";
+  first.innerHTML = `<strong>初めて読む人へ</strong><br>コードの形には、理由があります。数人が並行して作り、シーンや Prefab は Git でマージできない、という前提から来ています。型を読む前に、<a href="#g-design">設計の考え方（なぜこの形か）</a>を読んでください。各型のページの「なぜこの形か」にも、その型に関わる理由が出ます。`;
+  wrap.append(first);
   const mods = DATA.modules.map(m => {
     const ts = DATA.types.filter(t => t.mod === m);
     const intro = (DATA.intro[m] || "").split("\n")[0];
@@ -283,6 +299,28 @@ function pageOverview() {
     `<h2 class="sec">すべての型</h2>` + typeTable([...DATA.types].sort((a, b) => a.name.localeCompare(b.name)));
   wrap.append(h);
   return wrap;
+}
+function designLinks(names) { return names.map(n => byName.has(n) ? `<a href="#${byName.get(n).id}">${esc(n)}</a>` : esc(n)).join(""); }
+function pageDesign() {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  wrap.append(md(DATA.designIntro));
+  const toc = document.createElement("div"); toc.className = "prose";
+  toc.innerHTML = `<h2>決まりの一覧</h2><ol>${DATA.design.map(p => `<li><a href="#${p.id}">${esc(p.title)}</a></li>`).join("")}</ol>`;
+  wrap.append(toc);
+  for (const p of DATA.design) {
+    const el = document.createElement("section"); el.className = "dp prose"; el.id = "sec-" + p.id;
+    let h = `<h2>${esc(p.title)}</h2>`;
+    for (const [k, v] of Object.entries(p.secs)) h += `<h3>${esc(k)}</h3>${mdToHtml(v)}`;
+    h += `<h3>この決まりから生まれた型</h3><div class="tys">${designLinks(p.types)}</div><div class="src">出典: ${inline(p.source)}</div>`;
+    el.innerHTML = h;
+    el.querySelectorAll("a[href^='http']").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+    wrap.append(el);
+  }
+  return wrap;
+}
+function whyFor(names) { return DATA.design.filter(p => p.types.some(n => names.includes(n))); }
+function whyHtml(list) {
+  return `<div class="why">${list.map(p => `<section><h3><a href="#${p.id}">${esc(p.title)}</a></h3>${mdToHtml(p.secs["なぜ"] || "")}<div class="more"><a href="#${p.id}">決めたこと・あきらめたことを読む</a></div></section>`).join("")}</div>`;
 }
 function pageGuide(g) {
   const wrap = document.createElement("div"); wrap.className = "page";
@@ -295,6 +333,8 @@ function pageModule(mod) {
   const ns = [...new Set(ts.map(t => t.ns))].join("、");
   wrap.innerHTML = `<div class="crumb">名前空間</div><h1 class="title"><span class="tname">MouthOfGod.${esc(mod)}</span></h1><div class="meta"><div><b>名前空間</b><code>${esc(ns)}</code></div></div>`;
   if (DATA.intro[mod]) { const lead = md(DATA.intro[mod]); lead.classList.add("lead"); wrap.append(lead); }
+  const why = whyFor(ts.map(t => t.name));
+  if (why.length) { const w = document.createElement("div"); w.innerHTML = `<h2 class="sec">この機能に関わる決まり（なぜこの形か）</h2>` + whyHtml(why); wrap.append(w); }
   for (const sec of ["Runtime", "Sandbox", "Editor"]) {
     const g = ts.filter(t => t.sec === sec);
     if (!g.length) continue;
@@ -340,6 +380,8 @@ function pageType(t) {
   if (t.doc) h += `<p class="lead">${linkTypes(t.doc, t.name)}</p>`;
   if (t.serializable) h += `<p class="lead">Inspector では、配列や List の 1 要素として見えます（<code>[Serializable]</code>）。</p>`;
 
+  const why = whyFor([t.name]);
+  if (why.length) h += `<h2 class="sec">なぜこの形か</h2>` + whyHtml(why);
   if (t.remarks) h += `<h2 class="sec">しくみ・注意</h2><div class="notes">${mdToHtml(t.remarks).replace(/<code>([A-Za-z_]\w*)<\/code>/g, (all, n) => byName.has(n) && n !== t.name ? `<a href="#${byName.get(n).id}"><code>${n}</code></a>` : all)}</div>`;
   const rel = [];
   const links = ns => ns.map(n => byName.has(n) ? `<a href="#${byName.get(n).id}">${esc(n)}</a>` : esc(n)).join("");
@@ -383,7 +425,10 @@ function route() {
   const id = (location.hash || "#overview").slice(1);
   const main = $("#main");
   let page, navKey = id;
+  let scrollTo = null;
   if (id === "overview") page = pageOverview();
+  else if (id === "g-design") page = pageDesign();
+  else if (id.startsWith("d-")) { page = pageDesign(); navKey = "g-design"; scrollTo = "sec-" + id; }
   else if (id.startsWith("g-")) { const g = DATA.guide.find(x => x.id === id); page = g ? pageGuide(g) : pageOverview(); }
   else if (id.startsWith("m-")) page = pageModule(id.slice(2));
   else if (byId.has(id)) page = pageType(byId.get(id));
@@ -391,6 +436,7 @@ function route() {
   main.replaceChildren(page);
   main.scrollTop = 0;
   markNav(navKey);
+  if (scrollTo) { const el = document.getElementById(scrollTo); if (el) { el.scrollIntoView({ block: "start" }); el.classList.add("hit"); setTimeout(() => el.classList.remove("hit"), 1800); } }
   document.body.classList.remove("open");
   document.title = id.startsWith("t-") && byId.has(id) ? byId.get(id).name + " | MouthOfGod API" : "MouthOfGod API";
   if (window.__scrollMember) {

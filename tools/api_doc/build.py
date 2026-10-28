@@ -116,6 +116,12 @@ def main():
         if kind == "COMPACT": return "\n".join(expand_compact(arg, level))
         if kind == "MENUS": return "\n".join(expand_menus())
         raise SystemExit("未知の指示: " + kind)
+    design = open(os.path.join(HERE, "design.md"), encoding="utf-8").read().split("\n", 1)[1]
+    design = re.sub(r"^## (\w+) \| ", "### ", design, flags=re.M)
+    design = re.sub(r"^### (決めたこと|なぜ|あきらめたこと|読む人へ)$", r"**\1**", design, flags=re.M)
+    design = re.sub(r"^types: (.*)$", lambda m: "**この決まりから生まれた型**: " + "、".join("`" + x.strip() + "`" for x in m.group(1).split(",")), design, flags=re.M)
+    design = re.sub(r"^source: (.*)$", r"出典: \1", design, flags=re.M)
+    tpl = tpl.replace("## 1. 全体像", "## 0. 設計の考え方（なぜこの形か）\n" + design.strip() + "\n\n## 1. 全体像", 1)
     text = re.sub(r"\{\{(TYPES|MODULE|COMPACT|MENUS)(\d)?\s*:?\s*([^}]*)\}\}", sub, tpl)
     out = os.path.join(ROOT, "docs", "api-reference.md")
     open(out, "w", encoding="utf-8").write(text)

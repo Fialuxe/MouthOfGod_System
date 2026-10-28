@@ -90,6 +90,15 @@ ROLE_NOTE = {"コンポーネント": "GameObject に付ける", "設定アセ�
              "static（置き場・計算）": "コードから直接呼ぶ", "データ": "値を運ぶ型", "interface": "機能どうしの約束", "選択肢（enum）": "決まった値の中から選ぶ",
              "クラス": "コードから new して使う", "エディタ": "Unity エディタのメニュー", "試験用": "動作確認用。展示では使わない"}
 by_name = {t["name"]: t for t in types}
+# interface を実装したメンバーに説明が無ければ、interface の説明を使う
+for t in types:
+    for m in t["members"]:
+        if m["doc"]: continue
+        for b in t["bases"]:
+            src = by_name.get(b)
+            if src and src["kind"] == "interface":
+                hit = next((x for x in src["members"] if x["name"] == m["name"] and x["doc"]), None)
+                if hit: m["doc"], m["brief"] = hit["doc"] + "（" + b + " の説明）", hit["brief"]; break
 for t in types:
     t["role"] = role_of(t, by_name)
     t["remarks"] = next((x["remarks"] for x in TYPES if x["name"] == t["name"] and x["file"] == t["file"]), "")
@@ -147,7 +156,25 @@ for sec in sections[1:]:
            "付録 A. メニュー一覧": "menus", "付録 B. Resources の置き場所": "resources"}.get(title.strip())
     if gid: guide.append({"id": "g-" + gid.replace("_", "-"), "title": title.strip(), "md": text.strip()})
 
-data = {"roles": data_roles, "types": types, "guide": guide, "modules": MODS, "intro": module_intro, "preface": sections[0].strip()}
+# ---- 設計の考え方（design.md）----
+design_src = open(os.path.join(HERE, "design.md"), encoding="utf-8").read()
+parts = re.split(r"^## ", design_src.split("\n", 1)[1], flags=re.M)
+principles = []
+for part in parts[1:]:
+    head, _, rest = part.partition("\n")
+    pid, _, title = head.partition("|")
+    meta = dict(re.findall(r"^(types|source): (.*)$", rest, flags=re.M))
+    body = re.sub(r"^(types|source): .*\n", "", rest, flags=re.M).strip()
+    secs = {}
+    for sec in re.split(r"^### ", body, flags=re.M)[1:]:
+        st, _, sx = sec.partition("\n"); secs[st.strip()] = sx.strip()
+    names = [x.strip() for x in meta.get("types", "").split(",") if x.strip()]
+    missing = [n for n in names if n not in by_name]
+    if missing: raise SystemExit(f"design.md の {pid.strip()} に、無い型があります: {missing}")
+    principles.append({"id": "d-" + pid.strip(), "title": title.strip(), "types": names, "source": meta.get("source", ""), "secs": secs})
+design_intro = parts[0].strip()
+
+data = {"design": principles, "designIntro": design_intro, "roles": data_roles, "types": types, "guide": guide, "modules": MODS, "intro": module_intro, "preface": sections[0].strip()}
 html = open(os.path.join(HERE, "page.html"), encoding="utf-8").read().replace("/*DATA*/null", json.dumps(data, ensure_ascii=False))
 out = os.path.join(ROOT, "docs", "api", "index.html")
 os.makedirs(os.path.dirname(out), exist_ok=True)
