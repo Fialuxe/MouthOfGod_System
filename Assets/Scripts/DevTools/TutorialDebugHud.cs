@@ -66,6 +66,7 @@ namespace MouthOfGod.DevTools
                     runner.Begin();
                 }
                 if (GUILayout.Button("Stop")) runner.Stop();
+                if (GUILayout.Button("Skip")) runner.Skip();
             }
             GUILayout.EndHorizontal();
 

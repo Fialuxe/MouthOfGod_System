@@ -16,6 +16,8 @@ namespace MouthOfGod.Tutorial
     /// - スクリプトで例外が出たら、そのスクリプトだけをやめて、次へ進む。
     /// - 全部終わったら <see cref="Finished"/> を出し、場面を空に戻す。次の場面（本編など）は、<see cref="Finished"/> を受けた側が決める。
     /// - 覚えたこと（<see cref="Memory"/>）は、<see cref="Begin"/> で空にする。
+    /// - <see cref="Skip"/> は、チュートリアルを飛ばして「全部終わった」ことにする。動いている途中でも、始める前でも呼べる。
+    ///   場面を <c>skipPhase</c>（既定 deliver。本編の GameRunner が待つ場面）にしてから空に戻すので、本編が普通に始まる。
     /// </remarks>
     public sealed class TutorialRunner : MonoBehaviour
     {
@@ -31,6 +33,12 @@ namespace MouthOfGod.Tutorial
 
         [Tooltip("Begin On Start のとき、始めるまで待つ秒数")]
         [SerializeField, Min(0f)] float beginDelaySeconds;
+
+        [Tooltip("入れると、Play を始めたときにチュートリアルを飛ばして、本編を始める（Begin On Start より優先）。試験用")]
+        [SerializeField] bool skipOnStart;
+
+        [Tooltip("Skip したときに、一度だけ入る場面。最後のチュートリアルの場面名（GameRunner の After Phase と同じ）にする")]
+        [SerializeField] string skipPhase = "deliver";
 
         Coroutine _running;
         TutorialScript _current;
@@ -62,6 +70,27 @@ namespace MouthOfGod.Tutorial
             Memory.Clear();
             _running = StartCoroutine(Run());
             return true;
+        }
+
+        /// <summary>
+        /// チュートリアルを飛ばして、全部終わった扱いにする。動いていれば止め、村を最初に戻し、
+        /// 合図の後片付け（巫女をとどまらせる・光と足あとを消す）をして、場面を <c>skipPhase</c> から空へ進め、<see cref="Finished"/> を出す。
+        /// </summary>
+        public void Skip()
+        {
+            Stop();
+            Memory.Clear();
+            foreach (IFieldRequests field in new List<IFieldRequests>(Fields.All))
+            {
+                try { field.Restart(); }
+                catch (Exception e) { ReportException(e); }
+                Cues.Request(new CueId(field.Field.Value + ".glow-off"));
+                Cues.Request(new CueId(field.Field.Value + ".footprint-off"));
+            }
+            Cues.Request(new CueId("miko.stay"));
+            if (!string.IsNullOrEmpty(skipPhase)) Phases.Set(new PhaseId(skipPhase));
+            Phases.Set(PhaseId.None);
+            Raise(Finished);
         }
 
         /// <summary>途中でやめる。待ちを外し、場面を空に戻す。動いていなければ何もしない。</summary>
@@ -174,8 +203,17 @@ namespace MouthOfGod.Tutorial
         [ContextMenu("Stop")]
         void StopFromMenu() => Stop();
 
+        [ContextMenu("Skip")]
+        void SkipFromMenu() => Skip();
+
         IEnumerator Start()
         {
+            if (skipOnStart)
+            {
+                yield return null; // 本編の GameRunner など、場面を見る側の OnEnable が済んでから
+                Skip();
+                yield break;
+            }
             if (!beginOnStart) yield break;
             if (waitUntilWorn) yield return new WaitUntil(IsWorn);
             if (beginDelaySeconds > 0f) yield return new WaitForSeconds(beginDelaySeconds);

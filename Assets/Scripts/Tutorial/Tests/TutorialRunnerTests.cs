@@ -100,6 +100,23 @@ namespace MouthOfGod.Tutorial.Tests
         }
 
         [Test]
+        public void Skip_PassesThroughLastPhaseThenEmpty_AndRaisesFinished()
+        {
+            var seen = new List<string>();
+            Action<PhaseId> onChanged = p => seen.Add(p.Value);
+            Phases.Changed += onChanged;
+            bool finished = false;
+            _runner.Finished += () => finished = true;
+            try { _runner.Skip(); }
+            finally { Phases.Changed -= onChanged; }
+
+            CollectionAssert.AreEqual(new[] { "deliver", "" }, seen);
+            Assert.IsTrue(finished);
+            Assert.IsFalse(_runner.IsRunning);
+            Assert.IsTrue(Phases.Current.IsEmpty);
+        }
+
+        [Test]
         public void Run_RunsChildScriptsInHierarchyOrder_AndSetsEachPhase()
         {
             AddScript("fork");

@@ -15,6 +15,7 @@ namespace MouthOfGod.Village
     ///   動きを変えるときは、村人の Animator Controller の、このトリガーで入るステートの Motion を差し替える。コードは直さない。
     ///   トリガーを持たない Animator（動物など）には、何もしない。
     /// - 届いた物そのものの消え方（違う物は霞のように消える）は、<see cref="DeliveryZone"/> が受け持つ。
+    /// - <c>Fx Parent</c> を入れると、粒・煙・出現の星を、その子として出す。
     /// - 独自の反応を足すときは、On Requested / On Missed に、つなぐ。
     /// </remarks>
     public sealed class DeliveryFx : MonoBehaviour
@@ -43,11 +44,29 @@ namespace MouthOfGod.Village
         [Tooltip("違う物が届いたときに、ほかに呼ぶもの")]
         [SerializeField] UnityEvent onMissed = new UnityEvent();
 
+        [Header("置き場")]
+        [Tooltip("このフィールドの効果（喜びの粒・消える煙・出現の星）を、この子として出す。空なら、シーンの直下")]
+        [SerializeField] Transform fxParent;
+
         [Header("音")]
         [SerializeField, Range(0f, 1f)] float volume = 0.6f;
 
         FieldStages _stages;
         AudioSource _audio;
+
+        /// <summary>効果の置き場（親）。空ならシーンの直下。DeliveryZone・PopInEffect の効果もここに出る。</summary>
+        public Transform FxParent
+        {
+            get => fxParent;
+            set => fxParent = value;
+        }
+
+        /// <summary>この物が属するフィールドの効果の置き場。DeliveryFx が見つからない・空なら null。</summary>
+        internal static Transform FxParentOf(Component from)
+        {
+            var fx = from != null ? from.GetComponentInParent<DeliveryFx>() : null;
+            return fx != null ? fx.fxParent : null;
+        }
 
         void OnEnable()
         {
@@ -108,6 +127,6 @@ namespace MouthOfGod.Village
         static Vector3 HeadOf(VillagerMood mood)
             => mood.WorryMark != null ? mood.WorryMark.transform.position : mood.transform.position;
 
-        void Burst(Vector3 position) => Instantiate(joy, position, Quaternion.identity);
+        void Burst(Vector3 position) => Instantiate(joy, position, Quaternion.identity, fxParent);
     }
 }

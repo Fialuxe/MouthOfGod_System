@@ -32,7 +32,7 @@ namespace MouthOfGod.Village
             _scale = transform.localScale;
             transform.localScale = Vector3.zero;
             var fx = Resources.Load<GameObject>(AppearFx);
-            if (fx != null) Instantiate(fx, transform.position, Quaternion.identity).transform.localScale = Vector3.one * AppearFxScale;
+            if (fx != null) Instantiate(fx, transform.position, Quaternion.identity, DeliveryFx.FxParentOf(this)).transform.localScale = Vector3.one * AppearFxScale;
         }
 
         void Update()
