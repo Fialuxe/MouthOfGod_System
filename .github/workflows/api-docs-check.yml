@@ -1,0 +1,31 @@
+# docs/api/（スクリプトのリファレンス）が、いまのコードと説明文から作り直されているかを調べる。
+# 作り直し忘れを見つけたら、PR に警告を出す。警告だけで、PR は止めない（Coupling check と同じ扱い）。
+name: API docs check
+
+on:
+  pull_request:
+    paths:
+      - "Assets/Scripts/**"
+      - "tools/api_doc/**"
+      - "docs/api/**"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/api_doc/build_md.py
+      - name: 作り直した結果と、PR の docs/api/ を比べる
+        run: |
+          if git diff --quiet -- docs/api; then
+            echo "docs/api/ は、いまのコードと合っています。"
+          else
+            git diff --stat -- docs/api
+            echo "::warning::docs/api/ が、いまのコードと合っていません。python3 tools/api_doc/build_md.py を実行して、結果をコミットしてください。"
+          fi

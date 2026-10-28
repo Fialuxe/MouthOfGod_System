@@ -1,0 +1,611 @@
+<title>MouthOfGod API</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* 配置: 上に細い帯、左に名前空間と型の一覧、右に Javadoc 風の型のページ（概要の表 → 詳細）。幅が狭いと一覧は引き出しになる */
+:root {
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --ink: #1b2733;
+  --muted: #5a6978;
+  --line: #d5dce4;
+  --accent: #1d5ca8;
+  --mark: #d4691a;
+  --band: #dde7f1;
+  --band-ink: #1f3550;
+  --bar: #1f3550;
+  --bar-ink: #f2f6fa;
+  --code-bg: #eaeff5;
+  --hit: #fff1c9;
+  --sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12181f; --panel: #1a222b; --ink: #e4eaf0; --muted: #9aa9b8; --line: #2c3947; --accent: #7db4f0; --mark: #f0993f;
+    --band: #243447; --band-ink: #d7e4f2; --bar: #0d131a; --bar-ink: #e4eaf0; --code-bg: #232e3a; --hit: #4a3f1a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12181f; --panel: #1a222b; --ink: #e4eaf0; --muted: #9aa9b8; --line: #2c3947; --accent: #7db4f0; --mark: #f0993f;
+  --band: #243447; --band-ink: #d7e4f2; --bar: #0d131a; --bar-ink: #e4eaf0; --code-bg: #232e3a; --hit: #4a3f1a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.75 var(--sans); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre, .mono { font-family: var(--mono); font-size: 0.9em; }
+code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 4px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; }
+.app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 100%; }
+.bar { background: var(--bar); color: var(--bar-ink); display: flex; align-items: center; gap: 14px; padding-block: 8px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bar h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: 0.02em; white-space: nowrap; }
+.bar h1 small { font-weight: 400; opacity: 0.7; margin-left: 8px; font-size: 12px; }
+.bar input { flex: 1; min-width: 0; max-width: 360px; background: rgba(255,255,255,0.12); color: inherit; border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 4px; padding: 5px 10px; font: inherit; font-size: 14px; }
+.bar input::placeholder { color: rgba(255,255,255,0.6); }
+.bar button { background: none; border: 1px solid rgba(255,255,255,0.3); color: inherit; border-radius: 4px; padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.bar .grow { flex: 1; }
+.menu-btn { display: none; }
+.shell { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 0; }
+nav { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 12px 0 40px; font-size: 13.5px; line-height: 1.5; }
+nav h2 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 14px 16px 4px; font-weight: 500; }
+nav a { display: block; padding: 3px 16px; color: var(--ink); }
+nav a:hover { background: var(--band); text-decoration: none; }
+nav a.on { background: var(--band); color: var(--band-ink); font-weight: 700; box-shadow: inset 3px 0 0 var(--mark); }
+nav a.t { padding-left: 28px; font-family: var(--mono); font-size: 12.5px; }
+nav a.t.sub { padding-left: 40px; color: var(--muted); }
+nav a.mod { font-weight: 700; margin-top: 6px; }
+nav .count { color: var(--muted); font-weight: 400; font-size: 11px; margin-left: 6px; }
+nav details > summary { cursor: pointer; padding: 3px 16px 3px 28px; color: var(--muted); font-size: 12px; }
+main { overflow-y: auto; min-width: 0; padding-block: 24px 80px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.page { max-width: 1040px; }
+.crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+.title { font-size: 26px; line-height: 1.3; margin: 0 0 6px; padding-bottom: 8px; border-bottom: 3px solid var(--mark); font-weight: 700; text-wrap: balance; }
+.title .kind { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--mark); margin-right: 10px; }
+.title .tname { font-family: var(--mono); }
+.meta { margin: 10px 0 14px; display: grid; gap: 3px; font-size: 13.5px; }
+.meta code { word-break: break-all; }
+.meta b { display: inline-block; min-width: 5.5em; color: var(--muted); font-weight: 500; }
+.lead { font-size: 16px; margin: 14px 0 22px; }
+h2.sec { font-size: 15px; background: var(--band); color: var(--band-ink); margin: 26px 0 0; padding: 6px 12px; border: 1px solid var(--line); border-bottom: 0; font-weight: 700; }
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); margin-bottom: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-top: 1px solid var(--line); }
+tr:first-child th, tr:first-child td { border-top: 0; }
+th { font-weight: 500; color: var(--muted); font-size: 12.5px; background: color-mix(in srgb, var(--band) 45%, var(--panel)); white-space: nowrap; }
+td.ret { white-space: nowrap; font-family: var(--mono); font-size: 12.5px; color: var(--muted); width: 1%; }
+td.nm { font-family: var(--mono); font-size: 13px; }
+td.nm a { font-weight: 500; }
+td.nm .brief { display: block; font-family: var(--sans); font-size: 13.5px; color: var(--ink); margin-top: 2px; font-weight: 400; }
+tr.grp td { background: color-mix(in srgb, var(--band) 30%, var(--panel)); font-weight: 700; font-size: 12.5px; color: var(--band-ink); }
+.chip { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; margin-right: 4px; color: var(--muted); }
+.det { background: var(--panel); border: 1px solid var(--line); border-top: 0; padding: 4px 16px 6px; }
+.det article { padding: 12px 0; border-top: 1px solid var(--line); scroll-margin-top: 12px; }
+.det article:first-child { border-top: 0; }
+.det h3 { margin: 0 0 6px; font-family: var(--mono); font-size: 15px; font-weight: 500; }
+.det pre { margin: 6px 0; font-size: 13px; }
+.det p { margin: 6px 0 0; }
+.hit { background: var(--hit); }
+.prose h1 { font-size: 26px; border-bottom: 3px solid var(--mark); padding-bottom: 8px; margin: 0 0 14px; }
+.prose h2 { font-size: 20px; margin: 30px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.prose h3 { font-size: 16.5px; margin: 24px 0 8px; }
+.prose .tablewrap, .prose pre { margin: 12px 0; }
+.prose table { background: var(--panel); }
+.prose blockquote { margin: 12px 0; padding: 4px 14px; border-left: 3px solid var(--mark); background: var(--panel); color: var(--muted); }
+.prose p, .prose li { max-width: 72ch; }
+.prose table p { max-width: none; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.pre-mermaid { background: var(--panel); border: 1px solid var(--line); padding: 12px; overflow-x: auto; }
+.results a { display: block; padding: 4px 16px; font-family: var(--mono); font-size: 12.5px; }
+.results small { display: block; color: var(--muted); font-family: var(--sans); }
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  nav { position: fixed; z-index: 20; inset: 0 20% 0 0; transform: translateX(-102%); transition: transform .18s; box-shadow: 2px 0 12px rgba(0,0,0,.3);
+    padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+  body.open nav { transform: none; }
+  .menu-btn { display: inline-block; }
+  .bar h1 small { display: none; }
+  main { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { nav { transition: none; } }
+.role { display: inline-block; font-size: 12px; font-weight: 700; color: var(--band-ink); background: var(--band); border-radius: 3px; padding: 1px 8px; margin-right: 8px; vertical-align: 3px; }
+.rolenote { color: var(--muted); font-size: 13px; }
+nav .grp { font-size: 11px; color: var(--muted); padding: 6px 16px 1px 28px; }
+.notes { background: var(--panel); border: 1px solid var(--line); border-top: 0; padding: 4px 18px 10px; }
+.notes ul { margin: 8px 0; padding-left: 1.2em; }
+.notes li { margin: 4px 0; max-width: 78ch; }
+.rel { background: var(--panel); border: 1px solid var(--line); border-top: 0; padding: 10px 16px; display: grid; gap: 8px; }
+.rel div { display: grid; grid-template-columns: 8.5em minmax(0, 1fr); gap: 10px; }
+.rel b { color: var(--muted); font-weight: 500; font-size: 13px; }
+.rel a { font-family: var(--mono); font-size: 13px; margin-right: 10px; white-space: nowrap; display: inline-block; }
+.mem { background: var(--panel); border: 1px solid var(--line); border-top: 0; }
+.mem h4 { margin: 0; padding: 6px 16px; font-size: 12.5px; color: var(--band-ink); background: color-mix(in srgb, var(--band) 30%, var(--panel)); border-top: 1px solid var(--line); }
+.mem h4:first-child { border-top: 0; }
+.mem article { padding: 10px 16px 12px; border-top: 1px solid var(--line); scroll-margin-top: 12px; }
+.mem h4 + article { border-top: 0; }
+.mem .name { font-family: var(--mono); font-size: 15px; font-weight: 500; }
+.mem .sig { font-family: var(--mono); font-size: 12.5px; color: var(--muted); margin-top: 2px; word-break: break-word; }
+.mem p { margin: 6px 0 0; max-width: 78ch; }
+.none { color: var(--muted); }
+.why { background: var(--panel); border: 1px solid var(--line); border-top: 0; padding: 4px 16px 10px; }
+.why section { padding: 10px 0 4px; border-top: 1px solid var(--line); }
+.why section:first-child { border-top: 0; }
+.why h3 { margin: 0 0 4px; font-size: 15px; }
+.why p { margin: 4px 0; max-width: 78ch; }
+.why .more { font-size: 13px; }
+.dp { background: var(--panel); border: 1px solid var(--line); margin: 18px 0; padding: 4px 20px 14px; scroll-margin-top: 12px; }
+.dp > h2 { font-size: 19px; margin: 14px 0 6px; border: 0; padding: 0; }
+.dp h3 { font-size: 13px; letter-spacing: 0.04em; color: var(--muted); margin: 14px 0 2px; font-weight: 700; }
+.dp .src { font-size: 12.5px; color: var(--muted); margin-top: 12px; }
+.dp .tys a { font-family: var(--mono); font-size: 13px; margin-right: 10px; display: inline-block; }
+.dp.hit { box-shadow: 0 0 0 3px var(--mark); }
+.first { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--mark); padding: 10px 16px; margin: 14px 0 22px; }
+.svgwrap { background: var(--panel); border: 1px solid var(--line); overflow-x: auto; padding: 8px; }
+.svgwrap.top { border-top: 0; }
+svg.g { display: block; font-family: var(--mono); }
+svg.g .box rect { fill: var(--panel); stroke-width: 1.5; }
+svg.g .box text { fill: var(--ink); font-size: 12.5px; dominant-baseline: middle; text-anchor: middle; }
+svg.g .box.center rect { fill: var(--band); stroke-width: 2.5; }
+svg.g .box.center text { font-weight: 700; }
+svg.g .box:hover rect { fill: var(--band); }
+svg.g .mod { fill: var(--muted); font-size: 10px; text-anchor: middle; dominant-baseline: middle; font-family: var(--sans); }
+svg.g .edge { stroke: var(--muted); stroke-width: 1.2; fill: none; opacity: .75; }
+svg.g .lbl rect { fill: var(--bg); }
+svg.g .lbl text { fill: var(--band-ink); font-family: var(--sans); font-size: 11.5px; dominant-baseline: middle; text-anchor: middle; }
+svg.g .colhead { fill: var(--muted); font-family: var(--sans); font-size: 12px; text-anchor: middle; }
+svg.g .arrowhead { fill: var(--muted); }
+.legend { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+.recipe { background: var(--panel); border: 1px solid var(--line); margin: 18px 0; padding: 4px 20px 14px; scroll-margin-top: 12px; }
+.recipe > h2 { font-size: 19px; margin: 14px 0 6px; border: 0; padding: 0; }
+.recipe.hit { box-shadow: 0 0 0 3px var(--mark); }
+.recipe pre { font-size: 12.5px; }
+.see { font-size: 13px; color: var(--muted); }
+.see a { margin-right: 10px; }
+:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+</style>
+<div class="app">
+  <header class="bar">
+    <button class="menu-btn" id="menu" aria-label="一覧を開く">一覧</button>
+    <h1>MouthOfGod API<small>スクリプトリファレンス</small></h1>
+    <input id="q" type="search" placeholder="型・メンバーを検索（例: Spawn）" autocomplete="off" aria-label="検索">
+    <span class="grow"></span>
+    <button id="theme" aria-label="表示の明るさを切り替える">明暗</button>
+  </header>
+  <div class="shell">
+    <nav id="nav" aria-label="型の一覧"></nav>
+    <main id="main"></main>
+  </div>
+</div>
+<script>
+const DATA = /*DATA*/null;
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const byName = new Map(), byId = new Map();
+for (const t of DATA.types) { if (!byName.has(t.name)) byName.set(t.name, t); byId.set(t.id, t); }
+const KIND = { class: "class", struct: "struct", interface: "interface", enum: "enum" };
+const SECTION = { Runtime: "", Editor: "エディタ専用", Sandbox: "試験用" };
+// 文章用の小さな Markdown 変換（見出し・段落・箇条書き・表・コード・引用・太字・リンク）。外部のライブラリは使わない。
+function inline(t) {
+  const codes = [];
+  t = t.replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return "\u0000" + (codes.length - 1) + "\u0000"; });
+  t = esc(t).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  return t.replace(/\u0000(\d+)\u0000/g, (_, i) => "<code>" + esc(codes[+i]) + "</code>");
+}
+function mdToHtml(src) {
+  const lines = src.replace(/\r/g, "").split("\n"); const out = []; let i = 0;
+  const isTable = l => /^\s*\|.*\|\s*$/.test(l);
+  while (i < lines.length) {
+    const l = lines[i];
+    if (!l.trim()) { i++; continue; }
+    let m;
+    if ((m = l.match(/^```(\w*)/))) {
+      const buf = []; i++;
+      while (i < lines.length && !lines[i].startsWith("```")) buf.push(lines[i++]);
+      i++; out.push(`<pre><code class="language-${m[1]}">${esc(buf.join("\n"))}</code></pre>`); continue;
+    }
+    if ((m = l.match(/^(#{1,4})\s+(.*)$/))) { out.push(`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`); i++; continue; }
+    if (isTable(l) && i + 1 < lines.length && /^\s*\|[\s|:-]+\|\s*$/.test(lines[i + 1])) {
+      const cells = r => r.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g, "|"));
+      const head = cells(l); i += 2; const rows = [];
+      while (i < lines.length && isTable(lines[i])) rows.push(cells(lines[i++]));
+      out.push(`<table><tr>${head.map(c => `<th>${inline(c)}</th>`).join("")}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</table>`); continue;
+    }
+    if (/^>\s?/.test(l)) { const buf = []; while (i < lines.length && /^>\s?/.test(lines[i])) buf.push(lines[i++].replace(/^>\s?/, "")); out.push(`<blockquote>${inline(buf.join(" "))}</blockquote>`); continue; }
+    if (/^\s*([-*]|\d+\.)\s+/.test(l)) {
+      const ordered = /^\s*\d+\./.test(l); const items = [];
+      while (i < lines.length && (/^\s*([-*]|\d+\.)\s+/.test(lines[i]) || (/^\s{2,}\S/.test(lines[i]) && items.length))) {
+        const mm = lines[i].match(/^\s*([-*]|\d+\.)\s+(.*)$/);
+        if (mm) items.push(mm[2]); else items[items.length - 1] += " " + lines[i].trim();
+        i++;
+      }
+      out.push(`<${ordered ? "ol" : "ul"}>${items.map(x => `<li>${inline(x)}</li>`).join("")}</${ordered ? "ol" : "ul"}>`); continue;
+    }
+    const buf = [];
+    while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|```|>\s?|\s*([-*]|\d+\.)\s+|\s*\|)/.test(lines[i])) buf.push(lines[i++].trim());
+    if (!buf.length) { out.push(`<p>${inline(lines[i++])}</p>`); continue; }
+    out.push(`<p>${inline(buf.join(" "))}</p>`);
+  }
+  return out.join("\n");
+}
+
+// 型名を、型のページへのリンクにする（自分自身は除く）
+function linkTypes(text, self) {
+  return esc(text).replace(/[A-Za-z_][A-Za-z0-9_]*/g, w => (byName.has(w) && w !== self) ? `<a href="#${byName.get(w).id}">${w}</a>` : w);
+}
+function md(text) {
+  const el = document.createElement("div");
+  el.className = "prose";
+  el.innerHTML = mdToHtml(text);
+  el.querySelectorAll("table").forEach(t => { const w = document.createElement("div"); w.className = "tablewrap"; t.replaceWith(w); w.append(t); });
+  el.querySelectorAll("pre > code.language-mermaid").forEach(c => {
+    const p = document.createElement("p"); p.className = "see";
+    p.innerHTML = '図は <a href="#g-graph">つながりの図</a> のページにあります。';
+    c.parentElement.replaceWith(p);
+  });
+  el.querySelectorAll("code").forEach(c => {
+    if (c.parentElement.tagName === "PRE") return;
+    const name = c.textContent.replace(/[（(].*$/, "").replace(/^`|`$/g, "").split(".")[0];
+    const t = byName.get(c.textContent) || (c.textContent.includes(".") ? byName.get(name) : null);
+    if (t) { const a = document.createElement("a"); a.href = "#" + t.id; c.replaceWith(a); a.append(c); }
+  });
+  el.querySelectorAll("a[href^='http']").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+  return el;
+}
+
+// ---- 一覧 ----
+function buildNav(filter) {
+  const nav = $("#nav");
+  const q = (filter || "").trim().toLowerCase();
+  let h = "";
+  if (q) {
+    const hits = [];
+    for (const t of DATA.types) {
+      if (t.name.toLowerCase().includes(q)) hits.push([t, null, t.brief]);
+      for (const m of t.members) if (m.name.toLowerCase().includes(q)) hits.push([t, m, m.brief]);
+    }
+    h += `<h2>検索結果 ${hits.length} 件</h2><div class="results">`;
+    for (const [t, m, b] of hits.slice(0, 80)) h += `<a href="#${t.id}${m ? "" : ""}" data-m="${m ? esc(m.name) : ""}">${esc(t.name)}${m ? "." + esc(m.name) : ""}<small>${esc(b || "")}</small></a>`;
+    h += "</div>";
+    nav.innerHTML = h;
+    nav.querySelectorAll("a[data-m]").forEach(a => a.addEventListener("click", () => { window.__scrollMember = a.dataset.m; }));
+    return;
+  }
+  h += `<h2>ガイド</h2><a href="#overview" data-k="overview">概要</a><a href="#g-design" data-k="g-design"><strong>設計の考え方（なぜこの形か）</strong></a><a href="#g-graph" data-k="g-graph"><strong>つながりの図</strong></a><a href="#g-recipes" data-k="g-recipes"><strong>やりたいこと別の手順</strong></a>`;
+  for (const g of DATA.guide) h += `<a href="#${g.id}" data-k="${g.id}">${esc(g.title)}</a>`;
+  h += `<h2>名前空間</h2>`;
+  for (const mod of DATA.modules) {
+    const ts = DATA.types.filter(t => t.mod === mod).sort((a, b) => a.name.localeCompare(b.name));
+    h += `<a class="mod" href="#m-${mod}" data-k="m-${mod}">MouthOfGod.${mod}<span class="count">${ts.length}</span></a>`;
+    for (const [role] of DATA.roles) {
+      const g = ts.filter(t => t.role === role);
+      if (!g.length) continue;
+      const links = g.map(t => `<a class="t" href="#${t.id}" data-k="${t.id}">${esc(t.name)}</a>`).join("");
+      if (role === "エディタ" || role === "試験用") h += `<details><summary>${role} ${g.length}</summary>${links}</details>`;
+      else h += `<div class="grp">${role}</div>${links}`;
+    }
+  }
+  nav.innerHTML = h;
+}
+function markNav(id) {
+  document.querySelectorAll("#nav a.on").forEach(a => a.classList.remove("on"));
+  const a = $(`#nav a[data-k="${id}"]`);
+  if (a) { a.classList.add("on"); const d = a.closest("details"); if (d) d.open = true; a.scrollIntoView({ block: "nearest" }); }
+}
+
+// ---- ページ ----
+function table(head, rows, cls) {
+  return `<div class="tablewrap"><table class="${cls || ""}"><tr>${head.map(x => `<th>${x}</th>`).join("")}</tr>${rows.join("")}</table></div>`;
+}
+function typeTable(ts) {
+  return table(["型", "説明"], ts.map(t => `<tr><td class="nm"><a href="#${t.id}">${esc(t.name)}</a> <span class="chip">${KIND[t.kind]}</span></td><td>${esc(t.brief)}</td></tr>`));
+}
+function pageOverview() {
+  const pref = DATA.preface.replace(/^# .*\n/, "");
+  const wrap = document.createElement("div"); wrap.className = "page";
+  wrap.append(md("# スクリプト API リファレンス\n\n" + pref));
+  const first = document.createElement("div"); first.className = "first";
+  first.innerHTML = `<strong>初めて読む人へ</strong><br>コードの形には、理由があります。数人が並行して作り、シーンや Prefab は Git でマージできない、という前提から来ています。型を読む前に、<a href="#g-design">設計の考え方（なぜこの形か）</a>を読んでください。各型のページの「なぜこの形か」にも、その型に関わる理由が出ます。`;
+  wrap.append(first);
+  const mods = DATA.modules.map(m => {
+    const ts = DATA.types.filter(t => t.mod === m);
+    const intro = (DATA.intro[m] || "").split("\n")[0];
+    return `<tr><td class="nm"><a href="#m-${m}">MouthOfGod.${m}</a></td><td>${inline(intro)}</td><td>${ts.length}</td></tr>`;
+  });
+  const h = document.createElement("div");
+  h.innerHTML = `<h2 class="sec">名前空間（機能）</h2>` + table(["名前空間", "役割", "型の数"], mods) +
+    `<h2 class="sec">すべての型</h2>` + typeTable([...DATA.types].sort((a, b) => a.name.localeCompare(b.name)));
+  wrap.append(h);
+  return wrap;
+}
+function designLinks(names) { return names.map(n => byName.has(n) ? `<a href="#${byName.get(n).id}">${esc(n)}</a>` : esc(n)).join(""); }
+function pageDesign() {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  wrap.append(md(DATA.designIntro));
+  const toc = document.createElement("div"); toc.className = "prose";
+  toc.innerHTML = `<h2>決まりの一覧</h2><ol>${DATA.design.map(p => `<li><a href="#${p.id}">${esc(p.title)}</a></li>`).join("")}</ol>`;
+  wrap.append(toc);
+  for (const p of DATA.design) {
+    const el = document.createElement("section"); el.className = "dp prose"; el.id = "sec-" + p.id;
+    let h = `<h2>${esc(p.title)}</h2>`;
+    for (const [k, v] of Object.entries(p.secs)) h += `<h3>${esc(k)}</h3>${mdToHtml(v)}`;
+    h += `<h3>この決まりから生まれた型</h3><div class="tys">${designLinks(p.types)}</div><div class="src">出典: ${inline(p.source)}</div>`;
+    el.innerHTML = h;
+    el.querySelectorAll("a[href^='http']").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+    wrap.append(el);
+  }
+  return wrap;
+}
+// ---- 図 ----
+const SVGNS = "http://www.w3.org/2000/svg";
+const MODHUE = { Core: 30, Device: 200, Fork: 160, Food: 10, Village: 120, UI: 280, Miko: 330, Tutorial: 230, Game: 50, Tracking: 180, CameraWork: 300, DevTools: 0 };
+function modColor(mod) { return mod === "DevTools" ? "var(--muted)" : `hsl(${MODHUE[mod] ?? 210} 55% 50%)`; }
+function textW(t) { return Math.max(70, t.length * 7.6 + 22); }
+function boxSvg(name, x, y, center) {
+  const t = byName.get(name), w = textW(name), mod = t ? t.mod : "";
+  const href = t ? `#${t.id}` : null;
+  const inner = `<rect x="${x - w / 2}" y="${y - 19}" width="${w}" height="38" rx="4" stroke="${modColor(mod)}"/><text x="${x}" y="${y - 5}">${esc(name)}</text><text class="mod" x="${x}" y="${y + 11}">${esc(mod)}</text>`;
+  return href ? `<a href="${href}" class="box${center ? " center" : ""}">${inner}</a>` : `<g class="box${center ? " center" : ""}">${inner}</g>`;
+}
+function edgeSvg(x1, y1, x2, y2, label, curve, at) {
+  const f = at ?? 0.5, mx = x1 + (x2 - x1) * f, my = y1 + (y2 - y1) * f;
+  const d = curve ? `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}` : `M${x1},${y1} L${x2},${y2}`;
+  let h = `<path class="edge" d="${d}" marker-end="url(#ah)"/>`;
+  if (label) { const w = label.length * 11.5 + 10; h += `<g class="lbl"><rect x="${mx - w / 2}" y="${my - 9}" width="${w}" height="18" rx="3"/><text x="${mx}" y="${my}">${esc(label)}</text></g>`; }
+  return h;
+}
+const DEFS = `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
+// 型を中心に、左に「この型が使う型」、右に「この型を使う所」を並べる
+function egoSvg(t) {
+  const L = t.uses, R = t.usedBy, rowH = 50, n = Math.max(L.length, R.length, 1);
+  const H = n * rowH + 50, W = 900, cx = W / 2, cy = 30 + (n * rowH) / 2;
+  const lx = 150, rx = W - 150;
+  let h = `<svg class="g" xmlns="${SVGNS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${DEFS}`;
+  h += `<text class="colhead" x="${lx}" y="16">この型が使う型</text><text class="colhead" x="${rx}" y="16">この型を使う所</text>`;
+  const top = k => 30 + (n * rowH - k * rowH) / 2 + rowH / 2;
+  const cw = textW(t.name) / 2;
+  L.forEach((name, i) => { const y = top(L.length) + i * rowH; h += edgeSvg(cx - cw - 4, cy, lx + textW(name) / 2 + 2, y, "", true); });
+  R.forEach((name, i) => { const y = top(R.length) + i * rowH; h += edgeSvg(rx - textW(name) / 2 - 2, y, cx + cw + 4, cy, "", true); });
+  L.forEach((name, i) => h += boxSvg(name, lx, top(L.length) + i * rowH));
+  R.forEach((name, i) => h += boxSvg(name, rx, top(R.length) + i * rowH));
+  h += boxSvg(t.name, cx, cy, true);
+  return h + `</svg>`;
+}
+function flowSvg(W, H, nodes, edges) {
+  const pos = Object.fromEntries(nodes.map(n => [n[0], [n[1], n[2]]]));
+  let h = `<svg class="g" xmlns="${SVGNS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${DEFS}`;
+  for (const [a, b, label, at] of edges) {
+    const [x1, y1] = pos[a], [x2, y2] = pos[b];
+    // 箱の縁から縁へ
+    const clip = (x, y, tx, ty, name) => { const w = textW(name) / 2 + 3, hh = 22; const dx = tx - x, dy = ty - y; const k = Math.min(Math.abs(dx) > 0 ? w / Math.abs(dx) : 1e9, Math.abs(dy) > 0 ? hh / Math.abs(dy) : 1e9); return [x + dx * k, y + dy * k]; };
+    const [sx, sy] = clip(x1, y1, x2, y2, a), [ex, ey] = clip(x2, y2, x1, y1, b);
+    h += edgeSvg(sx, sy, ex, ey, label, false, at);
+  }
+  for (const [name, x, y] of nodes) h += boxSvg(name, x, y, false);
+  return h + `</svg>`;
+}
+function moduleSvg() {
+  const mods = ["Device", "Fork", "Food", "Village", "UI", "Miko", "Game", "Tutorial", "DevTools", "CameraWork", "Tracking"];
+  const count = {};
+  for (const t of DATA.types) {
+    if (t.sec !== "Runtime") continue;
+    for (const u of t.uses) { const o = byName.get(u); if (!o || o.mod === t.mod || o.sec !== "Runtime") continue; const k = t.mod + ">" + o.mod; count[k] = (count[k] || 0) + 1; }
+  }
+  const W = 900, H = 560, cx = W / 2, cy = H / 2, R = 220;
+  const pos = { Core: [cx, cy] };
+  mods.forEach((m, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / mods.length; pos[m] = [cx + Math.cos(a) * R * 1.45, cy + Math.sin(a) * R]; });
+  let h = `<svg class="g" xmlns="${SVGNS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${DEFS}`;
+  for (const [k, c] of Object.entries(count)) {
+    const [a, b] = k.split(">"); const [x1, y1] = pos[a], [x2, y2] = pos[b];
+    const clip = (x, y, tx, ty, m) => { const w = textW(m) / 2 + 4, hh = 20; const dx = tx - x, dy = ty - y; const k = Math.min(Math.abs(dx) > 0 ? w / Math.abs(dx) : 1e9, Math.abs(dy) > 0 ? hh / Math.abs(dy) : 1e9); return [x + dx * k, y + dy * k]; };
+    const [sx, sy] = clip(x1, y1, x2, y2, a), [ex, ey] = clip(x2, y2, x1, y1, b);
+    h += edgeSvg(sx, sy, ex, ey, String(c), false);
+  }
+  for (const m of ["Core", ...mods]) {
+    const [x, y] = pos[m], w = textW(m);
+    h += `<a href="#m-${m}" class="box${m === "Core" ? " center" : ""}"><rect x="${x - w / 2}" y="${y - 16}" width="${w}" height="32" rx="4" stroke="${modColor(m)}"/><text x="${x}" y="${y}">${esc(m)}</text></a>`;
+  }
+  return h + `</svg>`;
+}
+function pageGraph() {
+  const wrap = document.createElement("div"); wrap.className = "page prose";
+  const flowA = flowSvg(940, 450, [
+    ["MockDevice", 120, 50], ["FoodSpawner", 450, 50], ["FoodTables", 800, 50],
+    ["Standing", 120, 170], ["DeliveryZone", 450, 170], ["FoodShadow", 800, 170],
+    ["StandArea", 120, 290], ["FieldStages", 450, 290], ["RequestBubbles", 800, 290],
+    ["DeliveryFx", 450, 410], ["VillagerMood", 800, 410]],
+    [["MockDevice", "FoodSpawner", "Confirmed"], ["FoodSpawner", "FoodTables", "Resolve"], ["StandArea", "Standing", "Set"],
+     ["Standing", "FoodSpawner", "Field"], ["FoodSpawner", "FoodShadow", "Spawned"], ["FoodSpawner", "DeliveryZone", "物理で飛ぶ"],
+     ["DeliveryZone", "FieldStages", "Receive"], ["FieldStages", "RequestBubbles", "Issued・Closed"],
+     ["FieldStages", "DeliveryFx", "StepDone"], ["FieldStages", "VillagerMood", "SetWorried"]]);
+  const flowB = flowSvg(940, 430, [
+    ["TutorialRunner", 130, 50], ["TutorialScript", 450, 50], ["MikoCueReceiver", 810, 50],
+    ["Phases", 130, 180], ["Cues", 450, 180], ["CloudCues", 810, 130], ["FoodShadow", 810, 210],
+    ["GameRunner", 130, 310], ["TutorialMemory", 450, 310], ["StandArea", 810, 290], ["CueReaction", 810, 370]],
+    [["TutorialRunner", "TutorialScript", "子を順に動かす"], ["TutorialRunner", "Phases", "Set"], ["Phases", "GameRunner", "Changed"],
+     ["TutorialScript", "Cues", "Cue・Say"], ["Cues", "MikoCueReceiver", "miko.*"], ["Cues", "CloudCues", "cloud.*"],
+     ["Cues", "FoodShadow", "shadow.*"], ["Cues", "StandArea", "footprint"], ["Cues", "CueReaction", "そのほか"],
+     ["TutorialScript", "TutorialMemory", "Set・Has"]]);
+  wrap.innerHTML = `<h1>つながりの図</h1>
+<p>箱は型、矢印は「呼ぶ・知らせる」向きです。箱を押すと、その型のページへ移ります。箱の枠の色は、機能（名前空間）を表します。</p>
+<h2>機能どうしのつながり</h2>
+<p>実行時の型が、ほかの機能の型を何回使っているかを、矢印の数字で示します（エディタ専用・試験用の型は数えません）。ほとんどの矢印が Core に向かっています。機能どうしは、Core だけを通してつながる決まりだからです（<a href="#d-core">なぜ</a>）。Tracking と CameraWork は、どの機能ともつながりません。</p>
+<div class="svgwrap">${moduleSvg()}</div>
+<h2>流れ 1: 食べ物を生んで、届けるまで</h2>
+<p>デバイスで決定すると食べ物が生まれ、体験者が狙って飛ばします。落ちた所の <code>DeliveryZone</code> が、そのフィールドに届けます。</p>
+<div class="svgwrap">${flowA}</div>
+<h2>流れ 2: チュートリアルから本編まで</h2>
+<p>チュートリアルは、合図（<code>Cues</code>）を出すだけです。巫女・雲・影・足あとは、合図を受けた側が見せ方を決めます。全部終わると、場面（<code>Phases</code>）を見ていた <code>GameRunner</code> が本編を始めます。</p>
+<div class="svgwrap">${flowB}</div>
+<p class="legend">型ごとの、細かいつながりの図は、各型のページの「つながり」にあります。</p>`;
+  return wrap;
+}
+function pageRecipes() {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  wrap.append(md(DATA.recipesIntro));
+  const toc = document.createElement("div"); toc.className = "prose";
+  toc.innerHTML = `<h2>手順の一覧</h2><ol>${DATA.recipes.map(r => `<li><a href="#${r.id}">${esc(r.title)}</a></li>`).join("")}</ol>`;
+  wrap.append(toc);
+  for (const r of DATA.recipes) {
+    const el = md("## " + r.title + "\n\n" + r.md);
+    el.classList.add("recipe"); el.id = "sec-" + r.id;
+    const see = document.createElement("p"); see.className = "see";
+    see.innerHTML = "使う型: " + r.types.map(n => byName.has(n) ? `<a href="#${byName.get(n).id}">${esc(n)}</a>` : esc(n)).join("");
+    el.append(see);
+    wrap.append(el);
+  }
+  return wrap;
+}
+function whyFor(names) { return DATA.design.filter(p => p.types.some(n => names.includes(n))); }
+function whyHtml(list) {
+  return `<div class="why">${list.map(p => `<section><h3><a href="#${p.id}">${esc(p.title)}</a></h3>${mdToHtml(p.secs["なぜ"] || "")}<div class="more"><a href="#${p.id}">決めたこと・あきらめたことを読む</a></div></section>`).join("")}</div>`;
+}
+function pageGuide(g) {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  wrap.append(md("# " + g.title + "\n\n" + g.md.replace(/^### /gm, "### ").replace(/^## /gm, "## ")));
+  return wrap;
+}
+function pageModule(mod) {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  const ts = DATA.types.filter(t => t.mod === mod);
+  const ns = [...new Set(ts.map(t => t.ns))].join("、");
+  wrap.innerHTML = `<div class="crumb">名前空間</div><h1 class="title"><span class="tname">MouthOfGod.${esc(mod)}</span></h1><div class="meta"><div><b>名前空間</b><code>${esc(ns)}</code></div></div>`;
+  if (DATA.intro[mod]) { const lead = md(DATA.intro[mod]); lead.classList.add("lead"); wrap.append(lead); }
+  const why = whyFor(ts.map(t => t.name));
+  if (why.length) { const w = document.createElement("div"); w.innerHTML = `<h2 class="sec">この機能に関わる決まり（なぜこの形か）</h2>` + whyHtml(why); wrap.append(w); }
+  for (const sec of ["Runtime", "Sandbox", "Editor"]) {
+    const g = ts.filter(t => t.sec === sec);
+    if (!g.length) continue;
+    const s = document.createElement("div");
+    s.innerHTML = `<h2 class="sec">${sec === "Runtime" ? "型" : SECTION[sec]}</h2>` + typeTable(g);
+    wrap.append(s);
+  }
+  return wrap;
+}
+function prettyDefault(v, type) {
+  if (!v) {
+    if (type === "bool") return "オフ";
+    if (/^(int|float|double)$/.test(type)) return "0";
+    if (type === "string") return "空";
+    return "なし";
+  }
+  if (v === "true") return "オン";
+  if (v === "false") return "オフ";
+  if (v === '""') return "空";
+  if (/^new [\w<>.]+\[0\]$|^new (List<.*>|UnityEvent)\(\)$|^System\.Array\.Empty<.*>\(\)$/.test(v)) return "空";
+  let m = v.match(/^new (Vector[234]|Color)\((.*)\)$/);
+  if (m) return "(" + m[2].replace(/(\d)f\b/g, "$1") + ")";
+  if (/^-?\d+(\.\d+)?f$/.test(v)) return v.slice(0, -1);
+  m = v.match(/^[A-Z]\w*\.(\w+)$/);
+  if (m && !/^(Vector|Color|Quaternion)/.test(v)) return m[1];
+  return v;
+}
+function sigHtml(m, self) {
+  const mods = m.mods.map(x => `<span class="chip">${esc(x)}</span>`).join("");
+  return { mods, ret: linkTypes(m.rtype, self) };
+}
+function pageType(t) {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  const mods = t.mods.filter(x => x !== "readonly").join(" ");
+  let h = `<div class="crumb"><a href="#m-${t.mod}">MouthOfGod.${esc(t.mod)}</a>${t.ns === "MouthOfGod." + t.mod ? "" : " / " + esc(t.ns)}</div>`;
+  h += `<h1 class="title"><span class="kind">${esc((mods ? mods + " " : "") + KIND[t.kind])}</span><span class="tname">${esc(t.name)}</span></h1>`;
+  const note = (DATA.roles.find(r => r[0] === t.role) || [])[1] || "";
+  h += `<div class="meta"><div><span class="role">${esc(t.role)}</span><span class="rolenote">${esc(note)}</span></div>`;
+  if (t.bases.length) h += `<div><b>継承・実装</b>${t.bases.map(b => byName.has(b) ? `<a href="#${byName.get(b).id}"><code>${esc(b)}</code></a>` : `<code>${esc(b)}</code>`).join(" ")}</div>`;
+  if (t.attrs.length) h += `<div><b>属性</b>${t.attrs.map(a => `<code>${esc(a)}</code>`).join(" ")}</div>`;
+  if (t.nested_in) h += `<div><b>入れ子</b><a href="#${byName.get(t.nested_in)?.id}"><code>${esc(t.nested_in)}</code></a> の中の型</div>`;
+  h += `<div><b>ファイル</b><code>Assets/Scripts/${esc(t.file)}</code></div></div>`;
+  if (t.doc) h += `<p class="lead">${linkTypes(t.doc, t.name)}</p>`;
+  if (t.serializable) h += `<p class="lead">Inspector では、配列や List の 1 要素として見えます（<code>[Serializable]</code>）。</p>`;
+
+  const why = whyFor([t.name]);
+  if (why.length) h += `<h2 class="sec">なぜこの形か</h2>` + whyHtml(why);
+  if (t.remarks) h += `<h2 class="sec">しくみ・注意</h2><div class="notes">${mdToHtml(t.remarks).replace(/<code>([A-Za-z_]\w*)<\/code>/g, (all, n) => byName.has(n) && n !== t.name ? `<a href="#${byName.get(n).id}"><code>${n}</code></a>` : all)}</div>`;
+  const rel = [];
+  const links = ns => ns.map(n => byName.has(n) ? `<a href="#${byName.get(n).id}">${esc(n)}</a>` : esc(n)).join("");
+  if (t.uses.length) rel.push(`<div><b>この型が使う型</b><span>${links(t.uses)}</span></div>`);
+  if (t.usedBy.length) rel.push(`<div><b>この型を使う所</b><span>${links(t.usedBy)}</span></div>`);
+  if (rel.length) h += `<h2 class="sec">つながり</h2><div class="svgwrap top">${egoSvg(t)}<p class="legend">名前で直接使っている型だけを出します。Core の interface（<code>IFieldRequests</code> など）越しに使う相手は、interface の側に出ます。</p></div><div class="rel">${rel.join("")}</div>`;
+  const recs = DATA.recipes.filter(r => r.types.includes(t.name));
+  if (recs.length) h += `<h2 class="sec">この型を使う手順</h2><div class="rel"><div><b>やりたいこと</b><span>${recs.map(r => `<a href="#${r.id}" style="font-family:var(--sans)">${esc(r.title)}</a>`).join("<br>")}</span></div></div>`;
+  if (t.values.length) h += `<h2 class="sec">値</h2>` + table(["値", "意味"], t.values.map(v => `<tr><td class="nm">${esc(v.name)}</td><td>${esc(v.doc)}</td></tr>`));
+  if (t.fields.length) {
+    let last = null, rows = [];
+    for (const f of t.fields) {
+      if (f.header && f.header !== last) rows.push(`<tr class="grp"><td colspan="4">${esc(f.header)}</td></tr>`);
+      last = f.header;
+      rows.push(`<tr><td class="nm" id="f-${esc(f.name)}">${esc(f.label)}</td><td class="ret">${linkTypes(f.type)}</td><td class="ret">${esc(prettyDefault(f.default, f.type))}</td><td>${esc(f.tooltip)}</td></tr>`);
+    }
+    h += `<h2 class="sec">Inspector（${t.fields.length} 項目）</h2>` + table(["項目", "型", "既定値", "説明"], rows);
+  }
+  const groups = [["ctor", "コンストラクタ"], ["event", "イベント（知らせ）"], ["property", "プロパティ（読む値）"], ["field", "定数"], ["method", "メソッド（呼ぶもの）"]];
+  const used = groups.filter(([k]) => t.members.some(m => m.kind === k));
+  if (used.length) {
+    h += `<h2 class="sec">メンバー（${t.members.length}）</h2><div class="mem">`;
+    for (const [k, label] of used) {
+      h += `<h4>${label}</h4>`;
+      t.members.forEach((m, i) => {
+        if (m.kind !== k) return;
+        const args = m.kind === "method" || m.kind === "ctor" ? `(${linkTypes(m.params, t.name)})` : "";
+        const sig = `${m.mods.map(x => esc(x) + " ").join("")}${m.rtype ? linkTypes(m.rtype, t.name) + " " : ""}${esc(m.name)}${args}${m.acc ? " { " + esc(m.acc) + " }" : ""}`;
+        h += `<article id="m-${esc(m.name)}-${i}" data-name="${esc(m.name)}"><div class="name">${esc(m.name)}</div><div class="sig">${sig}</div>${m.doc ? `<p>${linkTypes(m.doc, t.name)}</p>` : `<p class="none">説明はコードにありません。</p>`}</article>`;
+      });
+    }
+    h += `</div>`;
+  }
+  if (t.menus.length) h += `<h2 class="sec">メニュー</h2>` + table(["種類", "メニュー"], t.menus.map(m => `<tr><td>${m.kind === "ContextMenu" ? "右クリック" : "エディタ"}</td><td class="nm">${esc(m.path)}</td></tr>`));
+  const inner = document.createElement("div"); inner.innerHTML = h; wrap.append(inner);
+  wrap.querySelectorAll("a[data-go]").forEach(a => a.addEventListener("click", e => {
+    e.preventDefault(); const el = document.getElementById(a.dataset.go); if (el) { el.scrollIntoView({ block: "start" }); el.classList.add("hit"); setTimeout(() => el.classList.remove("hit"), 1600); }
+  }));
+  return wrap;
+}
+
+function route() {
+  const id = (location.hash || "#overview").slice(1);
+  const main = $("#main");
+  let page, navKey = id;
+  let scrollTo = null;
+  if (id === "overview") page = pageOverview();
+  else if (id === "g-design") page = pageDesign();
+  else if (id === "g-graph") page = pageGraph();
+  else if (id === "g-recipes") page = pageRecipes();
+  else if (id.startsWith("r-")) { page = pageRecipes(); navKey = "g-recipes"; scrollTo = "sec-" + id; }
+  else if (id.startsWith("d-")) { page = pageDesign(); navKey = "g-design"; scrollTo = "sec-" + id; }
+  else if (id.startsWith("g-")) { const g = DATA.guide.find(x => x.id === id); page = g ? pageGuide(g) : pageOverview(); }
+  else if (id.startsWith("m-")) page = pageModule(id.slice(2));
+  else if (byId.has(id)) page = pageType(byId.get(id));
+  else { page = pageOverview(); navKey = "overview"; }
+  main.replaceChildren(page);
+  main.scrollTop = 0;
+  markNav(navKey);
+  if (scrollTo) { const el = document.getElementById(scrollTo); if (el) { el.scrollIntoView({ block: "start" }); el.classList.add("hit"); setTimeout(() => el.classList.remove("hit"), 1800); } }
+  document.body.classList.remove("open");
+  document.title = id.startsWith("t-") && byId.has(id) ? byId.get(id).name + " | MouthOfGod API" : "MouthOfGod API";
+  if (window.__scrollMember) {
+    const el = main.querySelector(`article[data-name="${CSS.escape(window.__scrollMember)}"]`);
+    if (el) { el.scrollIntoView({ block: "start" }); el.classList.add("hit"); }
+    window.__scrollMember = null;
+  }
+  try { if (window.mermaid && main.querySelector(".mermaid")) window.mermaid.run({ querySelector: "#main .mermaid" }); } catch (e) { /* 図が出なくても、本文は読める */ }
+}
+
+buildNav("");
+window.addEventListener("hashchange", route);
+route();
+$("#q").addEventListener("input", e => { buildNav(e.target.value); if (!e.target.value) markNav((location.hash || "#overview").slice(1)); });
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") { const a = $("#nav .results a"); if (a) { window.__scrollMember = a.dataset.m || null; location.hash = a.getAttribute("href"); route(); } } });
+$("#menu").addEventListener("click", () => document.body.classList.toggle("open"));
+$("#theme").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("api-theme", root.dataset.theme); } catch (e) { /* 保存できなくても動く */ }
+});
+try { const s = localStorage.getItem("api-theme"); if (s) document.documentElement.dataset.theme = s; } catch (e) { /* 既定のまま */ }
+</script>
