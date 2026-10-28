@@ -452,7 +452,7 @@ flowchart LR
 | Follow Height | `float` | -0.15 | 目の高さから、この高さ |
 | Follow Speed | `float` | 2.5 | 追いつく速さ（m / 秒） |
 | Follow Dead Zone | `float` | 0.4 | 目標から横にこの距離までは、動かない |
-| Follow Pitch | `float` | 0.6 | 顔の上下の向きを取り入れる割合（0 で水平、1 で顔の向きどおり） |
+| Follow Pitch | `float` | 0 | 顔の上下の向きを取り入れる割合（0 で水平、1 で顔の向きどおり）。体験者は台を見下ろすことが多く、上げると巫女が台の上へ降りてきて、ミニチュアを隠すので、既定は 0 |
 | Follow Height Speed | `float` | 3 | 高さを追いつく速さ（m / 秒） |
 | Follow Height Dead Zone | `float` | 0.08 | 目標から高さにこの距離までは、動かない |
 | **なめらかさ** | | | |
