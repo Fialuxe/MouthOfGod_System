@@ -10,7 +10,6 @@
         "MouthOfGod.Village",
         "MouthOfGod.UI",
         "MouthOfGod.Miko",
-        "MouthOfGod.Game",
         "MouthOfGod.Tutorial.Editor"
     ],
     "includePlatforms": [

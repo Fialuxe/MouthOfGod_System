@@ -144,7 +144,6 @@ flowchart LR
 ```mermaid
 flowchart LR
   C_DeliveryZone["DeliveryZone<br/>Village"]:::me
-  U_MountDeliveryZoneAdder["MountDeliveryZoneAdder<br/>DevTools"] --> C_DeliveryZone
   U_TutorialTestSceneBuilder["TutorialTestSceneBuilder<br/>DevTools"] --> C_DeliveryZone
   U_VillageBaker["VillageBaker<br/>Village"] --> C_DeliveryZone
   C_DeliveryZone --> D_DeliveryFx["DeliveryFx<br/>Village"]
@@ -156,7 +155,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`MountDeliveryZoneAdder`](DevTools.md#t-mountdeliveryzoneadder)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)、[`VillageBaker`](#t-villagebaker)
+- この型を使う所: [`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)、[`VillageBaker`](#t-villagebaker)
 - この型が使う型: [`DeliveryFx`](#t-deliveryfx)、[`DeliveryKind`](Core.md#t-deliverykind)、[`FieldId`](Core.md#t-fieldid)、[`Fields`](Core.md#t-fields)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`IFoodItem`](Core.md#t-ifooditem)
 
 ### Inspector（6 項目）
@@ -203,7 +202,6 @@ flowchart LR
 flowchart LR
   C_FieldStages["FieldStages<br/>Village"]:::me
   U_DeliveryFx["DeliveryFx<br/>Village"] --> C_FieldStages
-  U_MainSetup["MainSetup<br/>DevTools"] --> C_FieldStages
   U_TutorialTestSceneBuilder["TutorialTestSceneBuilder<br/>DevTools"] --> C_FieldStages
   U_VillageBaker["VillageBaker<br/>Village"] --> C_FieldStages
   C_FieldStages --> D_Delivered["Delivered<br/>Core"]
@@ -221,7 +219,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`DeliveryFx`](#t-deliveryfx)、[`MainSetup`](DevTools.md#t-mainsetup)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)、[`VillageBaker`](#t-villagebaker)
+- この型を使う所: [`DeliveryFx`](#t-deliveryfx)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)、[`VillageBaker`](#t-villagebaker)
 - この型が使う型: [`Delivered`](Core.md#t-delivered)、[`DeliveryFx`](#t-deliveryfx)、[`DeliveryKind`](Core.md#t-deliverykind)、[`FieldId`](Core.md#t-fieldid)、[`FieldStep`](#t-fieldstep)、[`Fields`](Core.md#t-fields)、[`FoodId`](Core.md#t-foodid)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`RequestClosed`](Core.md#t-requestclosed)、[`RequestIssued`](Core.md#t-requestissued)、[`StepProgress`](#t-stepprogress)、[`VillagerMood`](#t-villagermood)
 
 ### この型を使う手順
@@ -430,7 +428,6 @@ flowchart LR
 flowchart LR
   C_StandArea["StandArea<br/>Village"]:::me
   U_FieldDiagnostics["FieldDiagnostics<br/>DevTools"] --> C_StandArea
-  U_MountDeliveryZoneAdder["MountDeliveryZoneAdder<br/>DevTools"] --> C_StandArea
   U_TutorialTestSceneBuilder["TutorialTestSceneBuilder<br/>DevTools"] --> C_StandArea
   C_StandArea --> D_CueRequested["CueRequested<br/>Core"]
   C_StandArea --> D_Cues["Cues<br/>Core"]
@@ -440,7 +437,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`FieldDiagnostics`](DevTools.md#t-fielddiagnostics)、[`MountDeliveryZoneAdder`](DevTools.md#t-mountdeliveryzoneadder)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)
+- この型を使う所: [`FieldDiagnostics`](DevTools.md#t-fielddiagnostics)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)
 - この型が使う型: [`CueRequested`](Core.md#t-cuerequested)、[`Cues`](Core.md#t-cues)、[`FieldId`](Core.md#t-fieldid)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`Standing`](Core.md#t-standing)
 
 ### Inspector（10 項目）
@@ -550,12 +547,11 @@ flowchart LR
 ```mermaid
 flowchart LR
   C_SurfaceAnchor["SurfaceAnchor<br/>Village"]:::me
-  U_MainSeaSwapper["MainSeaSwapper<br/>DevTools"] --> C_SurfaceAnchor
   U_VillageBaker["VillageBaker<br/>Village"] --> C_SurfaceAnchor
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`MainSeaSwapper`](DevTools.md#t-mainseaswapper)、[`VillageBaker`](#t-villagebaker)
+- この型を使う所: [`VillageBaker`](#t-villagebaker)
 
 ### Inspector（1 項目）
 
@@ -587,13 +583,12 @@ flowchart LR
   U_DeliveryFx["DeliveryFx<br/>Village"] --> C_VillagerMood
   U_FieldStages["FieldStages<br/>Village"] --> C_VillagerMood
   U_FieldStep["FieldStep<br/>Village"] --> C_VillagerMood
-  U_MainSeaVillagerResizer["MainSeaVillagerResizer<br/>DevTools"] --> C_VillagerMood
   U_VillageBaker["VillageBaker<br/>Village"] --> C_VillagerMood
   U_VillagePrefabGenerator["VillagePrefabGenerator<br/>Village"] --> C_VillagerMood
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`DeliveryFx`](#t-deliveryfx)、[`FieldStages`](#t-fieldstages)、[`FieldStep`](#t-fieldstep)、[`MainSeaVillagerResizer`](DevTools.md#t-mainseavillagerresizer)、[`VillageBaker`](#t-villagebaker)、[`VillagePrefabGenerator`](#t-villageprefabgenerator)
+- この型を使う所: [`DeliveryFx`](#t-deliveryfx)、[`FieldStages`](#t-fieldstages)、[`FieldStep`](#t-fieldstep)、[`VillageBaker`](#t-villagebaker)、[`VillagePrefabGenerator`](#t-villageprefabgenerator)
 
 ### この型を使う手順
 
@@ -674,7 +669,6 @@ flowchart LR
 
 村の置き物の Prefab を、素材（FBX）から Assets/Resources/Prefabs/Village/ に作る。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない。ただし村人と Villager.controller は、毎回作り直す（悩む動き・印を変えたら反映するため）。素材の置き場所は docs/quaternius-assets.md。
 
-- メニュー: `MouthOfGod/Village/Add Missed To Villager Controller`
 - メニュー: `MouthOfGod/Village/Generate Prefabs`
 
 <a id="t-villagestep"></a>

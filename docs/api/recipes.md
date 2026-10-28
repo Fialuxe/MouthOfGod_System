@@ -296,8 +296,8 @@ foreach (IFieldRequests field in Fields.All)
 - 後から置かれたフィールドも受け取るには、`Fields.All` を見たあと、`Fields.Added` を購読します。
 - 出した欲しい物が終わった知らせは `Closed` です。`Resolved` が true なら届いて解決、false なら待ちきれずに終わった物です。
 - 待ちきれなかった物は、`Expire(番号)` で 1 つずつ終えます。番号は `RequestIssued.Request` です。
-- 2026-10-28 に確かめたとき、Main シーンには [`GameRunner`](Game.md#t-gamerunner) がありませんでした。本編を動かすには、まず [`GameRunner`](Game.md#t-gamerunner) をシーンに置きます。
-- Main を開いて、メニュー `MouthOfGod/Dev/Set Up Main (GameRunner, Max Open Requests)` を実行すると、[`GameRunner`](Game.md#t-gamerunner) が置かれます。Play 中に、チュートリアルが終わったあとで `MouthOfGod/Dev/Open All Requests (Play mode, after tutorial)` を押すと、全フィールドで欲しい物を出せるだけ出します。
+- Main シーンには [`GameRunner`](Game.md#t-gamerunner) が置いてあります。どのフィールドも、同時に出せる数をステップの数にそろえています。
+- Play 中に、チュートリアルが終わったあとで `MouthOfGod/Dev/Open All Requests (Play mode, after tutorial)` を押すと、全フィールドで欲しい物を出せるだけ出します。
 
 使う型: [`Fields`](Core.md#t-fields)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`RequestIssued`](Core.md#t-requestissued)、[`RequestClosed`](Core.md#t-requestclosed)、[`GameRunner`](Game.md#t-gamerunner)
 

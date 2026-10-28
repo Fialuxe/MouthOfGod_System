@@ -192,7 +192,7 @@ flowchart LR
 - 全部終わると、`Phases` を空に戻し、`Finished` を出します。
 - `GameRunner` は、場面 `deliver` のあとに場面が空になったとき、本編を始めます（After Phase の既定は `deliver`）。`TutorialRunner` の型は、参照しません。
 - `TutorialRunner.Skip()` は、チュートリアルを飛ばして、全部終わった扱いにします。まず、動いていれば止め、`Memory` を空にし、全フィールドを `Restart` します。次に、`<フィールド>.glow-off`・`<フィールド>.footprint-off`・`miko.stay` の合図を出します。最後に、場面を Skip Phase（既定 `deliver`）から空の場面へ進め、`Finished` を出します。
-- Skip で本編が始まるには、シーンに `GameRunner` が必要です。**2026-10-28 に確かめたとき、Main シーンには `GameRunner` がありませんでした**（第 3 章）。
+- Skip で本編が始まるには、シーンに `GameRunner` が必要です。Main シーンには置いてあります（第 3 章）。
 
 ### 2.7 ID の型
 
@@ -259,10 +259,11 @@ Prefab として置かれている物と、その中のコンポーネントで�
 - 村人は、各フィールドの子に `VillagerMood` として置かれます。`FieldStep` の Helped に入れた村人が、そのステップが済むまで悩みます。
 - 食べ物の Prefab は、`Resources/Prefabs/Food/` にあります（apple、carrot、chestnut、chicken、cow、fish、mushroom、pig、pumpkin、sheep、shell、shrimp、tomato、turnip）。ファイル名が食べ物の ID です。
 
-### 3.3 Main にまだ無いもの
+### 3.3 Main の本編の設定
 
-- `GameRunner` と `RemainingTimeText`: シーンにも Prefab にもありません。置かないと、チュートリアルが終わっても本編（`main-game`）は始まりません。`TutorialRunner.Skip()` も、同じです。
-- Main を開き、メニュー `MouthOfGod/Dev/Set Up Main (GameRunner, Max Open Requests)` を 1 回実行すると、`GameRunner` が置かれます。あわせて、全フィールドで欲しい物を全部同時に出せるようになります。Main は共有シーンなので、Scene Fusion のセッションの中で実行し、シーンをコミットします。
+- Main のルートに `GameRunner` があります。チュートリアルの最後の場面（`deliver`）が終わると、本編（`main-game`）が始まります。制限時間は 120 秒です。
+- 残り時間を画面に出す `RemainingTimeText` は、まだ置いていません。
+- どのフィールドも、Max Open Requests をステップの数にそろえています。村と草原は 4、山と海は 3 です。このため、欲しい物を全部同時に出せます。
 - 自動で置かれる物（1.3 節）は、手で置く必要がありません。
 
 ## 4. 機能別リファレンス

@@ -33,11 +33,11 @@
 | [MouthOfGod.Game](Game.md) | 本編の進行です。チュートリアルが終わったら本編を始め、制限時間が来たら終わらせます。 | 3 |
 | [MouthOfGod.Tracking](Tracking.md) | AprilTag とハンドトラッキングで、位置を合わせます。ほかの機能には、`Transform` と追跡中かどうかだけを渡します。 | 12 |
 | [MouthOfGod.CameraWork](CameraWork.md) | 付けたオブジェクト（カメラなど）を、決めた軌道と速さで動かします。直線・ベジェ曲線・円弧・待ちのカットをつなぎ、緩急・向き・ズームを Inspector で決めます。村のカットを置くメニューは、`MouthOfGod/CameraWork/Add Village Tour` と `Add Village Zoom-Out` です。 | 8 |
-| [MouthOfGod.DevTools](DevTools.md) | Quest なしで試すための道具です。展示では使いません。 | 9 |
+| [MouthOfGod.DevTools](DevTools.md) | Quest なしで試すための道具です。展示では使いません。 | 5 |
 
 ## すべての型
 
-<details><summary>名前順の一覧を開く（132 個）</summary>
+<details><summary>名前順の一覧を開く（128 個）</summary>
 
 | 型 | 機能 | 役割 | 説明 |
 |---|---|---|---|
@@ -99,9 +99,6 @@
 | [`IFoodSpawner`](Core.md#t-ifoodspawner) | Core | interface | 決定した食感から食べ物を生む所。 |
 | [`IFork`](Core.md#t-ifork) | Core | interface | 体験者が持つフォーク。 |
 | [`ImageIntrinsics`](Tracking.md#t-imageintrinsics) | Tracking | データ | 現在の画像（ピクセル）に換算した内部パラメータ。 |
-| [`MainSeaSwapper`](DevTools.md#t-mainseaswapper) | DevTools | エディタ | 共有シーン（Main）の仮の海（Misc/Sea(Temporal)）を、完成版の海（Sea/Sea_work）に入れ替える（#329・#338）。 |
-| [`MainSeaVillagerResizer`](DevTools.md#t-mainseavillagerresizer) | DevTools | エディタ | 共有シーン（Main）の海の村人の背の高さを、村の村人の平均に合わせる。 |
-| [`MainSetup`](DevTools.md#t-mainsetup) | DevTools | エディタ | 共有シーン Main を、本編まで通して遊べる形にする。 |
 | [`MikoCueReceiver`](Miko.md#t-mikocuereceiver) | Miko | コンポーネント | 合図（Cues）のうち、名前が miko. で始まるものを受けて、巫女に身振りをさせる。 |
 | [`MikoExpression`](Miko.md#t-mikoexpression) | Miko | 選択肢（enum） | 表情。 |
 | [`MikoEye`](Miko.md#t-mikoeye) | Miko | 選択肢（enum） | 目の形（Miko_Eyes.png の絵の順番）。 |
@@ -119,7 +116,6 @@
 | [`MockDeviceModel`](Device.md#t-mockdevicemodel) | Device | コンポーネント | MockDevice の雑な見た目。 |
 | [`MockDevicePrefabGenerator`](Device.md#t-mockdeviceprefabgenerator) | Device | エディタ | MockDevice の Prefab を Assets/Resources/Prefabs/Device/ に作る。 |
 | [`MockInputMode`](Device.md#t-mockinputmode) | Device | 選択肢（enum） | Mock を何で操作するか。 |
-| [`MountDeliveryZoneAdder`](DevTools.md#t-mountdeliveryzoneadder) | DevTools | エディタ | 山の Main 用 Prefab（Misc/MountVer2 Variant）に、届ける場所（DeliveryZone）と、それを受けるトリガーの箱を足す。 |
 | [`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial) | Tutorial | 試験用 | チュートリアルが終わったら、すべてのフィールドに、欲しい物をいっぺんに出す仮のスクリプト。 |
 | [`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu) | DevTools | エディタ | Play 中に使うメニュー。 |
 | [`PhaseId`](Core.md#t-phaseid) | Core | データ | いまの場面（チュートリアルの名前、本編、エンディングなど）の ID。 |

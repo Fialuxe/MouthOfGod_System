@@ -183,7 +183,7 @@ flowchart LR
 - 全部終わると、[`Phases`](Core.md#t-phases) を空に戻し、`Finished` を出します。
 - [`GameRunner`](Game.md#t-gamerunner) は、場面 `deliver` のあとに場面が空になったとき、本編を始めます（After Phase の既定は `deliver`）。[`TutorialRunner`](Tutorial.md#t-tutorialrunner) の型は、参照しません。
 - `TutorialRunner.Skip()` は、チュートリアルを飛ばして、全部終わった扱いにします。まず、動いていれば止め、`Memory` を空にし、全フィールドを `Restart` します。次に、`<フィールド>.glow-off`・`<フィールド>.footprint-off`・`miko.stay` の合図を出します。最後に、場面を Skip Phase（既定 `deliver`）から空の場面へ進め、`Finished` を出します。
-- Skip で本編が始まるには、シーンに [`GameRunner`](Game.md#t-gamerunner) が必要です。**2026-10-28 に確かめたとき、Main シーンには [`GameRunner`](Game.md#t-gamerunner) がありませんでした**（第 3 章）。
+- Skip で本編が始まるには、シーンに [`GameRunner`](Game.md#t-gamerunner) が必要です。Main シーンには置いてあります（第 3 章）。
 
 ### 2.7 ID の型
 
@@ -250,10 +250,11 @@ Prefab として置かれている物と、その中のコンポーネントで�
 - 村人は、各フィールドの子に [`VillagerMood`](Village.md#t-villagermood) として置かれます。[`FieldStep`](Village.md#t-fieldstep) の Helped に入れた村人が、そのステップが済むまで悩みます。
 - 食べ物の Prefab は、`Resources/Prefabs/Food/` にあります（apple、carrot、chestnut、chicken、cow、fish、mushroom、pig、pumpkin、sheep、shell、shrimp、tomato、turnip）。ファイル名が食べ物の ID です。
 
-### 3.3 Main にまだ無いもの
+### 3.3 Main の本編の設定
 
-- [`GameRunner`](Game.md#t-gamerunner) と [`RemainingTimeText`](Game.md#t-remainingtimetext): シーンにも Prefab にもありません。置かないと、チュートリアルが終わっても本編（`main-game`）は始まりません。`TutorialRunner.Skip()` も、同じです。
-- Main を開き、メニュー `MouthOfGod/Dev/Set Up Main (GameRunner, Max Open Requests)` を 1 回実行すると、[`GameRunner`](Game.md#t-gamerunner) が置かれます。あわせて、全フィールドで欲しい物を全部同時に出せるようになります。Main は共有シーンなので、Scene Fusion のセッションの中で実行し、シーンをコミットします。
+- Main のルートに [`GameRunner`](Game.md#t-gamerunner) があります。チュートリアルの最後の場面（`deliver`）が終わると、本編（`main-game`）が始まります。制限時間は 120 秒です。
+- 残り時間を画面に出す [`RemainingTimeText`](Game.md#t-remainingtimetext) は、まだ置いていません。
+- どのフィールドも、Max Open Requests をステップの数にそろえています。村と草原は 4、山と海は 3 です。このため、欲しい物を全部同時に出せます。
 - 自動で置かれる物（1.3 節）は、手で置く必要がありません。
 
 ## 付録 A. メニュー一覧
@@ -263,13 +264,8 @@ Prefab として置かれている物と、その中のコンポーネントで�
 | エディタ | `Assets/MouthOfGod/Food/Generate Icon From Selected` | [`FoodIconGenerator`](Food.md#t-foodicongenerator) |
 | エディタ | `MouthOfGod/CameraWork/Add Village Tour` | [`VillageTourBuilder`](CameraWork.md#t-villagetourbuilder) |
 | エディタ | `MouthOfGod/CameraWork/Add Village Zoom-Out` | [`VillageTourBuilder`](CameraWork.md#t-villagetourbuilder) |
-| エディタ | `MouthOfGod/Dev/Add Delivery Zone To Mount Variant` | [`MountDeliveryZoneAdder`](DevTools.md#t-mountdeliveryzoneadder) |
 | エディタ | `MouthOfGod/Dev/Build Tutorial Test Scene` | [`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder) |
-| エディタ | `MouthOfGod/Dev/Fix Main Sea Placement (remove SurfaceAnchor)` | [`MainSeaSwapper`](DevTools.md#t-mainseaswapper) |
-| エディタ | `MouthOfGod/Dev/Match Main Sea Villager Height to Village` | [`MainSeaVillagerResizer`](DevTools.md#t-mainseavillagerresizer) |
 | エディタ | `MouthOfGod/Dev/Print Field Diagnostics (Play mode)` | [`FieldDiagnostics`](DevTools.md#t-fielddiagnostics) |
-| エディタ | `MouthOfGod/Dev/Set Up Main (GameRunner, Max Open Requests)` | [`MainSetup`](DevTools.md#t-mainsetup) |
-| エディタ | `MouthOfGod/Dev/Swap Main Sea (Temporal to Sea_work)` | [`MainSeaSwapper`](DevTools.md#t-mainseaswapper) |
 | エディタ | `MouthOfGod/Device/Create MockDevice Prefab` | [`MockDevicePrefabGenerator`](Device.md#t-mockdeviceprefabgenerator) |
 | エディタ | `MouthOfGod/Food/Fit Prefab Sizes` | [`FoodPrefabFitter`](Food.md#t-foodprefabfitter) |
 | エディタ | `MouthOfGod/Food/Generate Icons` | [`FoodIconGenerator`](Food.md#t-foodicongenerator) |
@@ -278,7 +274,6 @@ Prefab として置かれている物と、その中のコンポーネントで�
 | エディタ | `MouthOfGod/Fork/Generate Cloud Prefab` | [`CloudPrefabGenerator`](Fork.md#t-cloudprefabgenerator) |
 | エディタ | `MouthOfGod/Miko/Generate Prefab` | [`MikoPrefabGenerator`](Miko.md#t-mikoprefabgenerator) |
 | エディタ | `MouthOfGod/Tutorial/Generate Tutorial Prefabs` | [`TutorialPrefabGenerator`](Tutorial.md#t-tutorialprefabgenerator) |
-| エディタ | `MouthOfGod/Village/Add Missed To Villager Controller` | [`VillagePrefabGenerator`](Village.md#t-villageprefabgenerator) |
 | エディタ | `MouthOfGod/Village/Bake Draft Village Prefab` | [`VillageBaker`](Village.md#t-villagebaker) |
 | エディタ | `MouthOfGod/Village/Generate Effects` | [`VillageFxGenerator`](Village.md#t-villagefxgenerator) |
 | エディタ | `MouthOfGod/Village/Generate Prefabs` | [`VillagePrefabGenerator`](Village.md#t-villageprefabgenerator) |
