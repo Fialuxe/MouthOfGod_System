@@ -1,12 +1,11 @@
 # スクリプト API リファレンス
 
-2026-10-28 時点の `Assets/Scripts` の全スクリプトについて、API・名前空間・Inspector での見え方・機能どうしのつながりをまとめます。
+`Assets/Scripts` の全スクリプトについて、API・名前空間・Inspector での見え方・機能どうしのつながりをまとめます。表は、いまのコードから作ります。
 
 > `docs/api/` のページは、`tools/api_doc/build_md.py` がコードと説明文から作ります。手で直さないでください。型の説明は、コードの `///` と `[Tooltip]` を直します。章の文は `tools/api_doc/` の `template.md`・`design.md`・`recipes.md` を直します。直したら `python3 tools/api_doc/build_md.py` を実行します。
 
 ## この文書の読み方
 
-- 対象は、`main`（`5530138`、マップ仕上げ #346）に、PR #347（カメラのカット再生・チュートリアルのスキップ・置き場・巫女の追従）を重ねた状態です。#347 が入るまでは、`CameraWork` 全体と、`TutorialRunner.Skip`・`FoodSpawner.FoodParent`・`DeliveryFx.FxParent`・`MikoMover` の追従まわりが、`main` にはありません。
 - このページの第 1 章は全体の作りです。第 2 章は、機能どうしがどうつながるかです。第 3 章は、共有シーン Main の中身です。付録に、メニューとファイルの置き場所があります。機能ごとの型の一覧は、機能ごとのページにあります。
 - 各型の表は、公開されている `public`・`protected` のメンバーだけを載せます。`internal` はテスト用の入口なので載せません。
 - 「Inspector」の表は、Unity が Inspector に出す項目です。項目名は、Unity が変数名から作る表示名です。`[Header]` は太字の行で示します。
@@ -193,7 +192,7 @@ flowchart LR
 - 全部終わると、`Phases` を空に戻し、`Finished` を出します。
 - `GameRunner` は、場面 `deliver` のあとに場面が空になったとき、本編を始めます（After Phase の既定は `deliver`）。`TutorialRunner` の型は、参照しません。
 - `TutorialRunner.Skip()` は、チュートリアルを飛ばして、全部終わった扱いにします。まず、動いていれば止め、`Memory` を空にし、全フィールドを `Restart` します。次に、`<フィールド>.glow-off`・`<フィールド>.footprint-off`・`miko.stay` の合図を出します。最後に、場面を Skip Phase（既定 `deliver`）から空の場面へ進め、`Finished` を出します。
-- Skip で本編が始まるには、シーンに `GameRunner` が必要です。**2026-10-28 時点の Main シーンには `GameRunner` がありません**（第 3 章）。
+- Skip で本編が始まるには、シーンに `GameRunner` が必要です。**2026-10-28 に確かめたとき、Main シーンには `GameRunner` がありませんでした**（第 3 章）。
 
 ### 2.7 ID の型
 
@@ -209,7 +208,7 @@ flowchart LR
 
 ## 3. 共有シーン Main の姿
 
-`Assets/Scenes/Main.unity` を、YAML から読んで計算した結果です。単位はメートル、座標はワールドです。ミニチュアの台は、`Border_*` の枠で、およそ ±0.6 m 四方です。
+`Assets/Scenes/Main.unity` を、2026-10-28 に YAML から読んで計算した結果です。この章は手で書いているので、シーンを直したら古くなります。単位はメートル、座標はワールドです。ミニチュアの台は、`Border_*` の枠で、およそ ±0.6 m 四方です。
 
 ### 3.1 位置
 

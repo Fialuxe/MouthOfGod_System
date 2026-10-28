@@ -3,7 +3,7 @@
 
 # MouthOfGod スクリプト リファレンス
 
-2026-10-28 時点の `Assets/Scripts` の全スクリプトについて、API・名前空間・Inspector での見え方・機能どうしのつながりをまとめます。
+`Assets/Scripts` の全スクリプトについて、API・名前空間・Inspector での見え方・機能どうしのつながりをまとめます。表は、いまのコードから作ります。
 
 > `docs/api/` のページは、`tools/api_doc/build_md.py` がコードと説明文から作ります。手で直さないでください。型の説明は、コードの `///` と `[Tooltip]` を直します。章の文は `tools/api_doc/` の `template.md`・`design.md`・`recipes.md` を直します。直したら `python3 tools/api_doc/build_md.py` を実行します。
 
@@ -175,11 +175,10 @@
 
 ## この文書について
 
-- 対象は、`main`（`5530138`、マップ仕上げ #346）に、PR #347（カメラのカット再生・チュートリアルのスキップ・置き場・巫女の追従）を重ねた状態です。#347 が入るまでは、`CameraWork` 全体と、`TutorialRunner.Skip`・`FoodSpawner.FoodParent`・`DeliveryFx.FxParent`・`MikoMover` の追従まわりが、`main` にはありません。
 - このページの第 1 章は全体の作りです。第 2 章は、機能どうしがどうつながるかです。第 3 章は、共有シーン Main の中身です。付録に、メニューとファイルの置き場所があります。機能ごとの型の一覧は、機能ごとのページにあります。
 - 各型の表は、公開されている `public`・`protected` のメンバーだけを載せます。`internal` はテスト用の入口なので載せません。
 - 「Inspector」の表は、Unity が Inspector に出す項目です。項目名は、Unity が変数名から作る表示名です。`[Header]` は太字の行で示します。
 - 確かめたこと: 型・メンバー・既定値・説明は、コードから機械的に取り出しています。Main シーンの位置は、`Main.unity` と入れ子の Prefab の YAML から計算しました。
 - 確かめていないこと: Unity でコンパイルも実行もしていません。Mesh の見た目の大きさは読んでいないので、第 3 章の位置は、オブジェクトの原点です。手順のコード例も、コンパイルして確かめてはいません。
 
-ローカルでは、同じ中身を 1 ファイルの HTML（`docs/api/index.html`。検索と図の操作つき）でも読めます。作り直すときは `python3 tools/api_doc/build_md.py` と `python3 tools/api_doc/build_html.py` を実行します。
+コードや説明文を直したら、`python3 tools/api_doc/build_md.py` を実行して、このページを作り直します。作り直し忘れは、PR の検査（API docs check）が警告します。検索つきの 1 ファイルの HTML が欲しいときは、`python3 tools/api_doc/build_html.py` で `tools/api_doc/out/index.html` に作れます（リポジトリには入れません）。

@@ -183,7 +183,7 @@ flowchart LR
 - 全部終わると、[`Phases`](Core.md#t-phases) を空に戻し、`Finished` を出します。
 - [`GameRunner`](Game.md#t-gamerunner) は、場面 `deliver` のあとに場面が空になったとき、本編を始めます（After Phase の既定は `deliver`）。[`TutorialRunner`](Tutorial.md#t-tutorialrunner) の型は、参照しません。
 - `TutorialRunner.Skip()` は、チュートリアルを飛ばして、全部終わった扱いにします。まず、動いていれば止め、`Memory` を空にし、全フィールドを `Restart` します。次に、`<フィールド>.glow-off`・`<フィールド>.footprint-off`・`miko.stay` の合図を出します。最後に、場面を Skip Phase（既定 `deliver`）から空の場面へ進め、`Finished` を出します。
-- Skip で本編が始まるには、シーンに [`GameRunner`](Game.md#t-gamerunner) が必要です。**2026-10-28 時点の Main シーンには [`GameRunner`](Game.md#t-gamerunner) がありません**（第 3 章）。
+- Skip で本編が始まるには、シーンに [`GameRunner`](Game.md#t-gamerunner) が必要です。**2026-10-28 に確かめたとき、Main シーンには [`GameRunner`](Game.md#t-gamerunner) がありませんでした**（第 3 章）。
 
 ### 2.7 ID の型
 
@@ -199,7 +199,7 @@ flowchart LR
 
 ## 3. 共有シーン Main の姿
 
-`Assets/Scenes/Main.unity` を、YAML から読んで計算した結果です。単位はメートル、座標はワールドです。ミニチュアの台は、`Border_*` の枠で、およそ ±0.6 m 四方です。
+`Assets/Scenes/Main.unity` を、2026-10-28 に YAML から読んで計算した結果です。この章は手で書いているので、シーンを直したら古くなります。単位はメートル、座標はワールドです。ミニチュアの台は、`Border_*` の枠で、およそ ±0.6 m 四方です。
 
 ### 3.1 位置
 

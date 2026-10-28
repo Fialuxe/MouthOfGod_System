@@ -223,7 +223,7 @@ def readme():
     for t in sorted(types, key=lambda t: t["name"].lower()):
         L.append(f"| {tlink(t['name'])} | {t['mod']} | {t['role']} | {esc(t['brief'])} |")
     L += ["", "</details>", "", "## この文書について", "", reading, "",
-          "ローカルでは、同じ中身を 1 ファイルの HTML（`docs/api/index.html`。検索と図の操作つき）でも読めます。作り直すときは `python3 tools/api_doc/build_md.py` と `python3 tools/api_doc/build_html.py` を実行します。"]
+          "コードや説明文を直したら、`python3 tools/api_doc/build_md.py` を実行して、このページを作り直します。作り直し忘れは、PR の検査（API docs check）が警告します。検索つきの 1 ファイルの HTML が欲しいときは、`python3 tools/api_doc/build_html.py` で `tools/api_doc/out/index.html` に作れます（リポジトリには入れません）。"]
     write("README.md", "\n".join(L))
 
 os.makedirs(OUT, exist_ok=True)

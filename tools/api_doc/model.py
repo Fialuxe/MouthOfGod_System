@@ -143,7 +143,7 @@ def menus_table():
     for t in types:
         for m in t["menus"]: rows.append((m["kind"], m["path"], t["name"]))
     out = ["| 種類 | メニュー | 型 |", "|---|---|---|"]
-    for kind, path, name in sorted(set(rows), key=lambda r: (r[0] != "MenuItem", r[1])):
+    for kind, path, name in sorted(set(rows), key=lambda r: (r[0] != "MenuItem", r[1], r[2])):
         out.append(f"| {'エディタ' if kind == 'MenuItem' else '右クリック'} | `{path}` | `{name}` |")
     return "\n".join(out)
 

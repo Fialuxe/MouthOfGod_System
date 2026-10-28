@@ -251,7 +251,7 @@ foreach (IFieldRequests field in Fields.All)
 - 後から置かれたフィールドも受け取るには、`Fields.All` を見たあと、`Fields.Added` を購読します。
 - 出した欲しい物が終わった知らせは `Closed` です。`Resolved` が true なら届いて解決、false なら待ちきれずに終わった物です。
 - 待ちきれなかった物は、`Expire(番号)` で 1 つずつ終えます。番号は `RequestIssued.Request` です。
-- 2026-10-28 時点の Main シーンには、`GameRunner` がありません。本編を動かすには、まず `GameRunner` をシーンに置きます。
+- 2026-10-28 に確かめたとき、Main シーンには `GameRunner` がありませんでした。本編を動かすには、まず `GameRunner` をシーンに置きます。
 
 ## camera-cut | カメラのカットを作る
 types: CameraCutPlayer, CameraShot, ShotKind, ShotAim, CameraEase

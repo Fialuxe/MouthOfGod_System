@@ -296,7 +296,7 @@ foreach (IFieldRequests field in Fields.All)
 - 後から置かれたフィールドも受け取るには、`Fields.All` を見たあと、`Fields.Added` を購読します。
 - 出した欲しい物が終わった知らせは `Closed` です。`Resolved` が true なら届いて解決、false なら待ちきれずに終わった物です。
 - 待ちきれなかった物は、`Expire(番号)` で 1 つずつ終えます。番号は `RequestIssued.Request` です。
-- 2026-10-28 時点の Main シーンには、[`GameRunner`](Game.md#t-gamerunner) がありません。本編を動かすには、まず [`GameRunner`](Game.md#t-gamerunner) をシーンに置きます。
+- 2026-10-28 に確かめたとき、Main シーンには [`GameRunner`](Game.md#t-gamerunner) がありませんでした。本編を動かすには、まず [`GameRunner`](Game.md#t-gamerunner) をシーンに置きます。
 
 使う型: [`Fields`](Core.md#t-fields)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`RequestIssued`](Core.md#t-requestissued)、[`RequestClosed`](Core.md#t-requestclosed)、[`GameRunner`](Game.md#t-gamerunner)
 
