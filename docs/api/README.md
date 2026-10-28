@@ -23,21 +23,21 @@
 | 機能 | 役割 | 型の数 |
 |---|---|---|
 | [MouthOfGod.Core](Core.md) | 全体で共有する、小さな基盤です。他の asmdef に依存しません。ロジックは置かず、ID・イベントのデータ・interface・置き場だけを置きます。 | 23 |
-| [MouthOfGod.Device](Device.md) | 触感デバイスの入力です。`MockDevice` が、デバイスなしで、Quest のコントローラやキーボードで「噛む・決定する」を代わりにします。実機は、`IDevice` を実装して `Devices.Register` するだけで差し替わります。 | 3 |
+| [MouthOfGod.Device](Device.md) | 触感デバイスの入力です。`MockDevice` が、デバイスなしで、Quest のコントローラやキーボードで「噛む・決定する」を代わりにします。実機は、`IDevice` を実装して `Devices.Register` するだけで差し替わります。 | 4 |
 | [MouthOfGod.Fork](Fork.md) | 体験者が持つフォークです。雲を刺し、口に含み、決定で食べ終えるまでの状態を持ちます。 | 5 |
-| [MouthOfGod.Food](Food.md) | 食感から食べ物を引いて、生み、前へ飛ばします。「食感 → 食べ物」の表は、全フィールド共通の表（`Field Id` が空）と、フィールドごとの表に分けます。 | 7 |
-| [MouthOfGod.Village](Village.md) | フィールド（村・山・海・草原）の見た目の戻り方と、欲しい物です。物が落ちた場所の判定、届いたときの反応、立つ場所の判定も、ここにあります。 | 17 |
+| [MouthOfGod.Food](Food.md) | 決定した食感を元に、どの食べ物が生まれるかを表で調べます。その食べ物を口の位置に作り、前へ飛ばします。「食感 → 食べ物」の表は、全フィールド共通の表（`Field Id` が空）と、フィールドごとの表に分けます。 | 7 |
+| [MouthOfGod.Village](Village.md) | 村・山・海・草原の 4 つのフィールドを扱います。フィールドは、欲しい物を出します。欲しい物が届くと、見た目が少しずつ元に戻ります。物が落ちた場所の判定、届いたときの反応、立つ場所の判定も、ここにあります。 | 17 |
 | [MouthOfGod.UI](UI.md) | 表示の部品です。Core のイベントと合図を受けます。 | 7 |
 | [MouthOfGod.Miko](Miko.md) | 巫女です。浮いて、体験者の方を向き、しゃべり、表情を変え、指さし、体験者についてきます。身振りは Animator が担当します。 | 13 |
 | [MouthOfGod.Tutorial](Tutorial.md) | プロローグとチュートリアル 1〜4 を進めます。1 チュートリアル = 1 つの `TutorialScript`（人形劇スクリプト）を、`TutorialRunner` が順に動かします。 | 24 |
 | [MouthOfGod.Game](Game.md) | 本編の進行です。チュートリアルが終わったら本編を始め、制限時間が来たら終わらせます。 | 3 |
 | [MouthOfGod.Tracking](Tracking.md) | AprilTag とハンドトラッキングで、位置を合わせます。ほかの機能には、`Transform` と追跡中かどうかだけを渡します。 | 12 |
 | [MouthOfGod.CameraWork](CameraWork.md) | 付けたオブジェクト（カメラなど）を、決めた軌道と速さで動かします。直線・ベジェ曲線・円弧・待ちのカットをつなぎ、緩急・向き・ズームを Inspector で決めます。村のカットを置くメニューは、`MouthOfGod/CameraWork/Add Village Tour` と `Add Village Zoom-Out` です。 | 8 |
-| [MouthOfGod.DevTools](DevTools.md) | Quest なしで試すための道具です。展示では使いません。 | 7 |
+| [MouthOfGod.DevTools](DevTools.md) | Quest なしで試すための道具です。展示では使いません。 | 5 |
 
 ## すべての型
 
-<details><summary>名前順の一覧を開く（129 個）</summary>
+<details><summary>名前順の一覧を開く（128 個）</summary>
 
 | 型 | 機能 | 役割 | 説明 |
 |---|---|---|---|
@@ -99,8 +99,6 @@
 | [`IFoodSpawner`](Core.md#t-ifoodspawner) | Core | interface | 決定した食感から食べ物を生む所。 |
 | [`IFork`](Core.md#t-ifork) | Core | interface | 体験者が持つフォーク。 |
 | [`ImageIntrinsics`](Tracking.md#t-imageintrinsics) | Tracking | データ | 現在の画像（ピクセル）に換算した内部パラメータ。 |
-| [`MainSeaSwapper`](DevTools.md#t-mainseaswapper) | DevTools | エディタ | 共有シーン（Main）の仮の海（Misc/Sea(Temporal)）を、完成版の海（Sea/Sea_work）に入れ替える（#329・#338）。 |
-| [`MainSeaVillagerResizer`](DevTools.md#t-mainseavillagerresizer) | DevTools | エディタ | 共有シーン（Main）の海の村人の背の高さを、村の村人の平均に合わせる。 |
 | [`MikoCueReceiver`](Miko.md#t-mikocuereceiver) | Miko | コンポーネント | 合図（Cues）のうち、名前が miko. で始まるものを受けて、巫女に身振りをさせる。 |
 | [`MikoExpression`](Miko.md#t-mikoexpression) | Miko | 選択肢（enum） | 表情。 |
 | [`MikoEye`](Miko.md#t-mikoeye) | Miko | 選択肢（enum） | 目の形（Miko_Eyes.png の絵の順番）。 |
@@ -117,8 +115,9 @@
 | [`MockDevice`](Device.md#t-mockdevice) | Device | コンポーネント | デバイスなしで動かす IDevice。 |
 | [`MockDeviceModel`](Device.md#t-mockdevicemodel) | Device | コンポーネント | MockDevice の雑な見た目。 |
 | [`MockDevicePrefabGenerator`](Device.md#t-mockdeviceprefabgenerator) | Device | エディタ | MockDevice の Prefab を Assets/Resources/Prefabs/Device/ に作る。 |
-| [`MountDeliveryZoneAdder`](DevTools.md#t-mountdeliveryzoneadder) | DevTools | エディタ | 山の Main 用 Prefab（Misc/MountVer2 Variant）に、届ける場所（DeliveryZone）と、それを受けるトリガーの箱を足す。 |
+| [`MockInputMode`](Device.md#t-mockinputmode) | Device | 選択肢（enum） | Mock を何で操作するか。 |
 | [`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial) | Tutorial | 試験用 | チュートリアルが終わったら、すべてのフィールドに、欲しい物をいっぺんに出す仮のスクリプト。 |
+| [`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu) | DevTools | エディタ | Play 中に使うメニュー。 |
 | [`PhaseId`](Core.md#t-phaseid) | Core | データ | いまの場面（チュートリアルの名前、本編、エンディングなど）の ID。 |
 | [`Phases`](Core.md#t-phases) | Core | static（置き場・計算） | いまの場面（チュートリアルの名前、本編、エンディングなど）の置き場。 |
 | [`PoseCalibrator`](Tracking.md#t-posecalibrator) | Tracking | クラス | 複数の観測を集め、外れ値を除いて平均した 1 つの姿勢を返す。 |

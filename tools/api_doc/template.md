@@ -191,8 +191,8 @@ flowchart LR
 - `TutorialRunner` は、子の `TutorialScript` を、Hierarchy の順に 1 つずつ動かします。動かす間、`Phases` を各スクリプトの場面にします。例外が出たスクリプトは、そこでやめて、次へ進みます。
 - 全部終わると、`Phases` を空に戻し、`Finished` を出します。
 - `GameRunner` は、場面 `deliver` のあとに場面が空になったとき、本編を始めます（After Phase の既定は `deliver`）。`TutorialRunner` の型は、参照しません。
-- `TutorialRunner.Skip()` は、チュートリアルを飛ばして、全部終わった扱いにします。まず、動いていれば止め、`Memory` を空にし、全フィールドを `Restart` します。次に、`<フィールド>.glow-off`・`<フィールド>.footprint-off`・`miko.stay` の合図を出します。最後に、場面を Skip Phase（既定 `deliver`）から空の場面へ進め、`Finished` を出します。
-- Skip で本編が始まるには、シーンに `GameRunner` が必要です。**2026-10-28 に確かめたとき、Main シーンには `GameRunner` がありませんでした**（第 3 章）。
+- `TutorialRunner.Skip()` は、チュートリアルを飛ばして、全部終わった扱いにします。まず、動いていれば止めます。次に、`Memory` を空にし、全フィールドを `Restart` します。続けて、`<フィールド>.glow-off`・`<フィールド>.footprint-off`・`miko.stay` の合図を出します。最後に、場面を Skip Phase（既定 `deliver`）から空の場面へ進め、`Finished` を出します。
+- Skip で本編が始まるには、シーンに `GameRunner` が必要です。Main シーンには置いてあります（第 3 章）。
 
 ### 2.7 ID の型
 
@@ -259,9 +259,11 @@ Prefab として置かれている物と、その中のコンポーネントで�
 - 村人は、各フィールドの子に `VillagerMood` として置かれます。`FieldStep` の Helped に入れた村人が、そのステップが済むまで悩みます。
 - 食べ物の Prefab は、`Resources/Prefabs/Food/` にあります（apple、carrot、chestnut、chicken、cow、fish、mushroom、pig、pumpkin、sheep、shell、shrimp、tomato、turnip）。ファイル名が食べ物の ID です。
 
-### 3.3 Main にまだ無いもの
+### 3.3 Main の本編の設定
 
-- `GameRunner` と `RemainingTimeText`: シーンにも Prefab にもありません。置かないと、チュートリアルが終わっても本編（`main-game`）は始まりません。`TutorialRunner.Skip()` も、同じです。
+- Main のルートに `GameRunner` があります。チュートリアルの最後の場面（`deliver`）が終わると、本編（`main-game`）が始まります。制限時間は 120 秒です。
+- 残り時間を画面に出す `RemainingTimeText` は、まだ置いていません。
+- どのフィールドも、Max Open Requests をステップの数にそろえています。村と草原は 4、山と海は 3 です。このため、欲しい物を全部同時に出せます。
 - 自動で置かれる物（1.3 節）は、手で置く必要がありません。
 
 ## 4. 機能別リファレンス
@@ -304,7 +306,7 @@ Prefab として置かれている物と、その中のコンポーネントで�
 
 ### 4.4 Food
 
-食感から食べ物を引いて、生み、前へ飛ばします。「食感 → 食べ物」の表は、全フィールド共通の表（`Field Id` が空）と、フィールドごとの表に分けます。
+決定した食感を元に、どの食べ物が生まれるかを表で調べます。その食べ物を口の位置に作り、前へ飛ばします。「食感 → 食べ物」の表は、全フィールド共通の表（`Field Id` が空）と、フィールドごとの表に分けます。
 
 {{MODULE: Food}}
 
@@ -314,7 +316,7 @@ Prefab として置かれている物と、その中のコンポーネントで�
 
 ### 4.5 Village
 
-フィールド（村・山・海・草原）の見た目の戻り方と、欲しい物です。物が落ちた場所の判定、届いたときの反応、立つ場所の判定も、ここにあります。
+村・山・海・草原の 4 つのフィールドを扱います。フィールドは、欲しい物を出します。欲しい物が届くと、見た目が少しずつ元に戻ります。物が落ちた場所の判定、届いたときの反応、立つ場所の判定も、ここにあります。
 
 {{MODULE: Village}}
 

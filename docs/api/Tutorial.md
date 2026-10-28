@@ -1117,6 +1117,7 @@ flowchart LR
 flowchart LR
   C_TutorialRunner["TutorialRunner<br/>Tutorial"]:::me
   U_OpenAllRequestsAfterTutorial["OpenAllRequestsAfterTutorial<br/>Tutorial"] --> C_TutorialRunner
+  U_OpenAllRequestsMenu["OpenAllRequestsMenu<br/>DevTools"] --> C_TutorialRunner
   U_TutorialAutoStart["TutorialAutoStart<br/>Tutorial"] --> C_TutorialRunner
   U_TutorialDebugHud["TutorialDebugHud<br/>DevTools"] --> C_TutorialRunner
   U_TutorialTestSceneBuilder["TutorialTestSceneBuilder<br/>DevTools"] --> C_TutorialRunner
@@ -1132,7 +1133,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`OpenAllRequestsAfterTutorial`](#t-openallrequestsaftertutorial)、[`TutorialAutoStart`](#t-tutorialautostart)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)
+- この型を使う所: [`OpenAllRequestsAfterTutorial`](#t-openallrequestsaftertutorial)、[`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu)、[`TutorialAutoStart`](#t-tutorialautostart)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)
 - この型が使う型: [`CueId`](Core.md#t-cueid)、[`Cues`](Core.md#t-cues)、[`Fields`](Core.md#t-fields)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`PhaseId`](Core.md#t-phaseid)、[`Phases`](Core.md#t-phases)、[`TutorialHistory`](#t-tutorialhistory)、[`TutorialMemory`](#t-tutorialmemory)、[`TutorialScript`](#t-tutorialscript)
 
 ### この型を使う手順

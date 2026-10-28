@@ -6,6 +6,8 @@ namespace MouthOfGod.Device
     /// <summary>
     /// MockDevice の雑な見た目。細長い棒で、先端に内容量（%）を出す。
     /// 手（Quest のハンドトラッキング）を握ると、手に付いて保持される。離すとその場に残る。
+    /// MockDevice の Input Mode が RightController のときは、握らなくても、右コントローラ（RightHandAnchor）に付いたままにする（片手で操作するため）。
+    /// Hand のときは手の握りだけ、Any のときは手の握り・右グリップ・G キーのどれでも持つ。
     /// 見た目だけで、IDevice のイベントには関わらない。
     /// </summary>
     [RequireComponent(typeof(MockDevice))]
@@ -67,6 +69,19 @@ namespace MouthOfGod.Device
             _confirmedUntil = Time.time + 1f;
         }
 
+        // 握りの強さ。モードに合う出どころ（Hand モードなら手とキーボード）の操作だけを見る。
+        float GraspValue()
+        {
+            if (_device.InputMode == MockInputMode.Any) return graspAction.ReadValue<float>();
+            float best = 0f;
+            foreach (InputControl control in graspAction.controls)
+            {
+                if (!MockInput.Accepts(_device.InputMode, graspAction, control)) continue;
+                if (control is UnityEngine.InputSystem.Controls.AxisControl axis) best = Mathf.Max(best, axis.ReadValue());
+            }
+            return best;
+        }
+
         /// <summary>棒と先端の表示を、子として作る。Prefab を作るメニュー（エディタ）からも呼ぶ。</summary>
         internal void BuildModel()
         {
@@ -111,7 +126,7 @@ namespace MouthOfGod.Device
                 if (found != null) handAnchor = found.transform;
             }
 
-            _holding = handAnchor != null && graspAction.ReadValue<float>() >= graspThreshold;
+            _holding = handAnchor != null && (_device.InputMode == MockInputMode.RightController || GraspValue() >= graspThreshold);
             if (_holding) transform.SetPositionAndRotation(handAnchor.position, handAnchor.rotation);
 
             // 先端: 1 行目に食感（噛んでいる間は *）か決定、2 行目に内容量。
