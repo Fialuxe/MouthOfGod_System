@@ -1,0 +1,380 @@
+<title>MouthOfGod API</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* 配置: 上に細い帯、左に名前空間と型の一覧、右に Javadoc 風の型のページ（概要の表 → 詳細）。幅が狭いと一覧は引き出しになる */
+:root {
+  --bg: #f3f5f8;
+  --panel: #ffffff;
+  --ink: #1b2733;
+  --muted: #5a6978;
+  --line: #d5dce4;
+  --accent: #1d5ca8;
+  --mark: #d4691a;
+  --band: #dde7f1;
+  --band-ink: #1f3550;
+  --bar: #1f3550;
+  --bar-ink: #f2f6fa;
+  --code-bg: #eaeff5;
+  --hit: #fff1c9;
+  --sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12181f; --panel: #1a222b; --ink: #e4eaf0; --muted: #9aa9b8; --line: #2c3947; --accent: #7db4f0; --mark: #f0993f;
+    --band: #243447; --band-ink: #d7e4f2; --bar: #0d131a; --bar-ink: #e4eaf0; --code-bg: #232e3a; --hit: #4a3f1a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12181f; --panel: #1a222b; --ink: #e4eaf0; --muted: #9aa9b8; --line: #2c3947; --accent: #7db4f0; --mark: #f0993f;
+  --band: #243447; --band-ink: #d7e4f2; --bar: #0d131a; --bar-ink: #e4eaf0; --code-bg: #232e3a; --hit: #4a3f1a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.75 var(--sans); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre, .mono { font-family: var(--mono); font-size: 0.9em; }
+code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; }
+pre { background: var(--code-bg); padding: 12px 14px; border-radius: 4px; overflow-x: auto; line-height: 1.55; }
+pre code { background: none; padding: 0; }
+.app { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); height: 100%; }
+.bar { background: var(--bar); color: var(--bar-ink); display: flex; align-items: center; gap: 14px; padding-block: 8px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.bar h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: 0.02em; white-space: nowrap; }
+.bar h1 small { font-weight: 400; opacity: 0.7; margin-left: 8px; font-size: 12px; }
+.bar input { flex: 1; min-width: 0; max-width: 360px; background: rgba(255,255,255,0.12); color: inherit; border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 4px; padding: 5px 10px; font: inherit; font-size: 14px; }
+.bar input::placeholder { color: rgba(255,255,255,0.6); }
+.bar button { background: none; border: 1px solid rgba(255,255,255,0.3); color: inherit; border-radius: 4px; padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+.bar .grow { flex: 1; }
+.menu-btn { display: none; }
+.shell { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: 0; }
+nav { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; padding: 12px 0 40px; font-size: 13.5px; line-height: 1.5; }
+nav h2 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 14px 16px 4px; font-weight: 500; }
+nav a { display: block; padding: 3px 16px; color: var(--ink); }
+nav a:hover { background: var(--band); text-decoration: none; }
+nav a.on { background: var(--band); color: var(--band-ink); font-weight: 700; box-shadow: inset 3px 0 0 var(--mark); }
+nav a.t { padding-left: 28px; font-family: var(--mono); font-size: 12.5px; }
+nav a.t.sub { padding-left: 40px; color: var(--muted); }
+nav a.mod { font-weight: 700; margin-top: 6px; }
+nav .count { color: var(--muted); font-weight: 400; font-size: 11px; margin-left: 6px; }
+nav details > summary { cursor: pointer; padding: 3px 16px 3px 28px; color: var(--muted); font-size: 12px; }
+main { overflow-y: auto; min-width: 0; padding-block: 24px 80px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+.page { max-width: 1040px; }
+.crumb { font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+.title { font-size: 26px; line-height: 1.3; margin: 0 0 6px; padding-bottom: 8px; border-bottom: 3px solid var(--mark); font-weight: 700; text-wrap: balance; }
+.title .kind { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--mark); margin-right: 10px; }
+.title .tname { font-family: var(--mono); }
+.meta { margin: 10px 0 14px; display: grid; gap: 3px; font-size: 13.5px; }
+.meta code { word-break: break-all; }
+.meta b { display: inline-block; min-width: 5.5em; color: var(--muted); font-weight: 500; }
+.lead { font-size: 16px; margin: 14px 0 22px; }
+h2.sec { font-size: 15px; background: var(--band); color: var(--band-ink); margin: 26px 0 0; padding: 6px 12px; border: 1px solid var(--line); border-bottom: 0; font-weight: 700; }
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); margin-bottom: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-top: 1px solid var(--line); }
+tr:first-child th, tr:first-child td { border-top: 0; }
+th { font-weight: 500; color: var(--muted); font-size: 12.5px; background: color-mix(in srgb, var(--band) 45%, var(--panel)); white-space: nowrap; }
+td.ret { white-space: nowrap; font-family: var(--mono); font-size: 12.5px; color: var(--muted); width: 1%; }
+td.nm { font-family: var(--mono); font-size: 13px; }
+td.nm a { font-weight: 500; }
+td.nm .brief { display: block; font-family: var(--sans); font-size: 13.5px; color: var(--ink); margin-top: 2px; font-weight: 400; }
+tr.grp td { background: color-mix(in srgb, var(--band) 30%, var(--panel)); font-weight: 700; font-size: 12.5px; color: var(--band-ink); }
+.chip { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; margin-right: 4px; color: var(--muted); }
+.det { background: var(--panel); border: 1px solid var(--line); border-top: 0; padding: 4px 16px 6px; }
+.det article { padding: 12px 0; border-top: 1px solid var(--line); scroll-margin-top: 12px; }
+.det article:first-child { border-top: 0; }
+.det h3 { margin: 0 0 6px; font-family: var(--mono); font-size: 15px; font-weight: 500; }
+.det pre { margin: 6px 0; font-size: 13px; }
+.det p { margin: 6px 0 0; }
+.hit { background: var(--hit); }
+.prose h1 { font-size: 26px; border-bottom: 3px solid var(--mark); padding-bottom: 8px; margin: 0 0 14px; }
+.prose h2 { font-size: 20px; margin: 30px 0 10px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+.prose h3 { font-size: 16.5px; margin: 24px 0 8px; }
+.prose .tablewrap, .prose pre { margin: 12px 0; }
+.prose table { background: var(--panel); }
+.prose blockquote { margin: 12px 0; padding: 4px 14px; border-left: 3px solid var(--mark); background: var(--panel); color: var(--muted); }
+.prose p, .prose li { max-width: 72ch; }
+.prose table p { max-width: none; }
+.prose ul, .prose ol { padding-left: 1.4em; }
+.pre-mermaid { background: var(--panel); border: 1px solid var(--line); padding: 12px; overflow-x: auto; }
+.results a { display: block; padding: 4px 16px; font-family: var(--mono); font-size: 12.5px; }
+.results small { display: block; color: var(--muted); font-family: var(--sans); }
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  nav { position: fixed; z-index: 20; inset: 0 20% 0 0; transform: translateX(-102%); transition: transform .18s; box-shadow: 2px 0 12px rgba(0,0,0,.3);
+    padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+  body.open nav { transform: none; }
+  .menu-btn { display: inline-block; }
+  .bar h1 small { display: none; }
+  main { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { nav { transition: none; } }
+:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+</style>
+<div class="app">
+  <header class="bar">
+    <button class="menu-btn" id="menu" aria-label="一覧を開く">一覧</button>
+    <h1>MouthOfGod API<small>スクリプトリファレンス（2026-10-28）</small></h1>
+    <input id="q" type="search" placeholder="型・メンバーを検索（例: Spawn）" autocomplete="off" aria-label="検索">
+    <span class="grow"></span>
+    <button id="theme" aria-label="表示の明るさを切り替える">明暗</button>
+  </header>
+  <div class="shell">
+    <nav id="nav" aria-label="型の一覧"></nav>
+    <main id="main"></main>
+  </div>
+</div>
+<script>
+const DATA = /*DATA*/null;
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const byName = new Map(), byId = new Map();
+for (const t of DATA.types) { if (!byName.has(t.name)) byName.set(t.name, t); byId.set(t.id, t); }
+const KIND = { class: "class", struct: "struct", interface: "interface", enum: "enum" };
+const SECTION = { Runtime: "", Editor: "エディタ専用", Sandbox: "試験用" };
+// 文章用の小さな Markdown 変換（見出し・段落・箇条書き・表・コード・引用・太字・リンク）。外部のライブラリは使わない。
+function inline(t) {
+  const codes = [];
+  t = t.replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return "\u0000" + (codes.length - 1) + "\u0000"; });
+  t = esc(t).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  return t.replace(/\u0000(\d+)\u0000/g, (_, i) => "<code>" + esc(codes[+i]) + "</code>");
+}
+function mdToHtml(src) {
+  const lines = src.replace(/\r/g, "").split("\n"); const out = []; let i = 0;
+  const isTable = l => /^\s*\|.*\|\s*$/.test(l);
+  while (i < lines.length) {
+    const l = lines[i];
+    if (!l.trim()) { i++; continue; }
+    let m;
+    if ((m = l.match(/^```(\w*)/))) {
+      const buf = []; i++;
+      while (i < lines.length && !lines[i].startsWith("```")) buf.push(lines[i++]);
+      i++; out.push(`<pre><code class="language-${m[1]}">${esc(buf.join("\n"))}</code></pre>`); continue;
+    }
+    if ((m = l.match(/^(#{1,4})\s+(.*)$/))) { out.push(`<h${m[1].length}>${inline(m[2])}</h${m[1].length}>`); i++; continue; }
+    if (isTable(l) && i + 1 < lines.length && /^\s*\|[\s|:-]+\|\s*$/.test(lines[i + 1])) {
+      const cells = r => r.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g, "|"));
+      const head = cells(l); i += 2; const rows = [];
+      while (i < lines.length && isTable(lines[i])) rows.push(cells(lines[i++]));
+      out.push(`<table><tr>${head.map(c => `<th>${inline(c)}</th>`).join("")}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</table>`); continue;
+    }
+    if (/^>\s?/.test(l)) { const buf = []; while (i < lines.length && /^>\s?/.test(lines[i])) buf.push(lines[i++].replace(/^>\s?/, "")); out.push(`<blockquote>${inline(buf.join(" "))}</blockquote>`); continue; }
+    if (/^\s*([-*]|\d+\.)\s+/.test(l)) {
+      const ordered = /^\s*\d+\./.test(l); const items = [];
+      while (i < lines.length && (/^\s*([-*]|\d+\.)\s+/.test(lines[i]) || (/^\s{2,}\S/.test(lines[i]) && items.length))) {
+        const mm = lines[i].match(/^\s*([-*]|\d+\.)\s+(.*)$/);
+        if (mm) items.push(mm[2]); else items[items.length - 1] += " " + lines[i].trim();
+        i++;
+      }
+      out.push(`<${ordered ? "ol" : "ul"}>${items.map(x => `<li>${inline(x)}</li>`).join("")}</${ordered ? "ol" : "ul"}>`); continue;
+    }
+    const buf = [];
+    while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|```|>\s?|\s*([-*]|\d+\.)\s+|\s*\|)/.test(lines[i])) buf.push(lines[i++].trim());
+    if (!buf.length) { out.push(`<p>${inline(lines[i++])}</p>`); continue; }
+    out.push(`<p>${inline(buf.join(" "))}</p>`);
+  }
+  return out.join("\n");
+}
+
+// 型名を、型のページへのリンクにする（自分自身は除く）
+function linkTypes(text, self) {
+  return esc(text).replace(/[A-Za-z_][A-Za-z0-9_]*/g, w => (byName.has(w) && w !== self) ? `<a href="#${byName.get(w).id}">${w}</a>` : w);
+}
+function md(text) {
+  const el = document.createElement("div");
+  el.className = "prose";
+  el.innerHTML = mdToHtml(text);
+  el.querySelectorAll("table").forEach(t => { const w = document.createElement("div"); w.className = "tablewrap"; t.replaceWith(w); w.append(t); });
+  el.querySelectorAll("pre > code.language-mermaid").forEach(c => {
+    const pre = document.createElement("pre"); pre.className = "mermaid pre-mermaid"; pre.textContent = c.textContent; c.parentElement.replaceWith(pre);
+  });
+  el.querySelectorAll("code").forEach(c => {
+    if (c.parentElement.tagName === "PRE") return;
+    const name = c.textContent.replace(/[（(].*$/, "").replace(/^`|`$/g, "").split(".")[0];
+    const t = byName.get(c.textContent) || (c.textContent.includes(".") ? byName.get(name) : null);
+    if (t) { const a = document.createElement("a"); a.href = "#" + t.id; c.replaceWith(a); a.append(c); }
+  });
+  el.querySelectorAll("a[href^='http']").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+  return el;
+}
+
+// ---- 一覧 ----
+function buildNav(filter) {
+  const nav = $("#nav");
+  const q = (filter || "").trim().toLowerCase();
+  let h = "";
+  if (q) {
+    const hits = [];
+    for (const t of DATA.types) {
+      if (t.name.toLowerCase().includes(q)) hits.push([t, null, t.brief]);
+      for (const m of t.members) if (m.name.toLowerCase().includes(q)) hits.push([t, m, m.brief]);
+    }
+    h += `<h2>検索結果 ${hits.length} 件</h2><div class="results">`;
+    for (const [t, m, b] of hits.slice(0, 80)) h += `<a href="#${t.id}${m ? "" : ""}" data-m="${m ? esc(m.name) : ""}">${esc(t.name)}${m ? "." + esc(m.name) : ""}<small>${esc(b || "")}</small></a>`;
+    h += "</div>";
+    nav.innerHTML = h;
+    nav.querySelectorAll("a[data-m]").forEach(a => a.addEventListener("click", () => { window.__scrollMember = a.dataset.m; }));
+    return;
+  }
+  h += `<h2>ガイド</h2><a href="#overview" data-k="overview">概要</a>`;
+  for (const g of DATA.guide) h += `<a href="#${g.id}" data-k="${g.id}">${esc(g.title)}</a>`;
+  h += `<h2>名前空間</h2>`;
+  for (const mod of DATA.modules) {
+    const ts = DATA.types.filter(t => t.mod === mod).sort((a, b) => a.name.localeCompare(b.name));
+    h += `<a class="mod" href="#m-${mod}" data-k="m-${mod}">MouthOfGod.${mod}<span class="count">${ts.length}</span></a>`;
+    for (const t of ts.filter(t => t.sec === "Runtime")) h += `<a class="t${t.nested_in ? " sub" : ""}" href="#${t.id}" data-k="${t.id}">${esc(t.name)}</a>`;
+    const others = ts.filter(t => t.sec !== "Runtime");
+    if (others.length) h += `<details><summary>エディタ・試験用 ${others.length}</summary>` + others.map(t => `<a class="t" href="#${t.id}" data-k="${t.id}">${esc(t.name)}</a>`).join("") + `</details>`;
+  }
+  nav.innerHTML = h;
+}
+function markNav(id) {
+  document.querySelectorAll("#nav a.on").forEach(a => a.classList.remove("on"));
+  const a = $(`#nav a[data-k="${id}"]`);
+  if (a) { a.classList.add("on"); const d = a.closest("details"); if (d) d.open = true; a.scrollIntoView({ block: "nearest" }); }
+}
+
+// ---- ページ ----
+function table(head, rows, cls) {
+  return `<div class="tablewrap"><table class="${cls || ""}"><tr>${head.map(x => `<th>${x}</th>`).join("")}</tr>${rows.join("")}</table></div>`;
+}
+function typeTable(ts) {
+  return table(["型", "説明"], ts.map(t => `<tr><td class="nm"><a href="#${t.id}">${esc(t.name)}</a> <span class="chip">${KIND[t.kind]}</span></td><td>${esc(t.brief)}</td></tr>`));
+}
+function pageOverview() {
+  const pref = DATA.preface.replace(/^# .*\n/, "");
+  const wrap = document.createElement("div"); wrap.className = "page";
+  wrap.append(md("# スクリプト API リファレンス\n\n" + pref));
+  const mods = DATA.modules.map(m => {
+    const ts = DATA.types.filter(t => t.mod === m);
+    const intro = (DATA.intro[m] || "").split("\n")[0];
+    return `<tr><td class="nm"><a href="#m-${m}">MouthOfGod.${m}</a></td><td>${inline(intro)}</td><td>${ts.length}</td></tr>`;
+  });
+  const h = document.createElement("div");
+  h.innerHTML = `<h2 class="sec">名前空間（機能）</h2>` + table(["名前空間", "役割", "型の数"], mods) +
+    `<h2 class="sec">すべての型</h2>` + typeTable([...DATA.types].sort((a, b) => a.name.localeCompare(b.name)));
+  wrap.append(h);
+  return wrap;
+}
+function pageGuide(g) {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  wrap.append(md("# " + g.title + "\n\n" + g.md.replace(/^### /gm, "### ").replace(/^## /gm, "## ")));
+  return wrap;
+}
+function pageModule(mod) {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  const ts = DATA.types.filter(t => t.mod === mod);
+  const ns = [...new Set(ts.map(t => t.ns))].join("、");
+  wrap.innerHTML = `<div class="crumb">名前空間</div><h1 class="title"><span class="tname">MouthOfGod.${esc(mod)}</span></h1><div class="meta"><div><b>名前空間</b><code>${esc(ns)}</code></div></div>`;
+  if (DATA.intro[mod]) { const lead = md(DATA.intro[mod]); lead.classList.add("lead"); wrap.append(lead); }
+  for (const sec of ["Runtime", "Sandbox", "Editor"]) {
+    const g = ts.filter(t => t.sec === sec);
+    if (!g.length) continue;
+    const s = document.createElement("div");
+    s.innerHTML = `<h2 class="sec">${sec === "Runtime" ? "型" : SECTION[sec]}</h2>` + typeTable(g);
+    wrap.append(s);
+  }
+  return wrap;
+}
+function sigHtml(m, self) {
+  const mods = m.mods.map(x => `<span class="chip">${esc(x)}</span>`).join("");
+  return { mods, ret: linkTypes(m.rtype, self) };
+}
+function pageType(t) {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  const mods = t.mods.filter(x => x !== "readonly").join(" ");
+  let h = `<div class="crumb"><a href="#m-${t.mod}">MouthOfGod.${esc(t.mod)}</a>${t.ns === "MouthOfGod." + t.mod ? "" : " / " + esc(t.ns)}</div>`;
+  h += `<h1 class="title"><span class="kind">${esc((mods ? mods + " " : "") + KIND[t.kind])}</span><span class="tname">${esc(t.name)}</span></h1>`;
+  h += `<div class="meta">`;
+  if (t.bases.length) h += `<div><b>継承・実装</b>${t.bases.map(b => byName.has(b) ? `<a href="#${byName.get(b).id}"><code>${esc(b)}</code></a>` : `<code>${esc(b)}</code>`).join(" ")}</div>`;
+  if (t.attrs.length) h += `<div><b>属性</b>${t.attrs.map(a => `<code>${esc(a)}</code>`).join(" ")}</div>`;
+  if (t.nested_in) h += `<div><b>入れ子</b><a href="#${byName.get(t.nested_in)?.id}"><code>${esc(t.nested_in)}</code></a> の中の型</div>`;
+  h += `<div><b>ファイル</b><code>Assets/Scripts/${esc(t.file)}</code></div></div>`;
+  if (t.doc) h += `<p class="lead">${linkTypes(t.doc, t.name)}</p>`;
+  if (t.serializable) h += `<p class="lead">Inspector では、配列や List の 1 要素として見えます（<code>[Serializable]</code>）。</p>`;
+
+  if (t.values.length) h += `<h2 class="sec">値</h2>` + table(["値", "意味"], t.values.map(v => `<tr><td class="nm">${esc(v.name)}</td><td>${esc(v.doc)}</td></tr>`));
+  if (t.fields.length) {
+    let last = null, rows = [];
+    for (const f of t.fields) {
+      if (f.header && f.header !== last) rows.push(`<tr class="grp"><td colspan="4">${esc(f.header)}</td></tr>`);
+      last = f.header;
+      rows.push(`<tr><td class="nm" id="f-${esc(f.name)}">${esc(f.label)}</td><td class="ret">${linkTypes(f.type)}</td><td class="ret">${esc(f.default)}</td><td>${esc(f.tooltip)}</td></tr>`);
+    }
+    h += `<h2 class="sec">Inspector（${t.fields.length} 項目）</h2>` + table(["項目", "型", "既定値", "説明"], rows);
+  }
+  const groups = [["ctor", "コンストラクタ"], ["event", "イベント"], ["property", "プロパティ"], ["field", "定数・フィールド"], ["method", "メソッド"]];
+  const used = groups.filter(([k]) => t.members.some(m => m.kind === k));
+  const slug = (m, i) => "m-" + m.name + "-" + i;
+  if (used.length) {
+    h += `<h2 class="sec">メンバー概要</h2>`;
+    const rows = [];
+    for (const [k, label] of used) {
+      rows.push(`<tr class="grp"><td colspan="2">${label}</td></tr>`);
+      t.members.forEach((m, i) => {
+        if (m.kind !== k) return;
+        const s = sigHtml(m, t.name);
+        const args = m.kind === "method" || m.kind === "ctor" ? `(${linkTypes(m.params, t.name)})` : (m.acc ? ` <span class="chip">${esc(m.acc.replace(/\s+/g, " "))}</span>` : "");
+        rows.push(`<tr><td class="ret">${s.mods}${s.ret}</td><td class="nm"><a href="#${t.id}" data-go="${slug(m, i)}">${esc(m.name)}</a>${args}${m.brief ? `<span class="brief">${linkTypes(m.brief, t.name)}</span>` : ""}</td></tr>`);
+      });
+    }
+    h += table(["戻り値・型", "名前と説明"], rows);
+    h += `<h2 class="sec">メンバー詳細</h2><div class="det">`;
+    for (const [k, label] of used) {
+      t.members.forEach((m, i) => {
+        if (m.kind !== k) return;
+        const sig = `${m.mods.join(" ")} ${m.rtype} ${m.name}${m.kind === "method" || m.kind === "ctor" ? "(" + m.params + ")" : ""}${m.acc ? " { " + m.acc + " }" : ""}`.replace(/\s+/g, " ").trim();
+        h += `<article id="${slug(m, i)}" data-name="${esc(m.name)}"><h3>${esc(m.name)}</h3><pre><code>${esc(sig)}</code></pre>${m.doc ? `<p>${linkTypes(m.doc, t.name)}</p>` : `<p style="color:var(--muted)">説明はコードにありません。</p>`}</article>`;
+      });
+    }
+    h += `</div>`;
+  }
+  if (t.menus.length) h += `<h2 class="sec">メニュー</h2>` + table(["種類", "メニュー"], t.menus.map(m => `<tr><td>${m.kind === "ContextMenu" ? "右クリック" : "エディタ"}</td><td class="nm">${esc(m.path)}</td></tr>`));
+  const inner = document.createElement("div"); inner.innerHTML = h; wrap.append(inner);
+  wrap.querySelectorAll("a[data-go]").forEach(a => a.addEventListener("click", e => {
+    e.preventDefault(); const el = document.getElementById(a.dataset.go); if (el) { el.scrollIntoView({ block: "start" }); el.classList.add("hit"); setTimeout(() => el.classList.remove("hit"), 1600); }
+  }));
+  return wrap;
+}
+
+function route() {
+  const id = (location.hash || "#overview").slice(1);
+  const main = $("#main");
+  let page, navKey = id;
+  if (id === "overview") page = pageOverview();
+  else if (id.startsWith("g-")) { const g = DATA.guide.find(x => x.id === id); page = g ? pageGuide(g) : pageOverview(); }
+  else if (id.startsWith("m-")) page = pageModule(id.slice(2));
+  else if (byId.has(id)) page = pageType(byId.get(id));
+  else { page = pageOverview(); navKey = "overview"; }
+  main.replaceChildren(page);
+  main.scrollTop = 0;
+  markNav(navKey);
+  document.body.classList.remove("open");
+  document.title = id.startsWith("t-") && byId.has(id) ? byId.get(id).name + " | MouthOfGod API" : "MouthOfGod API";
+  if (window.__scrollMember) {
+    const el = main.querySelector(`article[data-name="${CSS.escape(window.__scrollMember)}"]`);
+    if (el) { el.scrollIntoView({ block: "start" }); el.classList.add("hit"); }
+    window.__scrollMember = null;
+  }
+  try { if (window.mermaid && main.querySelector(".mermaid")) window.mermaid.run({ querySelector: "#main .mermaid" }); } catch (e) { /* 図が出なくても、本文は読める */ }
+}
+
+buildNav("");
+window.addEventListener("hashchange", route);
+route();
+$("#q").addEventListener("input", e => { buildNav(e.target.value); if (!e.target.value) markNav((location.hash || "#overview").slice(1)); });
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") { const a = $("#nav .results a"); if (a) { window.__scrollMember = a.dataset.m || null; location.hash = a.getAttribute("href"); route(); } } });
+$("#menu").addEventListener("click", () => document.body.classList.toggle("open"));
+$("#theme").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("api-theme", root.dataset.theme); } catch (e) { /* 保存できなくても動く */ }
+});
+try { const s = localStorage.getItem("api-theme"); if (s) document.documentElement.dataset.theme = s; } catch (e) { /* 既定のまま */ }
+</script>

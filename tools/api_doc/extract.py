@@ -135,6 +135,8 @@ def parse(path):
         else:
             ok = re.match(r"(public|protected)\b", t)
         if ok and not t.startswith("[") and "class " not in t:
+            while t.count("(") > t.count(")") and i < len(src):
+                t += " " + src[i].strip(); i += 1
             sig = re.sub(r"\s*(=>|\{).*$", "", t).rstrip(";").strip()
             if re.match(r"(public|protected)\s+(const|static readonly)", t): sig = re.sub(r"\s*=.*$", "", t).rstrip(";")
             if "=" in sig and "(" not in sig and "event" not in sig: sig = sig.split("=")[0].strip()

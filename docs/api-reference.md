@@ -2456,7 +2456,7 @@ AprilTag とハンドトラッキングで、位置を合わせます。ほか�
 
 | メンバー | 説明 |
 |---|---|
-| `static ImageIntrinsics ToImageIntrinsics(` | センサー基準の内部パラメータを、現在の画像解像度の基準に換算する。画像は、センサーを中央でクロップして縮小したもの（Meta の PassthroughCameraAccess と同じ扱い）。 |
+| `static ImageIntrinsics ToImageIntrinsics( Vector2 sensorFocalLength, Vector2 sensorPrincipalPoint, Vector2Int sensorResolution, Vector2Int imageResolution)` | センサー基準の内部パラメータを、現在の画像解像度の基準に換算する。画像は、センサーを中央でクロップして縮小したもの（Meta の PassthroughCameraAccess と同じ扱い）。 |
 | `static float VerticalFovRadians(float focalLengthY, int imageHeight)` | AprilTag ライブラリに渡す、垂直方向の画角（ラジアン）。ライブラリは画素が正方形で主点が画像中央にあると仮定する。 |
 | `static Pose CameraLocalToWorld(Pose cameraWorldPose, Vector3 localPosition, Quaternion localRotation)` | カメラのローカル座標で得たタグの姿勢を、ワールド座標に直す。 |
 | `static Quaternion AlignNormalToVertical(Quaternion rotation, Vector3 localNormalAxis)` | タグの法線（タグ座標の localNormalAxis 軸）が鉛直になるように、傾きだけを取り除く。法線まわりの回転（水平なタグなら向き）は変えない。法線が上向きなら上、下向きなら下に揃える。水平な面に置いたタグ向け。壁など、法線が水平なタグには使わない。 |
