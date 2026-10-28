@@ -1,6 +1,6 @@
-"""Main シーンの実際の位置から、山 → 村へ引いていく「村の一連」のカットを確かめる。
+"""Main シーンの実際の位置から、草原 → 村へ引いていく「村の一連」のカットを確かめる。
 使い方: python3 village_tour.py [出力先.mp4]
-位置は Assets/Scenes/Main.unity と、入れ子の Prefab から読む（scene_loader.py）。山の高さなど、Mesh の大きさが要る所は目安。
+位置は Assets/Scenes/Main.unity と、入れ子の Prefab から読む（scene_loader.py）。山の円錐など、Mesh の大きさが要る所は目安。
 """
 import os, sys
 import numpy as np
@@ -17,8 +17,9 @@ def find(path_end, first=True):
 
 village = np.mean(find("Content/Village/Village/Plaza"), axis=0)
 mount = find("MountVer2/mount")[0]
+grass = find("Content/Grass/Tree1")[0]  # 草原の見どころ（木）
 camera0 = find("Main Camera")[0]
-print("village", village.round(2), "mount", mount.round(2), "player camera", camera0.round(2))
+print("village", village.round(2), "grass", grass.round(2), "player camera", camera0.round(2))
 
 # ---- ワイヤーのシーン（模型）----
 seg, col = [], []
@@ -42,27 +43,27 @@ for p in find("Content/Grass/Tree1") + find("Content/Grass/Bush1"): add(P.box(tu
 sea = find("Content/Sea_work/Terrain_sea")[0]; add(P.box((sea[0] + .27, .12, sea[2] + .27), (.28, .004, .28)), (80, 130, 220))
 add(P.box((-1.17, 1.21, .26), (.05, .1, .05)), (240, 120, 120))  # 巫女の待機位置
 
-# ---- 撮るカット: 山の稜線 → 引きながら回り込む → 村を見渡す ----
-summit = mount + np.array((0, 0.30, 0))
+# ---- 撮るカット: 草原 → 引きながら回り込む → 村を見渡す ----
+summit = grass + np.array((0, 0.05, 0))  # 草原の見る点
 vil = village + np.array((0, 0.03, 0))
 P.NEAR, P.FAR = 0.01, 2.8
 SHOTS = [
-    # 山肌に寄ったところから始める。視線は山頂
+    # 草原に寄ったところから始める。視線は木
     P.Shot("hold", seconds=0.8, aim="target", target=summit),
-    # 山頂を見ながら、上へ・外へ引き、見る点を山から村へ移す
+    # 木を見ながら、上へ・外へ引き、見る点を草原から村へ移す
     P.Shot("curve", seconds=5.0, ease_kind="inout", strength=2.0, aim="target", target=summit, aim_to=vil,
-           control=[mount + np.array((-0.55, 0.40, 0.25))], end=village + np.array((-0.62, 0.30, -0.35))),
+           control=[grass + np.array((0.35, 0.42, -0.55))], end=village + np.array((0.05, 0.30, -0.62))),
     # 村へ向かってゆっくり押しながら、村の一連（家・畑・広場）を見渡す
     P.Shot("orbit", seconds=4.5, ease_kind="inout", aim="target", target=vil, center=vil, angle=-110, radius_scale=0.8, height=-0.08),
     P.Shot("hold", seconds=0.8, aim="target", target=vil),
 ]
-start = mount + np.array((0.10, 0.17, 0.20))
+start = grass + np.array((0.20, 0.12, 0.17))
 frames = P.simulate(SHOTS, start, summit - start)
 
 if __name__ == "__main__":
     import subprocess
     out = sys.argv[1] if len(sys.argv) > 1 else "village_tour.mp4"
-    labels = ["1 hold(mountain)", "2 curve(pull back, mountain->village)", "3 orbit(village)", "4 hold(village)"]
+    labels = ["1 hold(grassland)", "2 curve(pull back, grassland->village)", "3 orbit(village)", "4 hold(village)"]
     proc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{P.W}x{P.H}",
                              "-r", str(P.FPS), "-i", "-", "-pix_fmt", "yuv420p", out], stdin=subprocess.PIPE)
     for n, fr in enumerate(frames):

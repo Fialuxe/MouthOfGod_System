@@ -4,52 +4,52 @@ using UnityEngine;
 namespace MouthOfGod.CameraWork.Editor
 {
     /// <summary>
-    /// 山から村へ引いていく「村の一連」のカットを、開いているシーンに組む。
-    /// 山（<c>MinitureBase/Content/MountVer2/mount</c>）と村（<c>.../Village/Village/Plaza</c>）の位置から、目印とカメラを置く。
+    /// 草原から村へ引いていく「村の一連」のカットを、開いているシーンに組む。
+    /// 草原（<c>MinitureBase/Content/Grass/Tree1</c>）と村（<c>.../Village/Village/Plaza</c>）の位置から、目印とカメラを置く。
     /// 動きの確認は tools/camera_preview/village_tour.py（同じ位置・同じカット）。
     /// </summary>
     public static class VillageTourBuilder
     {
-        const string MountPath = "MinitureBase/Content/MountVer2/mount";
+        const string GrassPath = "MinitureBase/Content/Grass/Tree1";
         const string VillagePath = "MinitureBase/Content/Village/Village/Plaza";
 
         [MenuItem("MouthOfGod/CameraWork/Add Village Tour")]
         static void Build()
         {
-            GameObject mount = GameObject.Find(MountPath);
+            GameObject grass = GameObject.Find(GrassPath);
             GameObject village = GameObject.Find(VillagePath);
-            if (mount == null || village == null)
+            if (grass == null || village == null)
             {
-                Debug.LogWarning("[VillageTour] 山か村が見つかりません（" + MountPath + " / " + VillagePath + "）。Main シーンを開いて実行してください。");
+                Debug.LogWarning("[VillageTour] 草原か村が見つかりません（" + GrassPath + " / " + VillagePath + "）。Main シーンを開いて実行してください。");
                 return;
             }
 
-            Vector3 m = mount.transform.position;
+            Vector3 g = grass.transform.position;
             Vector3 v = village.transform.position;
 
             var root = new GameObject("VillageTour");
             Undo.RegisterCreatedObjectUndo(root, "Add Village Tour");
-            Transform summit = Marker(root, "Summit", m + new Vector3(0f, 0.30f, 0f));
+            Transform grassLook = Marker(root, "GrassLook", g + new Vector3(0f, 0.05f, 0f));
             Transform villageLook = Marker(root, "VillageLook", v + new Vector3(0f, 0.03f, 0f));
-            Transform bend = Marker(root, "Bend", m + new Vector3(-0.55f, 0.40f, 0.25f));
-            Transform pulledBack = Marker(root, "PulledBack", v + new Vector3(-0.62f, 0.30f, -0.35f));
+            Transform bend = Marker(root, "Bend", g + new Vector3(0.35f, 0.42f, -0.55f));
+            Transform pulledBack = Marker(root, "PulledBack", v + new Vector3(0.05f, 0.30f, -0.62f));
 
             var camera = new GameObject("TourCamera");
             camera.transform.SetParent(root.transform, false);
             camera.AddComponent<Camera>().nearClipPlane = 0.01f;
-            Vector3 start = m + new Vector3(0.10f, 0.17f, 0.20f);
-            camera.transform.SetPositionAndRotation(start, Quaternion.LookRotation(summit.position - start));
+            Vector3 start = g + new Vector3(0.20f, 0.12f, 0.17f);
+            camera.transform.SetPositionAndRotation(start, Quaternion.LookRotation(grassLook.position - start));
             camera.SetActive(false); // 撮るときに有効にする（VR の Main Camera とは別の、カット用のカメラ）
 
             var player = camera.AddComponent<CameraCutPlayer>();
             player.Shots = new[]
             {
-                new CameraShot { name = "山を見る", kind = ShotKind.Hold, seconds = 0.8f, aim = ShotAim.LookAtTarget, aimTarget = summit },
+                new CameraShot { name = "草原を見る", kind = ShotKind.Hold, seconds = 0.8f, aim = ShotAim.LookAtTarget, aimTarget = grassLook },
                 new CameraShot
                 {
-                    name = "山から引く", kind = ShotKind.Curve, seconds = 5f, ease = CameraEase.EaseInOut, easeStrength = 2f,
+                    name = "草原から引く", kind = ShotKind.Curve, seconds = 5f, ease = CameraEase.EaseInOut, easeStrength = 2f,
                     end = pulledBack, controlPoints = new[] { bend },
-                    aim = ShotAim.LookAtTarget, aimTarget = summit, aimTargetEnd = villageLook,
+                    aim = ShotAim.LookAtTarget, aimTarget = grassLook, aimTargetEnd = villageLook,
                 },
                 new CameraShot
                 {
