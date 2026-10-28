@@ -23,7 +23,7 @@ namespace MouthOfGod.Food
         [Tooltip("食べ物が生まれる位置と向き（口の位置。MouthAnchor を置いたら、ここに入れる）。空なら、このオブジェクトの位置と向き")]
         [SerializeField] Transform spawnPoint;
 
-        [Tooltip("生んだ食べ物を、この子として置く（Hierarchy が散らからない・まとめて消せる）。位置と向きは Spawn Point のまま。空なら、シーンの直下")]
+        [Tooltip("生んだ食べ物を、この子として置く（Hierarchy が散らからない・まとめて消せる）。位置と向きは Spawn Point のまま。空なら、シーンの直下。動く物や、拡大縮小した物（ミニチュアの台など）の子にすると、飛んでいる食べ物も一緒に動き・大きさが変わるので、動かない・倍率 1 の空の GameObject を入れる")]
         [SerializeField] Transform foodParent;
 
         [Tooltip("生んだ食べ物に、Spawn Point の前向きに与える初速（m/s）。0 以下、または食べ物に Rigidbody がなければ、与えない。そのあとの動きは、食べ物の Rigidbody（Mass など）しだい")]

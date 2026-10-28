@@ -24,7 +24,7 @@ namespace MouthOfGod.Miko
         [SerializeField] float followHeight = -0.15f; // 目の高さから、この高さ
         [SerializeField] float followSpeed = 2.5f; // 追いつく速さ（m / 秒）
         [SerializeField] float followDeadZone = 0.4f; // 目標から横にこの距離までは、動かない
-        [SerializeField, Range(0f, 1f)] float followPitch = 0.6f; // 顔の上下の向きを取り入れる割合（0 で水平、1 で顔の向きどおり）
+        [SerializeField, Range(0f, 1f)] float followPitch; // 顔の上下の向きを取り入れる割合（0 で水平、1 で顔の向きどおり）。体験者は台を見下ろすことが多く、上げると巫女が台の上へ降りてきて、ミニチュアを隠すので、既定は 0
         [SerializeField] float followHeightSpeed = 3f; // 高さを追いつく速さ（m / 秒）
         [SerializeField] float followHeightDeadZone = 0.08f; // 目標から高さにこの距離までは、動かない
 
