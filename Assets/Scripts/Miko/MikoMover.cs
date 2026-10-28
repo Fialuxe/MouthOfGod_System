@@ -28,7 +28,11 @@ namespace MouthOfGod.Miko
         [SerializeField] float followHeightSpeed = 3f; // 高さを追いつく速さ（m / 秒）
         [SerializeField] float followHeightDeadZone = 0.08f; // 目標から高さにこの距離までは、動かない
 
+        [Header("なめらかさ")]
+        [SerializeField, Min(0.01f)] float smoothTime = 0.45f; // 目標に追いつくまでの目安（秒）。大きいほど、ゆったり動く
+
         MikoFloat _float;
+        Vector3 _velocity; // なめらかに動かすための、いまの速さ
         Transform _goal;
         MikoMode _modeAfterGo; // Go に入る前の居方。着いたら、ここへ戻る（ついてきていたなら、またついてくる）
 
@@ -39,6 +43,7 @@ namespace MouthOfGod.Miko
         /// <summary>その場にいる。</summary>
         public void Stay()
         {
+            _velocity = Vector3.zero;
             mode = MikoMode.Stay;
             _goal = null;
         }
@@ -66,7 +71,7 @@ namespace MouthOfGod.Miko
             {
                 case MikoMode.Go:
                     if (_goal == null) { mode = _modeAfterGo; break; }
-                    _float.Anchor = Vector3.MoveTowards(_float.Anchor, _goal.position, moveSpeed * Time.deltaTime);
+                    _float.Anchor = Vector3.SmoothDamp(_float.Anchor, _goal.position, ref _velocity, smoothTime, moveSpeed);
                     if ((_float.Anchor - _goal.position).sqrMagnitude < 1e-4f)
                     {
                         mode = _modeAfterGo;
@@ -92,23 +97,30 @@ namespace MouthOfGod.Miko
             var right = Vector3.Cross(Vector3.up, flat);
             var wanted = camera.transform.position + aim * followDistance + right * followSide + Vector3.up * followHeight;
 
-            // 横と高さを分けて追う。高さは、小さなずれでも、速く追いつく（目の高さが変わっても巫女が置いていかれない）
+            // 横と高さを分けて追う。不感帯の中では目標を動かさず、速さをなめらかに 0 へ落とす。
+            // 高さは、小さなずれでも、速く追いつく（目の高さが変わっても巫女が置いていかれない）
             var current = _float.Anchor;
             var gap = wanted - current;
             var flatGap = new Vector2(gap.x, gap.z);
-            var next = current;
+            var goal = current;
             if (flatGap.magnitude > followDeadZone)
             {
-                var goal2 = flatGap - flatGap.normalized * followDeadZone * 0.5f;
-                var step = Vector2.ClampMagnitude(goal2, followSpeed * Time.deltaTime);
-                next.x += step.x;
-                next.z += step.y;
+                var g = flatGap - flatGap.normalized * followDeadZone * 0.5f;
+                goal.x += g.x;
+                goal.z += g.y;
             }
             if (Mathf.Abs(gap.y) > followHeightDeadZone)
-            {
-                var goalY = gap.y - Mathf.Sign(gap.y) * followHeightDeadZone * 0.5f;
-                next.y += Mathf.Clamp(goalY, -followHeightSpeed * Time.deltaTime, followHeightSpeed * Time.deltaTime);
-            }
+                goal.y += gap.y - Mathf.Sign(gap.y) * followHeightDeadZone * 0.5f;
+
+            var next = current;
+            var flatNow = new Vector2(current.x, current.z);
+            var flatVel = new Vector2(_velocity.x, _velocity.z);
+            var flatNext = Vector2.SmoothDamp(flatNow, new Vector2(goal.x, goal.z), ref flatVel, smoothTime, followSpeed);
+            float vy = _velocity.y;
+            next.y = Mathf.SmoothDamp(current.y, goal.y, ref vy, smoothTime * 0.6f, followHeightSpeed);
+            next.x = flatNext.x;
+            next.z = flatNext.y;
+            _velocity = new Vector3(flatVel.x, vy, flatVel.y);
             _float.Anchor = next;
         }
     }
