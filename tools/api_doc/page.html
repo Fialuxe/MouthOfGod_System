@@ -146,6 +146,27 @@ nav .grp { font-size: 11px; color: var(--muted); padding: 6px 16px 1px 28px; }
 .dp .tys a { font-family: var(--mono); font-size: 13px; margin-right: 10px; display: inline-block; }
 .dp.hit { box-shadow: 0 0 0 3px var(--mark); }
 .first { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--mark); padding: 10px 16px; margin: 14px 0 22px; }
+.svgwrap { background: var(--panel); border: 1px solid var(--line); overflow-x: auto; padding: 8px; }
+.svgwrap.top { border-top: 0; }
+svg.g { display: block; font-family: var(--mono); }
+svg.g .box rect { fill: var(--panel); stroke-width: 1.5; }
+svg.g .box text { fill: var(--ink); font-size: 12.5px; dominant-baseline: middle; text-anchor: middle; }
+svg.g .box.center rect { fill: var(--band); stroke-width: 2.5; }
+svg.g .box.center text { font-weight: 700; }
+svg.g .box:hover rect { fill: var(--band); }
+svg.g .mod { fill: var(--muted); font-size: 10px; text-anchor: middle; dominant-baseline: middle; font-family: var(--sans); }
+svg.g .edge { stroke: var(--muted); stroke-width: 1.2; fill: none; opacity: .75; }
+svg.g .lbl rect { fill: var(--bg); }
+svg.g .lbl text { fill: var(--band-ink); font-family: var(--sans); font-size: 11.5px; dominant-baseline: middle; text-anchor: middle; }
+svg.g .colhead { fill: var(--muted); font-family: var(--sans); font-size: 12px; text-anchor: middle; }
+svg.g .arrowhead { fill: var(--muted); }
+.legend { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+.recipe { background: var(--panel); border: 1px solid var(--line); margin: 18px 0; padding: 4px 20px 14px; scroll-margin-top: 12px; }
+.recipe > h2 { font-size: 19px; margin: 14px 0 6px; border: 0; padding: 0; }
+.recipe.hit { box-shadow: 0 0 0 3px var(--mark); }
+.recipe pre { font-size: 12.5px; }
+.see { font-size: 13px; color: var(--muted); }
+.see a { margin-right: 10px; }
 :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
 </style>
 <div class="app">
@@ -223,7 +244,9 @@ function md(text) {
   el.innerHTML = mdToHtml(text);
   el.querySelectorAll("table").forEach(t => { const w = document.createElement("div"); w.className = "tablewrap"; t.replaceWith(w); w.append(t); });
   el.querySelectorAll("pre > code.language-mermaid").forEach(c => {
-    const pre = document.createElement("pre"); pre.className = "mermaid pre-mermaid"; pre.textContent = c.textContent; c.parentElement.replaceWith(pre);
+    const p = document.createElement("p"); p.className = "see";
+    p.innerHTML = '図は <a href="#g-graph">つながりの図</a> のページにあります。';
+    c.parentElement.replaceWith(p);
   });
   el.querySelectorAll("code").forEach(c => {
     if (c.parentElement.tagName === "PRE") return;
@@ -253,7 +276,7 @@ function buildNav(filter) {
     nav.querySelectorAll("a[data-m]").forEach(a => a.addEventListener("click", () => { window.__scrollMember = a.dataset.m; }));
     return;
   }
-  h += `<h2>ガイド</h2><a href="#overview" data-k="overview">概要</a><a href="#g-design" data-k="g-design"><strong>設計の考え方（なぜこの形か）</strong></a>`;
+  h += `<h2>ガイド</h2><a href="#overview" data-k="overview">概要</a><a href="#g-design" data-k="g-design"><strong>設計の考え方（なぜこの形か）</strong></a><a href="#g-graph" data-k="g-graph"><strong>つながりの図</strong></a><a href="#g-recipes" data-k="g-recipes"><strong>やりたいこと別の手順</strong></a>`;
   for (const g of DATA.guide) h += `<a href="#${g.id}" data-k="${g.id}">${esc(g.title)}</a>`;
   h += `<h2>名前空間</h2>`;
   for (const mod of DATA.modules) {
@@ -314,6 +337,126 @@ function pageDesign() {
     h += `<h3>この決まりから生まれた型</h3><div class="tys">${designLinks(p.types)}</div><div class="src">出典: ${inline(p.source)}</div>`;
     el.innerHTML = h;
     el.querySelectorAll("a[href^='http']").forEach(a => { a.target = "_blank"; a.rel = "noopener"; });
+    wrap.append(el);
+  }
+  return wrap;
+}
+// ---- 図 ----
+const SVGNS = "http://www.w3.org/2000/svg";
+const MODHUE = { Core: 30, Device: 200, Fork: 160, Food: 10, Village: 120, UI: 280, Miko: 330, Tutorial: 230, Game: 50, Tracking: 180, CameraWork: 300, DevTools: 0 };
+function modColor(mod) { return mod === "DevTools" ? "var(--muted)" : `hsl(${MODHUE[mod] ?? 210} 55% 50%)`; }
+function textW(t) { return Math.max(70, t.length * 7.6 + 22); }
+function boxSvg(name, x, y, center) {
+  const t = byName.get(name), w = textW(name), mod = t ? t.mod : "";
+  const href = t ? `#${t.id}` : null;
+  const inner = `<rect x="${x - w / 2}" y="${y - 19}" width="${w}" height="38" rx="4" stroke="${modColor(mod)}"/><text x="${x}" y="${y - 5}">${esc(name)}</text><text class="mod" x="${x}" y="${y + 11}">${esc(mod)}</text>`;
+  return href ? `<a href="${href}" class="box${center ? " center" : ""}">${inner}</a>` : `<g class="box${center ? " center" : ""}">${inner}</g>`;
+}
+function edgeSvg(x1, y1, x2, y2, label, curve, at) {
+  const f = at ?? 0.5, mx = x1 + (x2 - x1) * f, my = y1 + (y2 - y1) * f;
+  const d = curve ? `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}` : `M${x1},${y1} L${x2},${y2}`;
+  let h = `<path class="edge" d="${d}" marker-end="url(#ah)"/>`;
+  if (label) { const w = label.length * 11.5 + 10; h += `<g class="lbl"><rect x="${mx - w / 2}" y="${my - 9}" width="${w}" height="18" rx="3"/><text x="${mx}" y="${my}">${esc(label)}</text></g>`; }
+  return h;
+}
+const DEFS = `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
+// 型を中心に、左に「この型が使う型」、右に「この型を使う所」を並べる
+function egoSvg(t) {
+  const L = t.uses, R = t.usedBy, rowH = 50, n = Math.max(L.length, R.length, 1);
+  const H = n * rowH + 50, W = 900, cx = W / 2, cy = 30 + (n * rowH) / 2;
+  const lx = 150, rx = W - 150;
+  let h = `<svg class="g" xmlns="${SVGNS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${DEFS}`;
+  h += `<text class="colhead" x="${lx}" y="16">この型が使う型</text><text class="colhead" x="${rx}" y="16">この型を使う所</text>`;
+  const top = k => 30 + (n * rowH - k * rowH) / 2 + rowH / 2;
+  const cw = textW(t.name) / 2;
+  L.forEach((name, i) => { const y = top(L.length) + i * rowH; h += edgeSvg(cx - cw - 4, cy, lx + textW(name) / 2 + 2, y, "", true); });
+  R.forEach((name, i) => { const y = top(R.length) + i * rowH; h += edgeSvg(rx - textW(name) / 2 - 2, y, cx + cw + 4, cy, "", true); });
+  L.forEach((name, i) => h += boxSvg(name, lx, top(L.length) + i * rowH));
+  R.forEach((name, i) => h += boxSvg(name, rx, top(R.length) + i * rowH));
+  h += boxSvg(t.name, cx, cy, true);
+  return h + `</svg>`;
+}
+function flowSvg(W, H, nodes, edges) {
+  const pos = Object.fromEntries(nodes.map(n => [n[0], [n[1], n[2]]]));
+  let h = `<svg class="g" xmlns="${SVGNS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${DEFS}`;
+  for (const [a, b, label, at] of edges) {
+    const [x1, y1] = pos[a], [x2, y2] = pos[b];
+    // 箱の縁から縁へ
+    const clip = (x, y, tx, ty, name) => { const w = textW(name) / 2 + 3, hh = 22; const dx = tx - x, dy = ty - y; const k = Math.min(Math.abs(dx) > 0 ? w / Math.abs(dx) : 1e9, Math.abs(dy) > 0 ? hh / Math.abs(dy) : 1e9); return [x + dx * k, y + dy * k]; };
+    const [sx, sy] = clip(x1, y1, x2, y2, a), [ex, ey] = clip(x2, y2, x1, y1, b);
+    h += edgeSvg(sx, sy, ex, ey, label, false, at);
+  }
+  for (const [name, x, y] of nodes) h += boxSvg(name, x, y, false);
+  return h + `</svg>`;
+}
+function moduleSvg() {
+  const mods = ["Device", "Fork", "Food", "Village", "UI", "Miko", "Game", "Tutorial", "DevTools", "CameraWork", "Tracking"];
+  const count = {};
+  for (const t of DATA.types) {
+    if (t.sec !== "Runtime") continue;
+    for (const u of t.uses) { const o = byName.get(u); if (!o || o.mod === t.mod || o.sec !== "Runtime") continue; const k = t.mod + ">" + o.mod; count[k] = (count[k] || 0) + 1; }
+  }
+  const W = 900, H = 560, cx = W / 2, cy = H / 2, R = 220;
+  const pos = { Core: [cx, cy] };
+  mods.forEach((m, i) => { const a = -Math.PI / 2 + i * 2 * Math.PI / mods.length; pos[m] = [cx + Math.cos(a) * R * 1.45, cy + Math.sin(a) * R]; });
+  let h = `<svg class="g" xmlns="${SVGNS}" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${DEFS}`;
+  for (const [k, c] of Object.entries(count)) {
+    const [a, b] = k.split(">"); const [x1, y1] = pos[a], [x2, y2] = pos[b];
+    const clip = (x, y, tx, ty, m) => { const w = textW(m) / 2 + 4, hh = 20; const dx = tx - x, dy = ty - y; const k = Math.min(Math.abs(dx) > 0 ? w / Math.abs(dx) : 1e9, Math.abs(dy) > 0 ? hh / Math.abs(dy) : 1e9); return [x + dx * k, y + dy * k]; };
+    const [sx, sy] = clip(x1, y1, x2, y2, a), [ex, ey] = clip(x2, y2, x1, y1, b);
+    h += edgeSvg(sx, sy, ex, ey, String(c), false);
+  }
+  for (const m of ["Core", ...mods]) {
+    const [x, y] = pos[m], w = textW(m);
+    h += `<a href="#m-${m}" class="box${m === "Core" ? " center" : ""}"><rect x="${x - w / 2}" y="${y - 16}" width="${w}" height="32" rx="4" stroke="${modColor(m)}"/><text x="${x}" y="${y}">${esc(m)}</text></a>`;
+  }
+  return h + `</svg>`;
+}
+function pageGraph() {
+  const wrap = document.createElement("div"); wrap.className = "page prose";
+  const flowA = flowSvg(940, 450, [
+    ["MockDevice", 120, 50], ["FoodSpawner", 450, 50], ["FoodTables", 800, 50],
+    ["Standing", 120, 170], ["DeliveryZone", 450, 170], ["FoodShadow", 800, 170],
+    ["StandArea", 120, 290], ["FieldStages", 450, 290], ["RequestBubbles", 800, 290],
+    ["DeliveryFx", 450, 410], ["VillagerMood", 800, 410]],
+    [["MockDevice", "FoodSpawner", "Confirmed"], ["FoodSpawner", "FoodTables", "Resolve"], ["StandArea", "Standing", "Set"],
+     ["Standing", "FoodSpawner", "Field"], ["FoodSpawner", "FoodShadow", "Spawned"], ["FoodSpawner", "DeliveryZone", "物理で飛ぶ"],
+     ["DeliveryZone", "FieldStages", "Receive"], ["FieldStages", "RequestBubbles", "Issued・Closed"],
+     ["FieldStages", "DeliveryFx", "StepDone"], ["FieldStages", "VillagerMood", "SetWorried"]]);
+  const flowB = flowSvg(940, 430, [
+    ["TutorialRunner", 130, 50], ["TutorialScript", 450, 50], ["MikoCueReceiver", 810, 50],
+    ["Phases", 130, 180], ["Cues", 450, 180], ["CloudCues", 810, 130], ["FoodShadow", 810, 210],
+    ["GameRunner", 130, 310], ["TutorialMemory", 450, 310], ["StandArea", 810, 290], ["CueReaction", 810, 370]],
+    [["TutorialRunner", "TutorialScript", "子を順に動かす"], ["TutorialRunner", "Phases", "Set"], ["Phases", "GameRunner", "Changed"],
+     ["TutorialScript", "Cues", "Cue・Say"], ["Cues", "MikoCueReceiver", "miko.*"], ["Cues", "CloudCues", "cloud.*"],
+     ["Cues", "FoodShadow", "shadow.*"], ["Cues", "StandArea", "footprint"], ["Cues", "CueReaction", "そのほか"],
+     ["TutorialScript", "TutorialMemory", "Set・Has"]]);
+  wrap.innerHTML = `<h1>つながりの図</h1>
+<p>箱は型、矢印は「呼ぶ・知らせる」向きです。箱を押すと、その型のページへ移ります。箱の枠の色は、機能（名前空間）を表します。</p>
+<h2>機能どうしのつながり</h2>
+<p>実行時の型が、ほかの機能の型を何回使っているかを、矢印の数字で示します（エディタ専用・試験用の型は数えません）。ほとんどの矢印が Core に向かっています。機能どうしは、Core だけを通してつながる決まりだからです（<a href="#d-core">なぜ</a>）。Tracking と CameraWork は、どの機能ともつながりません。</p>
+<div class="svgwrap">${moduleSvg()}</div>
+<h2>流れ 1: 食べ物を生んで、届けるまで</h2>
+<p>デバイスで決定すると食べ物が生まれ、体験者が狙って飛ばします。落ちた所の <code>DeliveryZone</code> が、そのフィールドに届けます。</p>
+<div class="svgwrap">${flowA}</div>
+<h2>流れ 2: チュートリアルから本編まで</h2>
+<p>チュートリアルは、合図（<code>Cues</code>）を出すだけです。巫女・雲・影・足あとは、合図を受けた側が見せ方を決めます。全部終わると、場面（<code>Phases</code>）を見ていた <code>GameRunner</code> が本編を始めます。</p>
+<div class="svgwrap">${flowB}</div>
+<p class="legend">型ごとの、細かいつながりの図は、各型のページの「つながり」にあります。</p>`;
+  return wrap;
+}
+function pageRecipes() {
+  const wrap = document.createElement("div"); wrap.className = "page";
+  wrap.append(md(DATA.recipesIntro));
+  const toc = document.createElement("div"); toc.className = "prose";
+  toc.innerHTML = `<h2>手順の一覧</h2><ol>${DATA.recipes.map(r => `<li><a href="#${r.id}">${esc(r.title)}</a></li>`).join("")}</ol>`;
+  wrap.append(toc);
+  for (const r of DATA.recipes) {
+    const el = md("## " + r.title + "\n\n" + r.md);
+    el.classList.add("recipe"); el.id = "sec-" + r.id;
+    const see = document.createElement("p"); see.className = "see";
+    see.innerHTML = "使う型: " + r.types.map(n => byName.has(n) ? `<a href="#${byName.get(n).id}">${esc(n)}</a>` : esc(n)).join("");
+    el.append(see);
     wrap.append(el);
   }
   return wrap;
@@ -387,7 +530,9 @@ function pageType(t) {
   const links = ns => ns.map(n => byName.has(n) ? `<a href="#${byName.get(n).id}">${esc(n)}</a>` : esc(n)).join("");
   if (t.uses.length) rel.push(`<div><b>この型が使う型</b><span>${links(t.uses)}</span></div>`);
   if (t.usedBy.length) rel.push(`<div><b>この型を使う所</b><span>${links(t.usedBy)}</span></div>`);
-  if (rel.length) h += `<h2 class="sec">つながり</h2><div class="rel">${rel.join("")}</div>`;
+  if (rel.length) h += `<h2 class="sec">つながり</h2><div class="svgwrap top">${egoSvg(t)}<p class="legend">名前で直接使っている型だけを出します。Core の interface（<code>IFieldRequests</code> など）越しに使う相手は、interface の側に出ます。</p></div><div class="rel">${rel.join("")}</div>`;
+  const recs = DATA.recipes.filter(r => r.types.includes(t.name));
+  if (recs.length) h += `<h2 class="sec">この型を使う手順</h2><div class="rel"><div><b>やりたいこと</b><span>${recs.map(r => `<a href="#${r.id}" style="font-family:var(--sans)">${esc(r.title)}</a>`).join("<br>")}</span></div></div>`;
   if (t.values.length) h += `<h2 class="sec">値</h2>` + table(["値", "意味"], t.values.map(v => `<tr><td class="nm">${esc(v.name)}</td><td>${esc(v.doc)}</td></tr>`));
   if (t.fields.length) {
     let last = null, rows = [];
@@ -428,6 +573,9 @@ function route() {
   let scrollTo = null;
   if (id === "overview") page = pageOverview();
   else if (id === "g-design") page = pageDesign();
+  else if (id === "g-graph") page = pageGraph();
+  else if (id === "g-recipes") page = pageRecipes();
+  else if (id.startsWith("r-")) { page = pageRecipes(); navKey = "g-recipes"; scrollTo = "sec-" + id; }
   else if (id.startsWith("d-")) { page = pageDesign(); navKey = "g-design"; scrollTo = "sec-" + id; }
   else if (id.startsWith("g-")) { const g = DATA.guide.find(x => x.id === id); page = g ? pageGuide(g) : pageOverview(); }
   else if (id.startsWith("m-")) page = pageModule(id.slice(2));

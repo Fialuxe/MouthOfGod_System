@@ -121,6 +121,10 @@ def main():
     design = re.sub(r"^### (決めたこと|なぜ|あきらめたこと|読む人へ)$", r"**\1**", design, flags=re.M)
     design = re.sub(r"^types: (.*)$", lambda m: "**この決まりから生まれた型**: " + "、".join("`" + x.strip() + "`" for x in m.group(1).split(",")), design, flags=re.M)
     design = re.sub(r"^source: (.*)$", r"出典: \1", design, flags=re.M)
+    recipes = open(os.path.join(HERE, "recipes.md"), encoding="utf-8").read().split("\n", 1)[1]
+    recipes = re.sub(r"^## \S+ \| ", "### ", recipes, flags=re.M)
+    recipes = re.sub(r"^types: (.*)$", lambda m: "**使う型**: " + "、".join("`" + x.strip() + "`" for x in m.group(1).split(",")), recipes, flags=re.M)
+    tpl = tpl.rstrip() + "\n\n## 付録 C. やりたいこと別の手順\n" + recipes.strip() + "\n"
     tpl = tpl.replace("## 1. 全体像", "## 0. 設計の考え方（なぜこの形か）\n" + design.strip() + "\n\n## 1. 全体像", 1)
     text = re.sub(r"\{\{(TYPES|MODULE|COMPACT|MENUS)(\d)?\s*:?\s*([^}]*)\}\}", sub, tpl)
     out = os.path.join(ROOT, "docs", "api-reference.md")

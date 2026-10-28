@@ -3250,8 +3250,8 @@ Quest なしで、プロローグとチュートリアル 1〜4 を通して試�
 | 右クリック | `Point` | `MikoCueReceiver` |
 | 右クリック | `Recalibrate` | `AprilTagPlace` |
 | 右クリック | `Restart` | `FieldStages` |
-| 右クリック | `Skip` | `TutorialRunner` |
 | 右クリック | `Skip` | `VideoScreen` |
+| 右クリック | `Skip` | `TutorialRunner` |
 | 右クリック | `Stand Here` | `StandArea` |
 | 右クリック | `Stop` | `CameraCutPlayer` |
 | 右クリック | `Stop` | `TutorialRunner` |
@@ -3281,3 +3281,282 @@ Quest なしで、プロローグとチュートリアル 1〜4 を通して試�
 | `Resources/Prefabs/Tutorial/<名前>` | `TutorialRunner` の子 | プロローグと T1〜T4 の Prefab |
 | `Resources/AprilTagSettings` | `AprilTagSettings.Load` | AprilTag の設定（無ければコードの既定値） |
 | `Resources/RequestBubbleSettings` | `RequestBubbleSettings.Load` | 吹き出しの設定（無ければコードの既定値） |
+
+## 付録 C. やりたいこと別の手順
+「〇〇をしたい」から引く手順です。どの手順も、設計の考え方に沿っています。別の機能のクラスを直接呼ばず、Core の置き場・合図・イベントを使います。
+
+コード例は、手順を説明するための見本です。そのまま入れる前に、自分の場面に合わせて直してください。コード例は、Unity でコンパイルして確かめてはいません。
+
+### 生き物（例: 猫）を、止まった状態から動く状態にする
+**使う型**: `FieldStep`、`VillagerMood`、`FieldStages`、`CueReaction`、`Phases`、`Cues`
+
+「いつ動き出すか」で、使う物が変わります。コードを書かずに済む方法から順に並べます。
+
+| いつ動き出すか | 使う物 | コード |
+|---|---|---|
+| 欲しい物が届いて、フィールドが 1 段戻ったとき（その時に初めて出てくる） | `FieldStep` の子に置く | 要らない |
+| 欲しい物が届いて、悩んでいた生き物が元気になるとき | `VillagerMood` を付け、`FieldStep` の Helped に入れる | 要らない |
+| チュートリアルが合図を出したとき | `CueReaction` で合図を受ける | 要らない |
+| 本編が始まったときなど、場面が変わったとき | 自分のスクリプトで `Phases.Changed` を受ける | 書く |
+
+**1. ステップが済んだら出てくる**
+
+1. フィールドの Prefab の `Steps` の下で、猫が出てほしい段の `FieldStep` を選びます。
+2. 猫を、その `FieldStep` の子に置きます。
+3. その段の欲しい物が届くと、子の物が表示されます。Pop In が入っていれば、小さい所から「ぽんっ」と出ます。
+
+出てきたあとに歩かせたいときは、下の「自分で考えて動く振る舞いを持たせる」のスクリプトも付けます。
+
+**2. 悩んでいる状態から、元気な状態にする**
+
+1. 猫に `VillagerMood` を付けます。Animator Controller には、村人と同じパラメータ（`Worried`・`Slump` の bool と、`Missed` のトリガー）を用意します。
+2. 頭の上の印を Worry Mark に入れます。
+3. 猫を助けたい段の `FieldStep` の Helped に、猫を入れます。
+4. Helped に名前がある段がすべて済むと、`FieldStages` が `SetWorried(false, …)` を呼び、猫は元気になります。違う物が届いたときは、`DeliveryFx` が `Missed` のトリガーを送ります。
+
+**3. チュートリアルの合図で動き出す**
+
+1. 猫か、その近くの物に `CueReaction` を付けます。
+2. Entries に 1 行足し、Cue に合図の名前を入れます（例: `grassland.cat-wake`）。合図の名前は、フィールド名から始めます。
+3. On Cue に、Animator の `SetTrigger` か、動きのスクリプトの有効化をつなぎます。
+4. チュートリアルのスクリプトから、`Cue("grassland.cat-wake");` で合図を出します。
+
+**4. 場面が変わったら動き出す**
+
+本編（`main-game`）のあいだだけ動く、のような場合は、`Phases.Changed` を受けます。次の手順のコード例に入っています。
+
+### 生き物に、自分で考えて動く振る舞い（AI のような動き）を持たせる
+**使う型**: `Phases`、`Standing`、`Fields`、`IFieldRequests`、`Delivered`、`DeliveryKind`
+
+振る舞いは、ふつうの MonoBehaviour で書きます。特別な枠組みは要りません。守ることは 3 つです。
+
+- 読むのは Core だけにします。場面は `Phases`、体験者の立つ場所は `Standing`、届いた物は `IFieldRequests.Received` から受け取ります。
+- `GameObject.Find` や `FindObjectOfType` で、ほかの機能の物を探しません。どこから使われているか追えなくなるためです。
+- 受け取りの登録は `OnEnable` で行い、`OnDisable` で外します。
+
+ファイルは、その生き物がいるフィールドの機能（たとえば `Assets/Scripts/Village/`）に置きます。
+
+次の例の猫は、本編のあいだだけ、決めた範囲を歩き回ります。欲しかった物が届くと、喜ぶトリガーを 1 回送ります。
+
+```csharp
+using MouthOfGod.Core;
+using UnityEngine;
+
+namespace MouthOfGod.Village
+{
+    /// <summary>猫が、本編のあいだ決めた範囲を歩き回る。欲しい物が届くと喜ぶ。</summary>
+    public sealed class CatWander : MonoBehaviour
+    {
+        [Tooltip("歩き回る範囲の半径（m）。フィールドの Prefab の中の寸法")]
+        [SerializeField] float radius = 0.08f;
+        [Tooltip("歩く速さ（m / 秒）")]
+        [SerializeField] float speed = 0.03f;
+        [SerializeField] Animator animator;
+
+        Vector3 _home, _target;
+        bool _walking;
+        IFieldRequests _field;
+
+        void OnEnable()
+        {
+            _home = transform.localPosition;
+            Phases.Changed += OnPhase;
+            OnPhase(Phases.Current);
+            _field = GetComponentInParent<IFieldRequests>(); // 親のフィールド（FieldStages）
+            if (_field != null) _field.Received += OnReceived;
+        }
+
+        void OnDisable()
+        {
+            Phases.Changed -= OnPhase;
+            if (_field != null) _field.Received -= OnReceived;
+        }
+
+        void OnPhase(PhaseId phase)
+        {
+            _walking = phase == new PhaseId("main-game");
+            if (animator != null) animator.SetBool("Walking", _walking);
+            PickTarget();
+        }
+
+        void OnReceived(Delivered delivered)
+        {
+            if (delivered.Kind == DeliveryKind.Requested && animator != null) animator.SetTrigger("Happy");
+        }
+
+        void Update()
+        {
+            if (!_walking) return;
+            Vector3 from = transform.localPosition;
+            transform.localPosition = Vector3.MoveTowards(from, _target, speed * Time.deltaTime);
+            Vector3 dir = _target - from;
+            dir.y = 0f;
+            if (dir.sqrMagnitude > 1e-8f)
+                transform.localRotation = Quaternion.Slerp(transform.localRotation, Quaternion.LookRotation(dir), 5f * Time.deltaTime);
+            if ((transform.localPosition - _target).sqrMagnitude < 1e-6f) PickTarget();
+        }
+
+        void PickTarget()
+        {
+            Vector2 r = Random.insideUnitCircle * radius;
+            _target = _home + new Vector3(r.x, 0f, r.y);
+        }
+    }
+}
+```
+
+振る舞いを足すときの考え方です。
+
+- 体験者が前に立ったら寄ってくる: `Standing.Changed` を受け、自分のフィールドの ID と同じなら、目標を体験者の側にします。
+- 判断が複雑になったら: 判断の部分を、Unity に依存しないクラス（`StepProgress` のような形）に分けます。EditMode のテストで確かめられます。
+- 場面の名前（`main-game` など）は、`docs/progress-keys.md` にある名前だけを使います。
+
+### チュートリアルの中で、イベントを待つ・使う
+**使う型**: `TutorialScript`、`TutorialWait`、`DeliveryWait`、`ConfirmWait`、`ForkWait`、`SpawnWait`、`TextureChangeWait`、`StandWait`、`AnyWait`、`TutorialMemory`
+
+チュートリアルのスクリプト（`TutorialScript` を継いだクラス）の `Play()` の中で、`yield return` で待ちます。よく使うイベントには、待ちがもう用意されています。
+
+| 待ちたいこと | 書き方 | 終わったあとに読めるもの |
+|---|---|---|
+| 雲を刺す | `yield return WaitForPierce(秒);` | `TimedOut` |
+| かけらの付いた先を口に含む | `yield return WaitForMouth(秒);` | `TimedOut` |
+| 食感が n 回切り替わる | `yield return WaitForTextureChanges(n, 秒);` | `Changes` |
+| デバイスで決定する | `var w = WaitForConfirm(秒); yield return w;` | `w.Result`（決定した食感） |
+| 食べ物が生まれる | `var w = WaitForSpawn("apple", 秒); yield return w;` | `w.Result`（`Spawned`） |
+| フィールドに物が届く | `var w = WaitForDelivery("sea", 秒); yield return w;` | `w.Result`（`Delivered`。`Kind` で正しいか分かる） |
+| 体験者がフィールドの前に立つ | `yield return WaitForStanding("sea", 秒);` | `TimedOut` |
+| どれか 1 つが起きる | `var any = WaitForAny(a, b); yield return any;` | `any.Index`（先に終わった待ちの番号） |
+
+- 秒を 0 にすると、時間切れはありません。展示を止めないために、ふつうは時間切れを入れ、`TimedOut` のときの流れも書きます。
+- 待ちは、待ち始める前に済んだ操作（先回り）も数えます。早く進める体験者でも、止まりません。先回りした段のセリフを飛ばすときは、`AlreadyDone(TutorialEvent.Pierced)` を見ます。
+- ほかの物に何かをさせるときは、`Cue("合図の名前")` と `Say("セリフの id")` を使います。巫女やフィールドのクラスは、直接呼びません。
+- 次のチュートリアルに伝えたいことは、`Memory.Set("名前")` で覚えます。名前は `docs/progress-keys.md` に足します。
+
+次の例は、海に魚が届くのを 30 秒待ちます。ほめるか、ヒントを出します。
+
+```csharp
+public override IEnumerator Play()
+{
+    Cue("sea.glow");
+    Say("t4-walk");
+    var delivery = WaitForDelivery("sea", 30f);
+    yield return delivery;
+    if (delivery.TimedOut) { Say("t4-walk"); yield break; }
+    if (delivery.Result.Value.Kind == DeliveryKind.Requested)
+    {
+        Say("t4-splendid");
+        Memory.Set("delivered-by-standing");
+    }
+    Cue("sea.glow-off");
+}
+```
+
+**用意されていないイベントを待ちたいとき**
+
+`TutorialWait` を継いだ待ちを、`Assets/Scripts/Tutorial/` に足します。Core の置き場から相手を受け取り、コンストラクタで聞き始め、条件が満たされたら `Complete()` を呼び、`Unsubscribe()` で聞くのをやめます。次の例は、あるフィールドの欲しい物が 1 つ解決するのを待ちます。
+
+```csharp
+using MouthOfGod.Core;
+
+namespace MouthOfGod.Tutorial
+{
+    /// <summary>そのフィールドの欲しい物が、届いて解決するのを待つ。</summary>
+    public sealed class ResolvedWait : TutorialWait
+    {
+        readonly IFieldRequests _field;
+
+        public ResolvedWait(FieldId field, float timeoutSeconds) : base(timeoutSeconds, null)
+        {
+            _field = Fields.Find(field);
+            if (_field == null) { Cancel(); return; } // フィールドが無ければ、すぐ終える
+            _field.Closed += OnClosed;
+        }
+
+        /// <summary>解決した欲しい物。時間切れなら null。</summary>
+        public RequestClosed? Result { get; private set; }
+
+        void OnClosed(RequestClosed closed)
+        {
+            if (!closed.Resolved) return;
+            Result = closed;
+            Complete();
+        }
+
+        protected override void Unsubscribe()
+        {
+            if (_field != null) _field.Closed -= OnClosed;
+        }
+    }
+}
+```
+
+使う側は、`var wait = new ResolvedWait(new FieldId("sea"), 30f); yield return wait;` と書きます。`new` で作った待ちは、チュートリアルを途中で止めても自動では取り消されません。`OnAborted()` で `wait.Cancel()` を呼びます。
+
+**待たずに、イベントを受け続けたいとき**
+
+チュートリアルの間ずっと何かを数えたい、のような場合です。`Play()` の始めに購読し、終わりと `OnAborted()` の両方で外します。外し忘れると、次のチュートリアルの間も呼ばれ続けます。
+
+### 新しいチュートリアルを足す
+**使う型**: `TutorialScript`、`TutorialRunner`、`MikoLineBook`、`Phases`
+
+1. `Assets/Scripts/Tutorial/` に、`TutorialScript` を継いだクラスを 1 つ書きます。`Phase` には、やることを表す名前を返します（例: `new PhaseId("harvest")`）。番号は使いません。
+2. 場面の名前を、`docs/progress-keys.md` の表に足します。
+3. Prefab を `Assets/Resources/Prefabs/Tutorial/` に作ります。同じ Prefab に `MikoLineBook` を付け、このチュートリアルのセリフを書きます。セリフの id は、シーン全体で重ならないようにします。
+4. 共有シーンで、その Prefab を `TutorialRunner` の子に置きます。並び順が、動く順番です。シーンは Scene Fusion の中で直します。
+5. 最後のチュートリアルの場面名を変えたときは、`GameRunner` の After Phase と、`TutorialRunner` の Skip Phase も合わせます。
+
+### 合図に反応させる
+**使う型**: `CueReaction`、`Cues`、`CueRequested`、`CueId`
+
+**コードを書かない場合**: 反応させたい物に `CueReaction` を付けます。Entries に 1 行足し、Cue に合図の名前、Show・Hide に出し入れする物、On Cue に呼ぶものを入れます。Seconds を入れると、その秒数のあとで元に戻ります。
+
+**コードを書く場合**: `Cues.Requested` を `OnEnable` で購読し、`OnDisable` で外します。名前で自分あての合図かを見分けます。
+
+```csharp
+void OnEnable() => Cues.Requested += OnCue;
+void OnDisable() => Cues.Requested -= OnCue;
+
+void OnCue(CueRequested request)
+{
+    if (request.Cue.Value == "grassland.cat-wake") WakeUp();
+}
+```
+
+合図の名前は、受ける側の名前から始めます（`grassland.`、`miko.`、`cloud.` など）。
+
+### 新しい食べ物を足す
+**使う型**: `FoodTable`、`FoodTables`、`FoodRow`、`FoodSpawner`、`FieldStep`
+
+1. 食べ物の Prefab を `Assets/Resources/Prefabs/Food/` に置きます。ファイル名が食べ物の ID になります（例: `cat_food.prefab` → `cat_food`）。飛ばすには `Rigidbody` が要ります。
+2. 大きさは、メニュー `MouthOfGod/Food/Fit Prefab Sizes` でそろえられます。吹き出しのアイコンは `MouthOfGod/Food/Generate Icons` で作ります。
+3. どの食感で生まれるかを、自分のフィールドの `FoodTable` に 1 行足します。全フィールドで生まれる物だけは、共通の表（`FoodSpawner` の Prefab に付いた表）に足します。
+4. フィールドに欲しがらせるなら、その段の `FieldStep` の Food に、同じ ID を書きます。
+5. Play すると、表の食い違いが Console に警告として出ます。
+
+### 本編で欲しい物を出す
+**使う型**: `Fields`、`IFieldRequests`、`RequestIssued`、`RequestClosed`、`GameRunner`
+
+本編が、いつ・どのフィールドに欲しい物を出すかを決めるコードは、まだありません。書くときは、次の形にします。
+
+```csharp
+foreach (IFieldRequests field in Fields.All)
+{
+    if (field.CanOpen) field.Open();   // 出せなければ false が返る
+}
+```
+
+- 後から置かれたフィールドも受け取るには、`Fields.All` を見たあと、`Fields.Added` を購読します。
+- 出した欲しい物が終わった知らせは `Closed` です。`Resolved` が true なら届いて解決、false なら待ちきれずに終わった物です。
+- 待ちきれなかった物は、`Expire(番号)` で 1 つずつ終えます。番号は `RequestIssued.Request` です。
+- 2026-10-28 時点の Main シーンには、`GameRunner` がありません。本編を動かすには、まず `GameRunner` をシーンに置きます。
+
+### カメラのカットを作る
+**使う型**: `CameraCutPlayer`、`CameraShot`、`ShotKind`、`ShotAim`、`CameraEase`
+
+1. カット用のカメラ（VR の Main Camera とは別のもの）に `CameraCutPlayer` を付けます。
+2. シーンに空の GameObject を置き、行き先・曲がり方・回る中心の目印にします。
+3. Shots にカットを足し、Kind（Line・Curve・Orbit・Hold）、秒数か速さ、Ease、Aim を選び、目印を入れます。
+4. カメラを選ぶと、シーンビューに軌道の線が出ます。目印を動かして、線を見ながら直します。
+5. Play On Start を入れるか、コードで `Play()` を呼びます。終わったあとの処理は、On Finished につなぎます。
+
+村のカットの見本は、メニュー `MouthOfGod/CameraWork/Add Village Tour` と `Add Village Zoom-Out` で置けます。

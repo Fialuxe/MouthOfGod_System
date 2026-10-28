@@ -111,16 +111,30 @@ for path in _glob.glob(os.path.join(ROOT, "Assets", "Scripts", "**", "*.cs"), re
     if "/Tests/" in rel or "/PlayTests/" in rel or rel.endswith("AssemblyInfo.cs"): continue
     lines = [l for l in open(path, encoding="utf-8-sig").read().split("\n") if not l.strip().startswith("//")]
     code[rel] = "\n".join(re.sub(r"//.*$", "", re.sub(r'"[^"\n]*"', '""', l)) for l in lines)
+# asmdef: ファイルがどのアセンブリに入り、どのアセンブリを参照できるか（名前が同じ別の型を、つながりと数えないため）
+SCRIPTS = os.path.join(ROOT, "Assets", "Scripts")
+asm_of_dir = {}
+for a in _glob.glob(os.path.join(SCRIPTS, "**", "*.asmdef"), recursive=True):
+    j = json.load(open(a, encoding="utf-8-sig"))
+    asm_of_dir[os.path.dirname(os.path.relpath(a, SCRIPTS)).replace("\\", "/")] = (j["name"], set(j.get("references", [])))
+def asm_of(rel):
+    d = os.path.dirname(rel)
+    while d and d not in asm_of_dir: d = os.path.dirname(d)
+    return asm_of_dir.get(d, ("?", set()))
+def can_see(user_file, type_file):
+    ua, refs = asm_of(user_file)
+    ta, _ = asm_of(type_file)
+    return ua == ta or ta in refs
 owner = {}
 for t in types:  # ファイルの持ち主は、ファイル名と同じ名前の型。無ければ最初の型
     base = os.path.splitext(os.path.basename(t["file"]))[0]
     if t["name"] == base or (t["file"] not in owner and not t["nested_in"]): owner[t["file"]] = t["name"]
 for t in types:
     pat = re.compile(r"\b" + re.escape(t["name"]) + r"\b")
-    users = sorted({owner[f] for f, c in code.items() if f != t["file"] and f in owner and pat.search(c)})
+    users = sorted({owner[f] for f, c in code.items() if f != t["file"] and f in owner and can_see(f, t["file"]) and pat.search(c)})
     own = code.get(t["file"], "")
     defined_here = {x["name"] for x in types if x["file"] == t["file"]}
-    uses = sorted({x["name"] for x in types if x["name"] not in defined_here and re.search(r"\b" + re.escape(x["name"]) + r"\b", own)})
+    uses = sorted({x["name"] for x in types if x["name"] not in defined_here and can_see(t["file"], x["file"]) and re.search(r"\b" + re.escape(x["name"]) + r"\b", own)})
     t["usedBy"], t["uses"] = users, uses
 data_roles = list(ROLE_NOTE.items())
 
@@ -174,7 +188,20 @@ for part in parts[1:]:
     principles.append({"id": "d-" + pid.strip(), "title": title.strip(), "types": names, "source": meta.get("source", ""), "secs": secs})
 design_intro = parts[0].strip()
 
-data = {"design": principles, "designIntro": design_intro, "roles": data_roles, "types": types, "guide": guide, "modules": MODS, "intro": module_intro, "preface": sections[0].strip()}
+# ---- やりたいこと別の手順（recipes.md）----
+rsrc = open(os.path.join(HERE, "recipes.md"), encoding="utf-8").read()
+rparts = re.split(r"^## ", rsrc.split("\n", 1)[1], flags=re.M)
+recipes = []
+for part in rparts[1:]:
+    head, _, rest = part.partition("\n")
+    rid, _, title = head.partition("|")
+    m = re.search(r"^types: (.*)$", rest, flags=re.M)
+    names = [x.strip() for x in (m.group(1) if m else "").split(",") if x.strip()]
+    missing = [n for n in names if n not in by_name]
+    if missing: raise SystemExit(f"recipes.md の {rid.strip()} に、無い型があります: {missing}")
+    recipes.append({"id": "r-" + rid.strip(), "title": title.strip(), "types": names, "md": re.sub(r"^types: .*\n", "", rest, flags=re.M).strip()})
+
+data = {"recipes": recipes, "recipesIntro": rparts[0].strip(), "design": principles, "designIntro": design_intro, "roles": data_roles, "types": types, "guide": guide, "modules": MODS, "intro": module_intro, "preface": sections[0].strip()}
 html = open(os.path.join(HERE, "page.html"), encoding="utf-8").read().replace("/*DATA*/null", json.dumps(data, ensure_ascii=False))
 out = os.path.join(ROOT, "docs", "api", "index.html")
 os.makedirs(os.path.dirname(out), exist_ok=True)
