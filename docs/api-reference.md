@@ -3453,7 +3453,7 @@ public override IEnumerator Play()
 
 **用意されていないイベントを待ちたいとき**
 
-`TutorialWait` を継いだ待ちを、`Assets/Scripts/Tutorial/` に足します。Core の置き場から相手を受け取り、コンストラクタで聞き始め、条件が満たされたら `Complete()` を呼び、`Unsubscribe()` で聞くのをやめます。次の例は、あるフィールドの欲しい物が 1 つ解決するのを待ちます。
+`TutorialWait` を継いだ待ちを、`Assets/Scripts/Tutorial/` に足します。コンストラクタで、Core の置き場から相手を受け取り、聞き始めます。条件が満たされたら、`Complete()` を呼びます。聞くのをやめる処理は、`Unsubscribe()` に書きます。次の例は、あるフィールドの欲しい物が 1 つ解決するのを待ちます。
 
 ```csharp
 using MouthOfGod.Core;
