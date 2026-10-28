@@ -1117,6 +1117,7 @@ flowchart LR
 flowchart LR
   C_TutorialRunner["TutorialRunner<br/>Tutorial"]:::me
   U_OpenAllRequestsAfterTutorial["OpenAllRequestsAfterTutorial<br/>Tutorial"] --> C_TutorialRunner
+  U_OpenAllRequestsMenu["OpenAllRequestsMenu<br/>DevTools"] --> C_TutorialRunner
   U_TutorialAutoStart["TutorialAutoStart<br/>Tutorial"] --> C_TutorialRunner
   U_TutorialDebugHud["TutorialDebugHud<br/>DevTools"] --> C_TutorialRunner
   U_TutorialTestSceneBuilder["TutorialTestSceneBuilder<br/>DevTools"] --> C_TutorialRunner
@@ -1132,7 +1133,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`OpenAllRequestsAfterTutorial`](#t-openallrequestsaftertutorial)、[`TutorialAutoStart`](#t-tutorialautostart)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)
+- この型を使う所: [`OpenAllRequestsAfterTutorial`](#t-openallrequestsaftertutorial)、[`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu)、[`TutorialAutoStart`](#t-tutorialautostart)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)
 - この型が使う型: [`CueId`](Core.md#t-cueid)、[`Cues`](Core.md#t-cues)、[`Fields`](Core.md#t-fields)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`PhaseId`](Core.md#t-phaseid)、[`Phases`](Core.md#t-phases)、[`TutorialHistory`](#t-tutorialhistory)、[`TutorialMemory`](#t-tutorialmemory)、[`TutorialScript`](#t-tutorialscript)
 
 ### この型を使う手順
@@ -1149,7 +1150,7 @@ flowchart LR
 | Skip On Start | `bool` | オフ | 入れると、Play を始めたときにチュートリアルを飛ばして、本編を始める（Begin On Start より優先）。試験用 |
 | Skip Phase | `string` | `"deliver"` | Skip したときに、一度だけ入る場面。最後のチュートリアルの場面名（GameRunner の After Phase と同じ）にする |
 
-### メンバー（8）
+### メンバー（9）
 
 | 種類 | メンバー | 説明 |
 |---|---|---|
@@ -1158,6 +1159,7 @@ flowchart LR
 | イベント | `Action Finished` | 全部のスクリプトが終わった。Stop でやめたときは出ない。 |
 | プロパティ | `TutorialMemory Memory { get; }` | チュートリアルのあいだで引き継ぐ、覚えたこと。 |
 | プロパティ | `bool IsRunning` | 動いているか。 |
+| プロパティ | `bool HasFinished` | 全部のスクリプトが終わったか（Skip で飛ばした場合も含む）。Begin で false に戻る。Stop でやめたときは false のまま。 |
 | メソッド | `bool Begin()` | 最初から動かす。すでに動いていれば、警告して false。 |
 | メソッド | `void Skip()` | チュートリアルを飛ばして、全部終わった扱いにする。動いていれば止め、村を最初に戻し、 合図の後片付け（巫女をとどまらせる・光と足あとを消す）をして、場面を skipPhase から空へ進め、Finished を出す。 |
 | メソッド | `void Stop()` | 途中でやめる。待ちを外し、場面を空に戻す。動いていなければ何もしない。 |

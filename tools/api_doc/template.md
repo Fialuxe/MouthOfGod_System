@@ -262,6 +262,7 @@ Prefab として置かれている物と、その中のコンポーネントで�
 ### 3.3 Main にまだ無いもの
 
 - `GameRunner` と `RemainingTimeText`: シーンにも Prefab にもありません。置かないと、チュートリアルが終わっても本編（`main-game`）は始まりません。`TutorialRunner.Skip()` も、同じです。
+- 本編まで通して試すときは、Main の写し `Assets/Scenes/Main_Copy.unity` を開き、メニュー `MouthOfGod/Dev/Set Up Main Copy (GameRunner, Max Open Requests)` を 1 回実行します。`GameRunner` が置かれ、全フィールドで欲しい物を全部同時に出せるようになります。
 - 自動で置かれる物（1.3 節）は、手で置く必要がありません。
 
 ## 4. 機能別リファレンス
