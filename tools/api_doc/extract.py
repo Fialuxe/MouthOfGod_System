@@ -1,5 +1,5 @@
 """Assets/Scripts の C# から、公開 API・Inspector の項目・メニューを取り出す。
-docs/api-reference.md の表は、この出力から作る（手で写さないので、コードとずれない）。
+docs/api/ の表（build_md.py・build_html.py）は、この出力から作る（手で写さないので、コードとずれない）。
 使い方: python3 tools/api_doc/extract.py > api.json
 読むのは宣言と /// の説明、[SerializeField]・[Tooltip]・[Header]・[MenuItem]・[ContextMenu] だけ。C# を解析してはいない（正規表現）。
 """

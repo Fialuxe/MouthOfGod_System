@@ -18,6 +18,7 @@ IVRC に出展した作品を、GDC 向けに再構成するプロジェクト�
 # どうやって開発するか
 - 開発の進め方: [CONTRIBUTING.md](./CONTRIBUTING.md)
 - 設計方針と避けること: [docs/architecture.md](./docs/architecture.md)
+- スクリプトのリファレンス（設計の理由・つながりの図・やりたいこと別の手順・全部の型）: [docs/api/README.md](./docs/api/README.md)
 - 決めたことと、採用しなかった案: [docs/decisions.md](./docs/decisions.md)
 - 見た目の方針と、何にどの素材を使うか: [docs/visual-direction.md](./docs/visual-direction.md)
 - 体験の台本（仮。場面ごとの語り・画面・進む条件）: [docs/scenario-book.md](./docs/scenario-book.md)
