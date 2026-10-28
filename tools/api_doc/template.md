@@ -192,7 +192,7 @@ flowchart LR
 - `TutorialRunner` は、子の `TutorialScript` を、Hierarchy の順に 1 つずつ動かします。動かす間、`Phases` を各スクリプトの場面にします。例外が出たスクリプトは、そこでやめて、次へ進みます。
 - 全部終わると、`Phases` を空に戻し、`Finished` を出します。
 - `GameRunner` は、場面 `deliver` のあとに場面が空になったとき、本編を始めます（After Phase の既定は `deliver`）。`TutorialRunner` の型は、参照しません。
-- `TutorialRunner.Skip()` は、チュートリアルを飛ばして、全部終わった扱いにします。動いていれば止め、`Memory` を空にし、全フィールドを `Restart` し、`<フィールド>.glow-off`・`<フィールド>.footprint-off`・`miko.stay` の合図を出します。そのあと、場面を Skip Phase（既定 `deliver`）から空へ進め、`Finished` を出します。
+- `TutorialRunner.Skip()` は、チュートリアルを飛ばして、全部終わった扱いにします。まず、動いていれば止め、`Memory` を空にし、全フィールドを `Restart` します。次に、`<フィールド>.glow-off`・`<フィールド>.footprint-off`・`miko.stay` の合図を出します。最後に、場面を Skip Phase（既定 `deliver`）から空の場面へ進め、`Finished` を出します。
 - Skip で本編が始まるには、シーンに `GameRunner` が必要です。**2026-10-28 時点の Main シーンには `GameRunner` がありません**（第 3 章）。
 
 ### 2.7 ID の型
