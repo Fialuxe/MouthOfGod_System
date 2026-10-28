@@ -114,19 +114,6 @@ namespace MouthOfGod.Tutorial.Tests
             Assert.IsTrue(finished);
             Assert.IsFalse(_runner.IsRunning);
             Assert.IsTrue(Phases.Current.IsEmpty);
-            Assert.IsTrue(_runner.HasFinished);
-        }
-
-        [Test]
-        public void HasFinished_BecomesTrueOnlyAfterAllScripts()
-        {
-            AddScript("a");
-            Assert.IsFalse(_runner.HasFinished);
-            IEnumerator run = _runner.Run();
-            run.MoveNext();
-            Assert.IsFalse(_runner.HasFinished);
-            RunToEnd(run);
-            Assert.IsTrue(_runner.HasFinished);
         }
 
         [Test]

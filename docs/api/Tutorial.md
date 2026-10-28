@@ -1150,7 +1150,7 @@ flowchart LR
 | Skip On Start | `bool` | オフ | 入れると、Play を始めたときにチュートリアルを飛ばして、本編を始める（Begin On Start より優先）。試験用 |
 | Skip Phase | `string` | `"deliver"` | Skip したときに、一度だけ入る場面。最後のチュートリアルの場面名（GameRunner の After Phase と同じ）にする |
 
-### メンバー（9）
+### メンバー（8）
 
 | 種類 | メンバー | 説明 |
 |---|---|---|
@@ -1159,7 +1159,6 @@ flowchart LR
 | イベント | `Action Finished` | 全部のスクリプトが終わった。Stop でやめたときは出ない。 |
 | プロパティ | `TutorialMemory Memory { get; }` | チュートリアルのあいだで引き継ぐ、覚えたこと。 |
 | プロパティ | `bool IsRunning` | 動いているか。 |
-| プロパティ | `bool HasFinished` | 全部のスクリプトが終わったか（Skip で飛ばした場合も含む）。Begin で false に戻る。Stop でやめたときは false のまま。 |
 | メソッド | `bool Begin()` | 最初から動かす。すでに動いていれば、警告して false。 |
 | メソッド | `void Skip()` | チュートリアルを飛ばして、全部終わった扱いにする。動いていれば止め、村を最初に戻し、 合図の後片付け（巫女をとどまらせる・光と足あとを消す）をして、場面を skipPhase から空へ進め、Finished を出す。 |
 | メソッド | `void Stop()` | 途中でやめる。待ちを外し、場面を空に戻す。動いていなければ何もしない。 |

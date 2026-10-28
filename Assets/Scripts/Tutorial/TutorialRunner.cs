@@ -50,9 +50,6 @@ namespace MouthOfGod.Tutorial
         /// <summary>動いているか。</summary>
         public bool IsRunning => _running != null || _current != null;
 
-        /// <summary>全部のスクリプトが終わったか（<see cref="Skip"/> で飛ばした場合も含む）。<see cref="Begin"/> で false に戻る。<see cref="Stop"/> でやめたときは false のまま。</summary>
-        public bool HasFinished { get; private set; }
-
         /// <summary>スクリプトを動かし始めた（その場面の名前を運ぶ）。</summary>
         public event Action<PhaseId> ScriptStarted;
 
@@ -71,7 +68,6 @@ namespace MouthOfGod.Tutorial
                 return false;
             }
             Memory.Clear();
-            HasFinished = false;
             _running = StartCoroutine(Run());
             return true;
         }
@@ -94,7 +90,6 @@ namespace MouthOfGod.Tutorial
             Cues.Request(new CueId("miko.stay"));
             if (!string.IsNullOrEmpty(skipPhase)) Phases.Set(new PhaseId(skipPhase));
             Phases.Set(PhaseId.None);
-            HasFinished = true;
             Raise(Finished);
         }
 
@@ -140,7 +135,6 @@ namespace MouthOfGod.Tutorial
 
             _running = null;
             Phases.Set(PhaseId.None);
-            HasFinished = true;
             Raise(Finished);
         }
 

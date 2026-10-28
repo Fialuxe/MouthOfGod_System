@@ -45,6 +45,19 @@ namespace MouthOfGod.Device
             }
         }
 
+        /// <summary>action に割り当てた操作のうち、そのモードで受け付けるものが 1 つでも押されているか。押した強さが 0.5 以上なら、押したとみなす。</summary>
+        internal static bool AnyPressed(MockInputMode mode, InputAction action)
+        {
+            foreach (InputControl control in action.controls)
+            {
+                if (!Accepts(mode, action, control)) continue;
+                if (control is UnityEngine.InputSystem.Controls.ButtonControl button ? button.isPressed
+                    : control is UnityEngine.InputSystem.Controls.AxisControl axis && axis.ReadValue() >= 0.5f)
+                    return true;
+            }
+            return false;
+        }
+
         /// <summary>そのモードで、この操作（action の control）を受け付けるか。</summary>
         internal static bool Accepts(MockInputMode mode, InputAction action, InputControl control)
         {

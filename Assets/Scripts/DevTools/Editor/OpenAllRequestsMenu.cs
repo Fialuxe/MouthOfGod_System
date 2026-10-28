@@ -7,10 +7,12 @@ using UnityEngine;
 namespace MouthOfGod.DevTools.Editor
 {
     /// <summary>
-    /// Play 中に使うメニュー。チュートリアルが終わっていて、まだ出ていない欲しい物（吹き出し）があれば、すべてのフィールドで出せるだけ出す。
-    /// - チュートリアルの途中・始まる前は、何もしない（チュートリアルの流れを崩さないため）。シーンに TutorialRunner が無ければ、終わっているものとする。
+    /// Play 中に使うメニュー。チュートリアルが動いていなくて、まだ出ていない欲しい物（吹き出し）があれば、すべてのフィールドで出せるだけ出す。
+    /// - チュートリアルが動いている間は、何もしない（チュートリアルの流れを崩さないため）。終わった後・Skip した後・Stop で止めた後・始める前は、出す。
     /// - 1 つのフィールドに同時に出せる数は、そのフィールドの Max Open Requests まで。全部出したいときは、
     ///   「MouthOfGod/Dev/Set Up Main Copy」で、ステップの数にそろえておく。
+    /// - 試験用の OpenAllRequestsAfterTutorial（Tutorial/Sandbox）は、チュートリアルが終わったときに自動で同じことをする。
+    ///   こちらは、好きなときに手で押す（Skip・Stop の後や、届けて減った後に出し直すとき）。
     /// </summary>
     public static class OpenAllRequestsMenu
     {
@@ -20,9 +22,9 @@ namespace MouthOfGod.DevTools.Editor
         public static void OpenAll()
         {
             var runner = Object.FindFirstObjectByType<TutorialRunner>();
-            if (runner != null && !runner.HasFinished)
+            if (runner != null && runner.IsRunning)
             {
-                Debug.LogWarning("[OpenAllRequests] チュートリアルが、まだ終わっていません（途中か、始まる前）。終わってから使ってください。");
+                Debug.LogWarning("[OpenAllRequests] チュートリアルが動いています。終わるか、Skip・Stop してから使ってください。");
                 return;
             }
 

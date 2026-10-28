@@ -172,19 +172,51 @@ namespace MouthOfGod.Device
             _logic.EndBite(); // 押したまま無効化されても噛み状態を残さない
         }
 
-        // モードに合わない出どころ（Hand モードでのコントローラなど）の操作は、受け付けない。
-        void OnBiteStarted(InputAction.CallbackContext ctx)
+        // Any のときは、action の知らせで動かす（これまでと同じ）。
+        void OnBiteStarted(InputAction.CallbackContext _)
         {
-            if (MockInput.Accepts(inputMode, ctx.action, ctx.control)) _logic.BeginBite();
+            if (inputMode == MockInputMode.Any) _logic.BeginBite();
         }
 
-        void OnBiteCanceled(InputAction.CallbackContext _) => _logic.EndBite(); // やめるのは、どこからでも（噛んだままにしない）
-
-        void OnConfirm(InputAction.CallbackContext ctx)
+        void OnBiteCanceled(InputAction.CallbackContext _)
         {
-            if (MockInput.Accepts(inputMode, ctx.action, ctx.control)) _logic.Confirm();
+            if (inputMode == MockInputMode.Any) _logic.EndBite();
         }
 
-        void Update() => _logic.Tick(Time.deltaTime);
+        void OnConfirm(InputAction.CallbackContext _)
+        {
+            if (inputMode == MockInputMode.Any) _logic.Confirm();
+        }
+
+        bool _bitePressed, _confirmPressed;
+        MockInputMode _lastMode;
+
+        void Update()
+        {
+            // モードを変えたら、噛んだままにしない。
+            if (inputMode != _lastMode)
+            {
+                _lastMode = inputMode;
+                _bitePressed = _confirmPressed = false;
+                _logic.EndBite();
+            }
+
+            // Hand・RightController のときは、モードに合う操作だけを毎フレーム読む。
+            // action の知らせ（started など）を使うと、無視した操作（手の握りなど）で action が先に始まったとき、
+            // あとから押した受け付ける操作（右トリガーなど）の知らせが来ず、噛めなくなるため。
+            if (inputMode != MockInputMode.Any)
+            {
+                bool bite = MockInput.AnyPressed(inputMode, biteAction);
+                if (bite && !_bitePressed) _logic.BeginBite();
+                else if (!bite && _bitePressed) _logic.EndBite();
+                _bitePressed = bite;
+
+                bool confirm = MockInput.AnyPressed(inputMode, confirmAction);
+                if (confirm && !_confirmPressed) _logic.Confirm();
+                _confirmPressed = confirm;
+            }
+
+            _logic.Tick(Time.deltaTime);
+        }
     }
 }
