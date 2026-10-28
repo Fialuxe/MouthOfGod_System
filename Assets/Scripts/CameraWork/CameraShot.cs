@@ -86,6 +86,9 @@ namespace MouthOfGod.CameraWork
         [Tooltip("Aim が LookAtTarget のとき、見る相手")]
         public Transform aimTarget;
 
+        [Tooltip("Aim が LookAtTarget のとき、入れると、見る点が Aim Target からここへ、カットの進みに合わせて移る（山を見ながら始めて、村を見て終わる、など）")]
+        public Transform aimTargetEnd;
+
         [Tooltip("向きを新しい向きに合わせるのにかける秒数（カットの頭で、向きが急に変わらないように）")]
         [Min(0f)] public float aimBlendSeconds = 0.3f;
 

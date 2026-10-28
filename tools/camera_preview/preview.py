@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 W, H, FPS, FOV = 960, 540, 30, 60.0
+NEAR, FAR = 0.05, 14.0  # 手前の切り取りと、奥で色を落とす距離（小さい模型の場面では preview の外から変える）
 
 # ---------- CameraPathMath ----------
 def ease(kind, t, k=2.0):
@@ -73,7 +74,10 @@ def simulate(shots, start, fwd0):
             t = i / n; u = ease(shot.ease, t, shot.strength)
             p = path.pos(u)
             if shot.aim == "path": want = path.tangent(u, fwd)
-            elif shot.aim == "target": want = np.array(shot.target, float) - p
+            elif shot.aim == "target":
+                aim_at = np.array(shot.target, float)
+                if "aim_to" in shot.kw: aim_at = aim_at + (np.array(shot.kw["aim_to"], float) - aim_at) * u  # 見る点も動かす
+                want = aim_at - p
             else: want = start_fwd
             fwd = slerp_dir(start_fwd, want / np.linalg.norm(want), min(1, i / (0.3 * FPS)))
             frames.append((p, fwd.copy(), idx))
@@ -106,14 +110,14 @@ def build_scene():
 
 def project(frame, seg, col):
     pos, fwd, _ = frame; R = look(fwd); f = 1 / math.tan(math.radians(FOV / 2)); asp = W / H
-    out, near = [], 0.05
+    out, near = [], NEAR
     for (a, b), c in zip(seg, col):
         ca, cb = R @ (a - pos), R @ (b - pos)
         if ca[2] < near and cb[2] < near: continue
         if ca[2] < near: ca = ca + (cb - ca) * ((near - ca[2]) / (cb[2] - ca[2]))
         if cb[2] < near: cb = cb + (ca - cb) * ((near - cb[2]) / (ca[2] - cb[2]))
         pts = [((p[0] * f / asp / p[2] + 1) * W / 2, (1 - p[1] * f / p[2]) * H / 2) for p in (ca, cb)]
-        d = min(ca[2], cb[2]); k = max(.25, min(1, 14 / (d + 6)))
+        d = min(ca[2], cb[2]); k = max(.3, min(1, 1 - d / FAR))
         out.append((pts, tuple(int(x * k) for x in c)))
     return out
 

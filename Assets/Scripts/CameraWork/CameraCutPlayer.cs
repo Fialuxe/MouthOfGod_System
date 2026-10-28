@@ -141,7 +141,9 @@ namespace MouthOfGod.CameraWork
                     break;
                 case ShotAim.LookAtTarget:
                     if (shot.aimTarget == null) return;
-                    Vector3 toTarget = shot.aimTarget.position - transform.position;
+                    Vector3 aimPoint = shot.aimTarget.position;
+                    if (shot.aimTargetEnd != null) aimPoint = Vector3.Lerp(aimPoint, shot.aimTargetEnd.position, u);
+                    Vector3 toTarget = aimPoint - transform.position;
                     if (toTarget.sqrMagnitude < 1e-8f) return;
                     wanted = Quaternion.LookRotation(toTarget, Vector3.up);
                     break;
