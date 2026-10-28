@@ -16,9 +16,9 @@ Quest なしで試すための道具です。展示では使いません。
 | コンポーネント | [`DesktopHead`](#t-desktophead) | Quest なしで試すための頭。 |
 | コンポーネント | [`TutorialDebugHud`](#t-tutorialdebughud) | Quest なしで試すときの表示。 |
 | エディタ | [`FieldDiagnostics`](#t-fielddiagnostics) | Play 中に押すと、場所ごとに食べ物が引けているかを調べる材料を、Console に 1 回で出す。 |
-| エディタ | [`MainCopySetup`](#t-maincopysetup) | Main の写し（Main_Copy）を、本編まで通して試せる形にする。 |
 | エディタ | [`MainSeaSwapper`](#t-mainseaswapper) | 共有シーン（Main）の仮の海（Misc/Sea(Temporal)）を、完成版の海（Sea/Sea_work）に入れ替える（#329・#338）。 |
 | エディタ | [`MainSeaVillagerResizer`](#t-mainseavillagerresizer) | 共有シーン（Main）の海の村人の背の高さを、村の村人の平均に合わせる。 |
+| エディタ | [`MainSetup`](#t-mainsetup) | 共有シーン Main を、本編まで通して遊べる形にする。 |
 | エディタ | [`MountDeliveryZoneAdder`](#t-mountdeliveryzoneadder) | 山の Main 用 Prefab（Misc/MountVer2 Variant）に、届ける場所（DeliveryZone）と、それを受けるトリガーの箱を足す。 |
 | エディタ | [`OpenAllRequestsMenu`](#t-openallrequestsmenu) | Play 中に使うメニュー。 |
 | エディタ | [`TutorialTestSceneBuilder`](#t-tutorialtestscenebuilder) | Quest なしで、プロローグとチュートリアル 1〜4 を通して試すシーンを作る。 |
@@ -140,16 +140,6 @@ Play 中に押すと、場所ごとに食べ物が引けているかを調べる
 
 - メニュー: `MouthOfGod/Dev/Print Field Diagnostics (Play mode)`
 
-<a id="t-maincopysetup"></a>
-
-### MainCopySetup
-
-`DevTools/Editor/MainCopySetup.cs`（エディタ）
-
-Main の写し（Main_Copy）を、本編まで通して試せる形にする。共有シーン Main は触らない。- 本編の進行役（GameRunner）が無ければ置く。チュートリアルが終わると、これが本編を始める。- すべてのフィールドの Max Open Requests を、そのフィールドのステップの数にする。欲しい物を、全部同時に出せるようにするため。値は、シーンの上書き（Prefab override）として残す。フィールドの Prefab は変えない。Main_Copy を開いて 1 回実行し、シーンをコミットする。何度実行しても同じになる。
-
-- メニュー: `MouthOfGod/Dev/Set Up Main Copy (GameRunner, Max Open Requests)`
-
 <a id="t-mainseaswapper"></a>
 
 ### MainSeaSwapper
@@ -171,6 +161,16 @@ Main の写し（Main_Copy）を、本編まで通して試せる形にする。
 
 - メニュー: `MouthOfGod/Dev/Match Main Sea Villager Height to Village`
 
+<a id="t-mainsetup"></a>
+
+### MainSetup
+
+`DevTools/Editor/MainSetup.cs`（エディタ）
+
+共有シーン Main を、本編まで通して遊べる形にする。- 本編の進行役（GameRunner）が無ければ置く。チュートリアルが終わると、これが本編を始める。- すべてのフィールドの Max Open Requests を、そのフィールドのステップの数にする。欲しい物を、全部同時に出せるようにするため。値は、シーンの上書き（Prefab override）として残す。フィールドの Prefab は変えない。Main を開いて 1 回実行し、シーンをコミットする。Main は共有シーンなので、Scene Fusion のセッションの中で実行する（CONTRIBUTING 第 3 章）。何度実行しても同じになる。
+
+- メニュー: `MouthOfGod/Dev/Set Up Main (GameRunner, Max Open Requests)`
+
 <a id="t-mountdeliveryzoneadder"></a>
 
 ### MountDeliveryZoneAdder
@@ -187,7 +187,7 @@ Main の写し（Main_Copy）を、本編まで通して試せる形にする。
 
 `DevTools/Editor/OpenAllRequestsMenu.cs`（エディタ）
 
-Play 中に使うメニュー。チュートリアルが動いていなくて、まだ出ていない欲しい物（吹き出し）があれば、すべてのフィールドで出せるだけ出す。- チュートリアルが動いている間は、何もしない（チュートリアルの流れを崩さないため）。終わった後・Skip した後・Stop で止めた後・始める前は、出す。- 1 つのフィールドに同時に出せる数は、そのフィールドの Max Open Requests まで。全部出したいときは、 「MouthOfGod/Dev/Set Up Main Copy」で、ステップの数にそろえておく。- 試験用の OpenAllRequestsAfterTutorial（Tutorial/Sandbox）は、チュートリアルが終わったときに自動で同じことをする。こちらは、好きなときに手で押す（Skip・Stop の後や、届けて減った後に出し直すとき）。
+Play 中に使うメニュー。チュートリアルが動いていなくて、まだ出ていない欲しい物（吹き出し）があれば、すべてのフィールドで出せるだけ出す。- チュートリアルが動いている間は、何もしない（チュートリアルの流れを崩さないため）。終わった後・Skip した後・Stop で止めた後・始める前は、出す。- 1 つのフィールドに同時に出せる数は、そのフィールドの Max Open Requests まで。全部出したいときは、 「MouthOfGod/Dev/Set Up Main」で、ステップの数にそろえておく。- 試験用の OpenAllRequestsAfterTutorial（Tutorial/Sandbox）は、チュートリアルが終わったときに自動で同じことをする。こちらは、好きなときに手で押す（Skip・Stop の後や、届けて減った後に出し直すとき）。
 
 <a id="t-tutorialtestscenebuilder"></a>
 

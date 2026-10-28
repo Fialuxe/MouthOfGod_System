@@ -99,9 +99,9 @@
 | [`IFoodSpawner`](Core.md#t-ifoodspawner) | Core | interface | 決定した食感から食べ物を生む所。 |
 | [`IFork`](Core.md#t-ifork) | Core | interface | 体験者が持つフォーク。 |
 | [`ImageIntrinsics`](Tracking.md#t-imageintrinsics) | Tracking | データ | 現在の画像（ピクセル）に換算した内部パラメータ。 |
-| [`MainCopySetup`](DevTools.md#t-maincopysetup) | DevTools | エディタ | Main の写し（Main_Copy）を、本編まで通して試せる形にする。 |
 | [`MainSeaSwapper`](DevTools.md#t-mainseaswapper) | DevTools | エディタ | 共有シーン（Main）の仮の海（Misc/Sea(Temporal)）を、完成版の海（Sea/Sea_work）に入れ替える（#329・#338）。 |
 | [`MainSeaVillagerResizer`](DevTools.md#t-mainseavillagerresizer) | DevTools | エディタ | 共有シーン（Main）の海の村人の背の高さを、村の村人の平均に合わせる。 |
+| [`MainSetup`](DevTools.md#t-mainsetup) | DevTools | エディタ | 共有シーン Main を、本編まで通して遊べる形にする。 |
 | [`MikoCueReceiver`](Miko.md#t-mikocuereceiver) | Miko | コンポーネント | 合図（Cues）のうち、名前が miko. で始まるものを受けて、巫女に身振りをさせる。 |
 | [`MikoExpression`](Miko.md#t-mikoexpression) | Miko | 選択肢（enum） | 表情。 |
 | [`MikoEye`](Miko.md#t-mikoeye) | Miko | 選択肢（enum） | 目の形（Miko_Eyes.png の絵の順番）。 |

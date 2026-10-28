@@ -253,7 +253,7 @@ Prefab として置かれている物と、その中のコンポーネントで�
 ### 3.3 Main にまだ無いもの
 
 - [`GameRunner`](Game.md#t-gamerunner) と [`RemainingTimeText`](Game.md#t-remainingtimetext): シーンにも Prefab にもありません。置かないと、チュートリアルが終わっても本編（`main-game`）は始まりません。`TutorialRunner.Skip()` も、同じです。
-- 本編まで通して試すときは、Main の写し `Assets/Scenes/Main_Copy.unity` を開き、メニュー `MouthOfGod/Dev/Set Up Main Copy (GameRunner, Max Open Requests)` を 1 回実行します。[`GameRunner`](Game.md#t-gamerunner) が置かれ、全フィールドで欲しい物を全部同時に出せるようになります。
+- Main を開き、メニュー `MouthOfGod/Dev/Set Up Main (GameRunner, Max Open Requests)` を 1 回実行すると、[`GameRunner`](Game.md#t-gamerunner) が置かれます。あわせて、全フィールドで欲しい物を全部同時に出せるようになります。Main は共有シーンなので、Scene Fusion のセッションの中で実行し、シーンをコミットします。
 - 自動で置かれる物（1.3 節）は、手で置く必要がありません。
 
 ## 付録 A. メニュー一覧
@@ -268,7 +268,7 @@ Prefab として置かれている物と、その中のコンポーネントで�
 | エディタ | `MouthOfGod/Dev/Fix Main Sea Placement (remove SurfaceAnchor)` | [`MainSeaSwapper`](DevTools.md#t-mainseaswapper) |
 | エディタ | `MouthOfGod/Dev/Match Main Sea Villager Height to Village` | [`MainSeaVillagerResizer`](DevTools.md#t-mainseavillagerresizer) |
 | エディタ | `MouthOfGod/Dev/Print Field Diagnostics (Play mode)` | [`FieldDiagnostics`](DevTools.md#t-fielddiagnostics) |
-| エディタ | `MouthOfGod/Dev/Set Up Main Copy (GameRunner, Max Open Requests)` | [`MainCopySetup`](DevTools.md#t-maincopysetup) |
+| エディタ | `MouthOfGod/Dev/Set Up Main (GameRunner, Max Open Requests)` | [`MainSetup`](DevTools.md#t-mainsetup) |
 | エディタ | `MouthOfGod/Dev/Swap Main Sea (Temporal to Sea_work)` | [`MainSeaSwapper`](DevTools.md#t-mainseaswapper) |
 | エディタ | `MouthOfGod/Device/Create MockDevice Prefab` | [`MockDevicePrefabGenerator`](Device.md#t-mockdeviceprefabgenerator) |
 | エディタ | `MouthOfGod/Food/Fit Prefab Sizes` | [`FoodPrefabFitter`](Food.md#t-foodprefabfitter) |

@@ -7,23 +7,24 @@ using UnityEngine;
 namespace MouthOfGod.DevTools.Editor
 {
     /// <summary>
-    /// Main の写し（Main_Copy）を、本編まで通して試せる形にする。共有シーン Main は触らない。
+    /// 共有シーン Main を、本編まで通して遊べる形にする。
     /// - 本編の進行役（<see cref="GameRunner"/>）が無ければ置く。チュートリアルが終わると、これが本編を始める。
     /// - すべてのフィールドの Max Open Requests を、そのフィールドのステップの数にする。欲しい物を、全部同時に出せるようにするため。
     ///   値は、シーンの上書き（Prefab override）として残す。フィールドの Prefab は変えない。
-    /// Main_Copy を開いて 1 回実行し、シーンをコミットする。何度実行しても同じになる。
+    /// Main を開いて 1 回実行し、シーンをコミットする。Main は共有シーンなので、Scene Fusion のセッションの中で実行する（CONTRIBUTING 第 3 章）。
+    /// 何度実行しても同じになる。
     /// </summary>
-    public static class MainCopySetup
+    public static class MainSetup
     {
-        public const string ScenePath = "Assets/Scenes/Main_Copy.unity";
+        public const string ScenePath = "Assets/Scenes/Main.unity";
 
-        [MenuItem("MouthOfGod/Dev/Set Up Main Copy (GameRunner, Max Open Requests)")]
+        [MenuItem("MouthOfGod/Dev/Set Up Main (GameRunner, Max Open Requests)")]
         public static void SetUp()
         {
             var scene = EditorSceneManager.GetActiveScene();
             if (scene.path != ScenePath)
             {
-                Debug.LogWarning($"[MainCopySetup] {ScenePath} を開いてから実行してください（いま開いているのは {scene.path}）。");
+                Debug.LogWarning($"[MainSetup] {ScenePath} を開いてから実行してください（いま開いているのは {scene.path}）。");
                 return;
             }
 
@@ -32,11 +33,11 @@ namespace MouthOfGod.DevTools.Editor
                 var go = new GameObject("GameRunner");
                 Undo.RegisterCreatedObjectUndo(go, "Add GameRunner");
                 go.AddComponent<GameRunner>();
-                Debug.Log("[MainCopySetup] GameRunner を置きました。");
+                Debug.Log("[MainSetup] GameRunner を置きました。");
             }
             else
             {
-                Debug.Log("[MainCopySetup] GameRunner は、もうあります。");
+                Debug.Log("[MainSetup] GameRunner は、もうあります。");
             }
 
             foreach (var field in Object.FindObjectsByType<FieldStages>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -51,7 +52,7 @@ namespace MouthOfGod.DevTools.Editor
                     so.ApplyModifiedProperties();
                     PrefabUtility.RecordPrefabInstancePropertyModifications(field);
                 }
-                Debug.Log($"[MainCopySetup] {field.FieldId}（{field.name}）: Max Open Requests = {steps}（ステップの数）");
+                Debug.Log($"[MainSetup] {field.FieldId}（{field.name}）: Max Open Requests = {steps}（ステップの数）");
             }
 
             EditorSceneManager.MarkSceneDirty(scene);

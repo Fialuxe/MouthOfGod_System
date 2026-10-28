@@ -97,7 +97,7 @@ flowchart LR
 ```mermaid
 flowchart LR
   C_GameRunner["GameRunner<br/>Game"]:::me
-  U_MainCopySetup["MainCopySetup<br/>DevTools"] --> C_GameRunner
+  U_MainSetup["MainSetup<br/>DevTools"] --> C_GameRunner
   U_RemainingTimeText["RemainingTimeText<br/>Game"] --> C_GameRunner
   C_GameRunner --> D_GameClock["GameClock<br/>Game"]
   C_GameRunner --> D_PhaseId["PhaseId<br/>Core"]
@@ -105,7 +105,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`MainCopySetup`](DevTools.md#t-maincopysetup)、[`RemainingTimeText`](#t-remainingtimetext)
+- この型を使う所: [`MainSetup`](DevTools.md#t-mainsetup)、[`RemainingTimeText`](#t-remainingtimetext)
 - この型が使う型: [`GameClock`](#t-gameclock)、[`PhaseId`](Core.md#t-phaseid)、[`Phases`](Core.md#t-phases)
 
 ### この型を使う手順

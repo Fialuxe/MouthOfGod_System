@@ -203,7 +203,7 @@ flowchart LR
 flowchart LR
   C_FieldStages["FieldStages<br/>Village"]:::me
   U_DeliveryFx["DeliveryFx<br/>Village"] --> C_FieldStages
-  U_MainCopySetup["MainCopySetup<br/>DevTools"] --> C_FieldStages
+  U_MainSetup["MainSetup<br/>DevTools"] --> C_FieldStages
   U_TutorialTestSceneBuilder["TutorialTestSceneBuilder<br/>DevTools"] --> C_FieldStages
   U_VillageBaker["VillageBaker<br/>Village"] --> C_FieldStages
   C_FieldStages --> D_Delivered["Delivered<br/>Core"]
@@ -221,7 +221,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`DeliveryFx`](#t-deliveryfx)、[`MainCopySetup`](DevTools.md#t-maincopysetup)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)、[`VillageBaker`](#t-villagebaker)
+- この型を使う所: [`DeliveryFx`](#t-deliveryfx)、[`MainSetup`](DevTools.md#t-mainsetup)、[`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder)、[`VillageBaker`](#t-villagebaker)
 - この型が使う型: [`Delivered`](Core.md#t-delivered)、[`DeliveryFx`](#t-deliveryfx)、[`DeliveryKind`](Core.md#t-deliverykind)、[`FieldId`](Core.md#t-fieldid)、[`FieldStep`](#t-fieldstep)、[`Fields`](Core.md#t-fields)、[`FoodId`](Core.md#t-foodid)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`RequestClosed`](Core.md#t-requestclosed)、[`RequestIssued`](Core.md#t-requestissued)、[`StepProgress`](#t-stepprogress)、[`VillagerMood`](#t-villagermood)
 
 ### この型を使う手順
