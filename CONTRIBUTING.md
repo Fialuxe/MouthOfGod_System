@@ -128,61 +128,13 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 - 付けないと、ロードマップの「すぐ着手できる」やふりかえりの「次の一手」に、その Issue が出たままになる。気になるなら付ける。
 - 手を離すとき（しばらく触らない・ほかの人に渡す）は、Assignee を外す。
 
-**MTG の流れ**（中心は、MTG で話すこと。書くのは軽くでよい）
-
-| | いつ | 誰が | 何を |
-|---|---|---|---|
-| 1. 議題の下書き | 水曜 | Claude（自動） | 議題 Issue を作る（共有すること・決めること・Claude から聞きたいこと） |
-| 2. 各自のコメント | MTG の前 | 書く余裕がある人 | 話したいことを、議題 Issue にひとことコメント。無くてもよい。**前もって決めておく必要はない** |
-| 3. MTG | 金曜 | 全員 | 議題を補助線に話す（全部を進めなくてよい）。決めることは、その場で話して決める。Claude から聞きたいことにも、口で答える。**録音する** |
-| 4. 文字起こし | MTG の後 | 録音を置く人 → 自動 | 録音を [`mtg-inbox`](https://drive.google.com/drive/folders/1PBN9Ckx2SGr4Tx_-3p87E8MYO3VkB2Xi?usp=drive_link) に置くと、数時間以内に文字起こしが始まる（置き方は [録音の置き方](docs/templates/mtg-recording.md)。議題 Issue にも毎回入る） |
-| 5. 反映 | 自動 | Claude | 議事録を議題 Issue にコメントし、`docs/minutes/` の PR を作る |
-| 6. Issue の更新 | 自動 | Claude | 決めたことを各 Issue に書く、ラベルを外す、Claude の質問の答えを書き戻す、終わった Issue を閉じる |
-
-人がするのは 2（余裕があれば）・3・4 と、6 の後に議事録の PR を見てマージすること。議事録や Issue の更新が間違っていたら、直すか reopen する。
-
-**ミーティングで話すことは、ラベルと「議題 Issue」で集める**。
-
-- **ラベル**（MTG の前に、話したい Issue に付ける）:
-  - `mtg-share`: 見てほしい・知っておいてほしいもの（レビューしてほしい案、進み具合、困っていること）
-  - `mtg-decide`: その場で決めたいもの。Issue に「決めてほしいこと」を番号付きで書いておく
-  - 一覧: [mtg-share](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3Amtg-share)・[mtg-decide](https://github.com/Fialuxe/MouthOfGod_System/issues?q=is%3Aopen+label%3Amtg-decide)
-- **議題 Issue**（MTG 1 回につき 1 つ。題は「次の MTG の議題と議事録」、ラベルは `mtg-share`）:
-  - 「共有すること」と「決めること（締切の近い順）」を並べる。本文は Claude が水曜に下書きする（共有すること: 前回のアクション・見てほしいもの・お知らせ。決めること: Issue・Claude からの質問。根拠は折りたたみの中）
-  - **話したいことがあれば、書く余裕があれば、MTG の前に議題 Issue にコメントする**（流れの 2。無くてもよい。決めるのは MTG で話して）。一人 1 つのコメントにまとめる（足すときは、そのコメントを編集）。形式は自由で、ひとことでよい。たとえば「共有事項」（やったこと・見てほしいもの）と「相談事項」（困っていること・決めたいこと）の見出しで書く（[ひな形](docs/templates/mtg-comment-template.md)。議題 Issue の冒頭にも置いてある）。Issue のないこと（マージした PR、決まりの変更、お知らせ）も、ここに書けば共有できる。MTG では、本文と各自のコメントを流し見しながら話す
-  - **Claude から聞きたいこと・Claude からの質問**には、MTG で口で答えればよい（選択肢つきなら「Q1 は A」）。前もって答えたいときは、元のコメントに返信する。答えは Claude が元の Issue に書き戻し、次の実行で使う。答えなければ、質問に書かれた「決めなければ」で進むか、止まったまま次の議題に残る（形は [docs/mtg-context.md](docs/mtg-context.md#claude-からの質問)）
-  - **作業の PR には `Refs #N`（終わるなら `Closes #N`）を書く**。書かないと、Claude は進み具合を「記録なし」としか判定できない
-- **議事録のもとになる録音は、誰が用意してもよい**（スマホでよい）:
-  1. MTG の最初に、スマホの録音アプリで録音を始める（話す人の近くに置く）
-  2. 終わったら、ファイル名に MTG の日付を入れる（例: `2026-10-16 MTG.m4a`）
-  3. Google ドライブの共有フォルダ [`mtg-inbox`](https://drive.google.com/drive/folders/1PBN9Ckx2SGr4Tx_-3p87E8MYO3VkB2Xi) にアップロードする
-
-- **録音を処理する PC を用意する**（1 台に頼らないよう、2 台以上あるとよい。詳細は [docs/mtg-automation.md](docs/mtg-automation.md)）:
-  - **Windows（NVIDIA の GPU）**: PowerShell で、リポジトリのフォルダから実行する。足りないものを入れ、録音のフォルダを見張るタスクまで登録する。
-    ```powershell
-    .\tools\mtg\setup-pc.ps1 -CheckOnly                                  # 何も入れずに、足りないものを見る
-    .\tools\mtg\setup-pc.ps1 -Inbox "<Google ドライブの mtg-inbox>" -Real  # 入れて、見張りを本番で登録する
-    ```
-  - **Mac（Apple Silicon、GPU なし）**: ターミナル（zsh）で実行する。環境を整えて、文字起こしの動作を確かめるところまで（フォルダの見張りと議事録は Windows のみ）。
-    ```zsh
-    ./tools/mtg/setup-mac.sh --check-only        # 何も入れずに、足りないものを見る
-    ./tools/mtg/setup-mac.sh --test              # 入れて、3 秒の音声で文字起こしの動作を確かめる
-    ./tools/mtg/setup-mac.sh --transcribe 録音.m4a   # 1 本を large-v3 で文字起こしする（CPU では遅いので、放置して待つ）
-    ```
-  - どちらも、何度実行してもよい（足りないものだけを入れる）。そのあとに手でやること: `gh auth login`、`claude` を一度起動してログイン、Google ドライブのデスクトップ版で `mtg-inbox` を「ミラーリング」にする。
-- **MTG が終わったら**（流れの 5・6。録音が処理されたあと、Claude が自動で行う）:
-  1. 議題 Issue に**議事録**がコメントされる（決定事項・アクション・議題ごとの要点・未解決）
-  2. 決めたことが、それぞれの Issue にも書かれ、`mtg-decide` が外れる。決まらなかったものは、付けたまま次回へ
-  3. 共有した Issue から `mtg-share` が外れる。何を共有したかは議事録に残る
-  4. 議題 Issue が閉じられる（閉じた議題 Issue が、MTG の記録になる）。次の議題 Issue は、水曜に作られる
-  
-  人は、議事録の PR を見てマージする。間違いがあれば、直すか reopen する
+**ミーティングの議事録機能は、10 月で終了しました。** 議題 Issue・録音・文字起こし・議事録の PR は、もう作られません。過去の議事録は [docs/minutes/](docs/minutes/) に残っています。決めたことは、それぞれの Issue のコメントと [docs/decisions.md](docs/decisions.md) に書きます。
 
 **ほかのラベル**:
 
 | ラベル | 意味 |
 |---|---|
-| `decision` | 作業ではなく、決めることが中身の Issue（MTG で決めるとは限らない） |
+| `decision` | 作業ではなく、決めることが中身の Issue |
 | `enhancement`・`making/hardware`・`assets`・`test`・`submission`・`logistics` | 作業の種類（`enhancement` は新機能、`making/hardware` は実物づくり）。文書を作る Issue には `documentation` も付ける |
 | `tutorial-1-device`・`tutorial-2-chew`・`tutorial-3-texture`・`tutorial-4-deliver`・`main-game` | その `sub-goal` が関わるチュートリアル（デバイスの使い方・噛むと物が生まれる・食感と要求を知る・届ける）や本編。1 つでも複数でもよい。どれにも当たらない小ゴールには付けない |
 | `due-oct` | 10/30 の応募に必要 |
@@ -200,9 +152,7 @@ git push -u origin feature/player-move   # → GitHub で PR を作成
 | **Support** | Leading を助ける人（1 人。いなくてもよい） | 付ける |
 | **Follower** | それ以外の全員。進み具合を見て、必要なら意見を言う | 付けない |
 
-担当を決めるのが一番重いので、MTG で決める。決まらなければ、議事録に Leading「未定」と書かれ、次の議題に回る。
-
-**議題 Issue と議事録は、全員を Assignee にする**（全員で見るもので、Leading・Support は置かない）。
+担当を決めるのが一番重いので、Issue のコメントか Slack で話して決める。決まらなければ、Leading「未定」のままにする。
 
 **「決めること」の Issue の決まり**（決める系の Issue が、作業になっても残り続けないように）:
 
