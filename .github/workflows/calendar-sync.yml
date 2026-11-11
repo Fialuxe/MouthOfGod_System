@@ -1,5 +1,5 @@
 # チームの Google カレンダー（IVRC2026）の、これから 3 週間の予定を、非公開リポジトリ（MouthOfGod_transcripts）の calendar/upcoming.md に書く。
-# 水曜の議題（mtg-agenda）が読み、公開の議題には日付と予定の名前だけを書く。
+# Claude の担当候補づくり（suggest-leading）が読む。
 # 予定はチームだけのもの。公開リポジトリには書かない。ログには件数だけを出す。
 # 必要な Secrets: IVRC_CALENDAR_ICS（iCal 形式の非公開 URL）、TRANSCRIPTS_PAT（無ければ、何もせず終わる）。
 name: Calendar sync
