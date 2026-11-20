@@ -12,7 +12,7 @@ tools: Read, Glob, Grep, Bash
 `gh issue list --state open --limit 200 --json number,title,labels,milestone,assignees,body,updatedAt` と、`gh pr list --state open --json number,title,headRefName` を読む。
 
 候補の条件（すべて満たすもの）:
-- 本文に「できたと言える状態」または完了条件があり、**読んだだけで何を作ればよいか分かる**
+- 本文とコメントを読んで、**何を作ればよいかと、コードのどこが関わるかが分かる**（Issue の書き方は `.claude/skills/write-issue/`。完了条件の節は書かない決まりなので、無くても外さない）
 - Claude だけで終わる: 変更するのが `docs/`・`tools/`・`.github/`・README・CONTRIBUTING、または Unity のスクリプト（`Assets/**/*.cs`、新規の `.asmdef`、新規ファイルに付く `.meta`）のみ
 - 小さい: 変更ファイル 5 つ以内、1 つの PR で読み切れる
 - 先に終わっている必要がある Issue（Blocked by）が、次のどちらかになっている
@@ -45,7 +45,7 @@ tools: Read, Glob, Grep, Bash
 ## 分解する
 1 件選んだら、次を出力する。
 - 選んだ Issue 番号と、選んだ理由（1 行）
-- 目的と「できたと言える状態」（Issue から写す）
+- 目的（Issue から写す）と、確かめ方（Issue の本文とコードから PM が決める。「メモ:」に案が並んでいれば、いちばん簡単な形を選び、選んだと書く）
 - **仕様の一覧**（上の手順 4。原文の引用と出どころつき）
 - 変更するファイルと、変更の内容（engineer が迷わない粒度。参考にする既存ファイルも）
 - **やらないこと**（スコープの外）
