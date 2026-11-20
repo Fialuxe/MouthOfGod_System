@@ -386,7 +386,7 @@ flowchart LR
 **コンポーネント**（GameObject に付ける）・ `class` ・ 名前空間 `MouthOfGod.UI` ・ [`UI/RequestBubbles.cs`](../../Assets/Scripts/UI/RequestBubbles.cs)
 <br>継承・実装: `MonoBehaviour`
 
-村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。食べ物のアイコンがあれば絵を、無ければ英語の名前を出す。Play で自動で置かれるので、手で置かなくてよい。[`Fields`](Core.md#t-fields) のフィールドの Issued で Anchor の上に出し、Closed で消す（届いたか・待ちきれなかったかで色を変えて、少しだけ見せてから消す）。Village の型は参照しない。Prefab もシーンも使わず、子の物をコードで作る。遠くの村人への気づき方（見えない位置の村人をどう知らせるか）は別 Issue。
+村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。食べ物のアイコンがあれば絵を、無ければ英語の名前を出す。Play で自動で置かれるので、手で置かなくてよい。[`Fields`](Core.md#t-fields) のフィールドから Issued を受けたら、Anchor の上に出す。Closed を受けたら、届いたか待ちきれなかったかで色を変える。少しだけ見せてから消す。Village の型は参照しない。Prefab もシーンも使わず、子の物をコードで作る。遠くの村人への気づき方（見えない位置の村人をどう知らせるか）は別 Issue。
 
 ### なぜこの形か
 

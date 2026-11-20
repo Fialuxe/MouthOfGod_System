@@ -47,7 +47,8 @@ namespace MouthOfGod.UI
 
     /// <summary>
     /// 村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。食べ物のアイコンがあれば絵を、無ければ英語の名前を出す。Play で自動で置かれるので、手で置かなくてよい。
-    /// <see cref="Fields"/> のフィールドの Issued で <see cref="RequestIssued.Anchor"/> の上に出し、Closed で消す（届いたか・待ちきれなかったかで色を変えて、少しだけ見せてから消す）。
+    /// <see cref="Fields"/> のフィールドから Issued を受けたら、<see cref="RequestIssued.Anchor"/> の上に出す。
+    /// Closed を受けたら、届いたか待ちきれなかったかで色を変える。少しだけ見せてから消す。
     /// Village の型は参照しない。Prefab もシーンも使わず、子の物をコードで作る。
     /// 遠くの村人への気づき方（見えない位置の村人をどう知らせるか）は別 Issue。
     /// </summary>
