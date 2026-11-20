@@ -1,4 +1,4 @@
-"""チームの Google カレンダー（IVRC2026）の、これから 3 週間の予定を、非公開リポジトリに書く。水曜の議題（mtg-agenda）が読む。
+"""チームの Google カレンダー（IVRC2026）の、これから 3 週間の予定を、非公開リポジトリに書く。担当候補づくり（suggest-leading）が読む。
 
 - カレンダーは、iCal 形式の非公開 URL（Secrets の IVRC_CALENDAR_ICS）から読む。URL は秘密なので、ログにも出さない
 - 予定はチームだけのものなので、公開リポジトリには書かない。書くのは非公開リポジトリの calendar/upcoming.md だけ
