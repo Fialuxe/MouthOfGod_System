@@ -6,12 +6,15 @@ using UnityEngine;
 namespace MouthOfGod.UI
 {
     /// <summary>
-    /// 本編の時間切れのあとに、届けた数を英語の文で正面に出す（#355）。Play で自動で置かれるので、手で置かなくてよい。
-    /// 場面（<see cref="Phases"/>）が main-game の間に、<see cref="Fields"/> のフィールドへ届いた物を数え、game-over になったらカメラの前に出す。
-    /// main-game になったら数を 0 に戻して隠す。game-over 以外の場面では隠す。
-    /// 点の付け方は未定なので、数えるのは、欲しがられていた物（<see cref="DeliveryKind.Requested"/>）だけ（docs/decisions.md 2026-10-15）。
-    /// Game の型は参照しない（時間切れは、場面が game-over になったことで知る）。Prefab もシーンも使わず、文字をコードで作る。
-    /// 文・距離・高さ・文字の大きさと色は <see cref="GameResultSettings"/>（<c>Assets/Resources/GameResultSettings.asset</c>。無ければコードの既定値）で直す。
+    /// 本編の時間切れのあとに、届けた数を英語の文で正面に出します（#355）。Play で自動で置かれるので、手で置かなくてよいです。
+    /// 場面（<see cref="Phases"/>）が main-game の間、<see cref="Fields"/> のフィールドへ届いた物を数えます。
+    /// 点の付け方は未定なので、数えるのは欲しがられていた物（<see cref="DeliveryKind.Requested"/>）だけです（docs/decisions.md 2026-10-15）。
+    /// game-over になったら、その数をカメラの前に出します。
+    /// main-game になったら、数を 0 に戻して隠します。game-over 以外の場面でも隠します。
+    /// 時間切れは、場面が game-over になったことで知ります。そのため、Game の型は参照しません。
+    /// Prefab もシーンも使わず、文字をコードで作ります。
+    /// 文・距離・高さ・文字の大きさと色は、<see cref="GameResultSettings"/> で直します。
+    /// 設定は <c>Assets/Resources/GameResultSettings.asset</c> に置きます。無ければ、コードの既定値で動きます。
     /// </summary>
     public sealed class GameResultText : MonoBehaviour
     {

@@ -17,7 +17,7 @@
 |---|---|---|
 | コンポーネント | [`CueReaction`](#t-cuereaction) | 合図（Requested）を受けて、物を出す・消す・UnityEvent を呼ぶ。 |
 | コンポーネント | [`FoodShadow`](#t-foodshadow) | 口に含んでいる間、「いまの食感なら生まれる物」の影（シルエット）を、霞の中に見せる（シナリオブック S4・S5）。 |
-| コンポーネント | [`GameResultText`](#t-gameresulttext) | 本編の時間切れのあとに、届けた数を英語の文で正面に出す（#355）。 |
+| コンポーネント | [`GameResultText`](#t-gameresulttext) | 本編の時間切れのあとに、届けた数を英語の文で正面に出します（#355）。 |
 | コンポーネント | [`RequestBubbles`](#t-requestbubbles) | 村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。 |
 | 設定アセット | [`GameResultSettings`](#t-gameresultsettings) | 時間切れのあとに出す、届けた数の文（GameResultText）の設定（#355）。 |
 | 設定アセット | [`RequestBubbleSettings`](#t-requestbubblesettings) | 村人の吹き出しの見た目の設定。 |
@@ -262,7 +262,7 @@ flowchart LR
 **コンポーネント**（GameObject に付ける）・ `sealed class` ・ 名前空間 `MouthOfGod.UI` ・ [`UI/GameResultText.cs`](../../Assets/Scripts/UI/GameResultText.cs)
 <br>継承・実装: `MonoBehaviour`
 
-本編の時間切れのあとに、届けた数を英語の文で正面に出す（#355）。Play で自動で置かれるので、手で置かなくてよい。場面（[`Phases`](Core.md#t-phases)）が main-game の間に、[`Fields`](Core.md#t-fields) のフィールドへ届いた物を数え、game-over になったらカメラの前に出す。main-game になったら数を 0 に戻して隠す。game-over 以外の場面では隠す。点の付け方は未定なので、数えるのは、欲しがられていた物（Requested）だけ（docs/decisions.md 2026-10-15）。Game の型は参照しない（時間切れは、場面が game-over になったことで知る）。Prefab もシーンも使わず、文字をコードで作る。文・距離・高さ・文字の大きさと色は [`GameResultSettings`](#t-gameresultsettings)（Assets/Resources/[`GameResultSettings`](#t-gameresultsettings).asset。無ければコードの既定値）で直す。
+本編の時間切れのあとに、届けた数を英語の文で正面に出します（#355）。Play で自動で置かれるので、手で置かなくてよいです。場面（[`Phases`](Core.md#t-phases)）が main-game の間、[`Fields`](Core.md#t-fields) のフィールドへ届いた物を数えます。点の付け方は未定なので、数えるのは欲しがられていた物（Requested）だけです（docs/decisions.md 2026-10-15）。game-over になったら、その数をカメラの前に出します。main-game になったら、数を 0 に戻して隠します。game-over 以外の場面でも隠します。時間切れは、場面が game-over になったことで知ります。そのため、Game の型は参照しません。Prefab もシーンも使わず、文字をコードで作ります。文・距離・高さ・文字の大きさと色は、[`GameResultSettings`](#t-gameresultsettings) で直します。設定は Assets/Resources/[`GameResultSettings`](#t-gameresultsettings).asset に置きます。無ければ、コードの既定値で動きます。
 
 ### つながり
 

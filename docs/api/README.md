@@ -90,7 +90,7 @@
 | [`ForkWait`](Tutorial.md#t-forkwait) | Tutorial | 待ち（yield return） | フォークで雲を刺すのを待つ（Pierce）。 |
 | [`GameClock`](Game.md#t-gameclock) | Game | クラス | 本編の制限時間の時計。 |
 | [`GameResultSettings`](UI.md#t-gameresultsettings) | UI | 設定アセット | 時間切れのあとに出す、届けた数の文（GameResultText）の設定（#355）。 |
-| [`GameResultText`](UI.md#t-gameresulttext) | UI | コンポーネント | 本編の時間切れのあとに、届けた数を英語の文で正面に出す（#355）。 |
+| [`GameResultText`](UI.md#t-gameresulttext) | UI | コンポーネント | 本編の時間切れのあとに、届けた数を英語の文で正面に出します（#355）。 |
 | [`GameRunner`](Game.md#t-gamerunner) | Game | コンポーネント | 本編の進行役。 |
 | [`HandHeldPose`](Tracking.md#t-handheldpose) | Tracking | コンポーネント | 手（ハンドトラッキング）の位置に、オフセットを足して、手に持ったものの先の位置に自分を動かす。 |
 | [`HandHeldTip`](Tracking.md#t-handheldtip) | Tracking | クラス | 手の姿勢から、手に持ったもの（フォークなど）の先の姿勢を出す。 |
