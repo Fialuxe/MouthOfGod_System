@@ -19,6 +19,7 @@
 | コンポーネント | [`FoodShadow`](#t-foodshadow) | 口に含んでいる間、「いまの食感なら生まれる物」の影（シルエット）を、霞の中に見せる（シナリオブック S4・S5）。 |
 | コンポーネント | [`GameResultText`](#t-gameresulttext) | 本編の時間切れのあとに、届けた数を英語の文で正面に出す（#355）。 |
 | コンポーネント | [`RequestBubbles`](#t-requestbubbles) | 村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。 |
+| 設定アセット | [`GameResultSettings`](#t-gameresultsettings) | 時間切れのあとに出す、届けた数の文（GameResultText）の設定（#355）。 |
 | 設定アセット | [`RequestBubbleSettings`](#t-requestbubblesettings) | 村人の吹き出しの見た目の設定。 |
 | static（置き場・計算） | [`RequestBubbleText`](#t-requestbubbletext) | 吹き出しに出す文字を作る純粋な部品（Unity に依存しない）。 |
 | データ | [`Entry`](#t-entry) | 1 つの合図への反応。 |
@@ -207,6 +208,53 @@ flowchart LR
 
 ---
 
+<a id="t-gameresultsettings"></a>
+
+## GameResultSettings
+
+**設定アセット**（Project に置くアセット）・ `sealed class` ・ 名前空間 `MouthOfGod.UI` ・ [`UI/GameResultSettings.cs`](../../Assets/Scripts/UI/GameResultSettings.cs)
+<br>継承・実装: `ScriptableObject`
+<br>属性: `[CreateAssetMenu(fileName = ResourceName, menuName = "MouthOfGod/UI/Game Result Settings")]`
+
+時間切れのあとに出す、届けた数の文（[`GameResultText`](#t-gameresulttext)）の設定（#355）。Assets/Resources/GameResultSettings.asset があれば、それを使う。なければコードの既定値で動く。Project でアセットを選び、Inspector で値を直す。Play を止めても値は残る。Play 中に直した値は、次に文を出すときに効く。変更は、このアセット（ファイル）の差分として残るので、誰が直しても PR で見える。値はどれも仮のもの。
+
+### つながり
+
+```mermaid
+flowchart LR
+  C_GameResultSettings["GameResultSettings<br/>UI"]:::me
+  U_GameResultText["GameResultText<br/>UI"] --> C_GameResultSettings
+  classDef me stroke-width:3px
+```
+
+- この型を使う所: [`GameResultText`](#t-gameresulttext)
+
+### Inspector（5 項目）
+
+| 項目 | 型 | 既定値 | 説明 |
+|---|---|---|---|
+| Format | `string` | `DefaultFormat` | 出す文。{0} に届けた数が入る（仮の値）。書式が壊れていたら、いつもの文で出す |
+| Distance | `float` | 2 | カメラから、水平にどれだけ前に出すか（m。仮の値） |
+| Height | `float` | 0 | カメラ（目）の高さから、どれだけ上に出すか（m。0 で目の高さ。仮の値） |
+| Character Size | `float` | 0.02 | 文字の大きさ（TextMesh の characterSize。fontSize 64 のとき、0.02 で 1 行がおよそ 0.14 m） |
+| Color | `Color` | `Color.white` | 文字の色 |
+
+### メンバー（8）
+
+| 種類 | メンバー | 説明 |
+|---|---|---|
+| プロパティ | `string Format` | （説明はコードにありません） |
+| プロパティ | `float Distance` | （説明はコードにありません） |
+| プロパティ | `float Height` | （説明はコードにありません） |
+| プロパティ | `float CharacterSize` | （説明はコードにありません） |
+| プロパティ | `Color Color` | （説明はコードにありません） |
+| 定数 | `const string ResourceName` | （説明はコードにありません） |
+| 定数 | `const string DefaultFormat` | いつもの文。{0} に届けた数が入る。 |
+| メソッド | `static GameResultSettings Load()` | アセットがあればそれを、なければ既定値のインスタンスを返す。 |
+
+
+---
+
 <a id="t-gameresulttext"></a>
 
 ## GameResultText
@@ -214,7 +262,7 @@ flowchart LR
 **コンポーネント**（GameObject に付ける）・ `sealed class` ・ 名前空間 `MouthOfGod.UI` ・ [`UI/GameResultText.cs`](../../Assets/Scripts/UI/GameResultText.cs)
 <br>継承・実装: `MonoBehaviour`
 
-本編の時間切れのあとに、届けた数を英語の文で正面に出す（#355）。Play で自動で置かれるので、手で置かなくてよい。場面（[`Phases`](Core.md#t-phases)）が main-game の間に、[`Fields`](Core.md#t-fields) のフィールドへ届いた物を数え、game-over になったらカメラの前に出す。main-game になったら数を 0 に戻して隠す。game-over 以外の場面では隠す。点の付け方は未定なので、数えるのは、欲しがられていた物（Requested）だけ（docs/decisions.md 2026-10-15）。Game の型は参照しない（時間切れは、場面が game-over になったことで知る）。Prefab もシーンも使わず、文字をコードで作る。
+本編の時間切れのあとに、届けた数を英語の文で正面に出す（#355）。Play で自動で置かれるので、手で置かなくてよい。場面（[`Phases`](Core.md#t-phases)）が main-game の間に、[`Fields`](Core.md#t-fields) のフィールドへ届いた物を数え、game-over になったらカメラの前に出す。main-game になったら数を 0 に戻して隠す。game-over 以外の場面では隠す。点の付け方は未定なので、数えるのは、欲しがられていた物（Requested）だけ（docs/decisions.md 2026-10-15）。Game の型は参照しない（時間切れは、場面が game-over になったことで知る）。Prefab もシーンも使わず、文字をコードで作る。文・距離・高さ・文字の大きさと色は [`GameResultSettings`](#t-gameresultsettings)（Assets/Resources/[`GameResultSettings`](#t-gameresultsettings).asset。無ければコードの既定値）で直す。
 
 ### つながり
 
@@ -223,23 +271,14 @@ flowchart LR
   C_GameResultText["GameResultText<br/>UI"]:::me
   C_GameResultText --> D_Delivered["Delivered<br/>Core"]
   C_GameResultText --> D_Fields["Fields<br/>Core"]
+  C_GameResultText --> D_GameResultSettings["GameResultSettings<br/>UI"]
   C_GameResultText --> D_IFieldRequests["IFieldRequests<br/>Core"]
   C_GameResultText --> D_PhaseId["PhaseId<br/>Core"]
   C_GameResultText --> D_Phases["Phases<br/>Core"]
   classDef me stroke-width:3px
 ```
 
-- この型が使う型: [`Delivered`](Core.md#t-delivered)、[`Fields`](Core.md#t-fields)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`PhaseId`](Core.md#t-phaseid)、[`Phases`](Core.md#t-phases)
-
-### Inspector（5 項目）
-
-| 項目 | 型 | 既定値 | 説明 |
-|---|---|---|---|
-| Format | `string` | `DefaultFormat` | 出す文。{0} に届けた数が入る（仮の値） |
-| Distance | `float` | 2 | カメラから、水平にどれだけ前に出すか（m。仮の値） |
-| Height | `float` | 0 | カメラ（目）の高さから、どれだけ上に出すか（m。0 で目の高さ。仮の値） |
-| Character Size | `float` | 0.02 | 文字の大きさ（TextMesh の characterSize。fontSize 64 のとき、0.02 で 1 行がおよそ 0.14 m） |
-| Color | `Color` | `Color.white` | 文字の色 |
+- この型が使う型: [`Delivered`](Core.md#t-delivered)、[`Fields`](Core.md#t-fields)、[`GameResultSettings`](#t-gameresultsettings)、[`IFieldRequests`](Core.md#t-ifieldrequests)、[`PhaseId`](Core.md#t-phaseid)、[`Phases`](Core.md#t-phases)
 
 
 ---

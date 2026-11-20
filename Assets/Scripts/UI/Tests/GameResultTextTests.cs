@@ -221,8 +221,26 @@ namespace MouthOfGod.UI.Tests
         [Test]
         public void Format_PutsTheCount()
         {
-            Assert.AreEqual("Time's up!\nDelivered: 5", GameResultText.Format(GameResultText.DefaultFormat, 5));
+            Assert.AreEqual("Time's up!\nDelivered: 5", GameResultText.Format(GameResultSettings.DefaultFormat, 5));
             Assert.AreEqual("7 delivered", GameResultText.Format("{0} delivered", 7));
+        }
+
+        [Test]
+        public void Settings_WithoutAnAsset_UseTheDefaults()
+        {
+            GameResultSettings settings = GameResultSettings.Load();
+            try
+            {
+                Assert.AreEqual(GameResultSettings.DefaultFormat, settings.Format);
+                Assert.AreEqual(2f, settings.Distance, 0.0001f);
+                Assert.AreEqual(0f, settings.Height, 0.0001f);
+                Assert.Greater(settings.CharacterSize, 0f);
+                Assert.AreEqual(Color.white, settings.Color);
+            }
+            finally
+            {
+                if (settings != null && settings.hideFlags == HideFlags.DontSave) UnityEngine.Object.DestroyImmediate(settings);
+            }
         }
 
         [Test]

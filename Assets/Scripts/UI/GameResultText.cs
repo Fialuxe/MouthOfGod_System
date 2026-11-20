@@ -11,28 +11,16 @@ namespace MouthOfGod.UI
     /// main-game になったら数を 0 に戻して隠す。game-over 以外の場面では隠す。
     /// 点の付け方は未定なので、数えるのは、欲しがられていた物（<see cref="DeliveryKind.Requested"/>）だけ（docs/decisions.md 2026-10-15）。
     /// Game の型は参照しない（時間切れは、場面が game-over になったことで知る）。Prefab もシーンも使わず、文字をコードで作る。
+    /// 文・距離・高さ・文字の大きさと色は <see cref="GameResultSettings"/>（<c>Assets/Resources/GameResultSettings.asset</c>。無ければコードの既定値）で直す。
     /// </summary>
     public sealed class GameResultText : MonoBehaviour
     {
         static readonly PhaseId MainGame = new PhaseId("main-game");
         static readonly PhaseId GameOver = new PhaseId("game-over");
 
-        internal const string DefaultFormat = "Time's up!\nDelivered: {0}";
-
-        [Tooltip("出す文。{0} に届けた数が入る（仮の値）")]
-        [SerializeField, TextArea(2, 4)] string format = DefaultFormat;
-
-        [Tooltip("カメラから、水平にどれだけ前に出すか（m。仮の値）")]
-        [SerializeField, Min(0f)] float distance = 2f;
-
-        [Tooltip("カメラ（目）の高さから、どれだけ上に出すか（m。0 で目の高さ。仮の値）")]
-        [SerializeField] float height;
-
-        [Tooltip("文字の大きさ（TextMesh の characterSize。fontSize 64 のとき、0.02 で 1 行がおよそ 0.14 m）")]
-        [SerializeField, Min(0.001f)] float characterSize = 0.02f;
-
-        [Tooltip("文字の色")]
-        [SerializeField] Color color = Color.white;
+        // 文・距離・高さ・文字の大きさと色は、誰でも直せるように設定のアセットに持つ（GameResultSettings）。
+        GameResultSettings _settings;
+        GameResultSettings Settings => _settings != null ? _settings : _settings = GameResultSettings.Load();
 
         static bool _placed;
 
@@ -144,7 +132,7 @@ namespace MouthOfGod.UI
         /// <summary>出す文を作る。書式が壊れていたら（{0} の書き間違いなど）、警告を出して、いつもの書式で作る。</summary>
         internal static string Format(string format, int delivered)
         {
-            if (string.IsNullOrEmpty(format)) return string.Format(DefaultFormat, delivered);
+            if (string.IsNullOrEmpty(format)) return string.Format(GameResultSettings.DefaultFormat, delivered);
             try
             {
                 return string.Format(format, delivered);
@@ -152,7 +140,7 @@ namespace MouthOfGod.UI
             catch (FormatException)
             {
                 Debug.LogWarning($"[GameResultText] 文の書式「{format}」が壊れているので、いつもの書式で出します（届けた数は {{0}} と書く）。");
-                return string.Format(DefaultFormat, delivered);
+                return string.Format(GameResultSettings.DefaultFormat, delivered);
             }
         }
 
@@ -176,9 +164,10 @@ namespace MouthOfGod.UI
         void Show()
         {
             if (_label == null) CreateLabel();
-            _mesh.text = Format(format, _delivered);
-            _mesh.characterSize = characterSize;
-            _mesh.color = color;
+            GameResultSettings settings = Settings; // 出すたびに読むので、Play 中に直した値は次に出すときに効く
+            _mesh.text = Format(settings.Format, _delivered);
+            _mesh.characterSize = settings.CharacterSize;
+            _mesh.color = settings.Color;
             _label.SetActive(true);
             _needsPlacement = !TryPlace();
         }
@@ -201,7 +190,7 @@ namespace MouthOfGod.UI
             Camera cam = Camera.main;
             if (cam == null) return false;
             Transform eye = cam.transform;
-            Vector3 position = PlacePosition(eye.position, eye.forward, eye.up, distance, height);
+            Vector3 position = PlacePosition(eye.position, eye.forward, eye.up, Settings.Distance, Settings.Height);
             _label.transform.position = position;
             Vector3 away = position - eye.position;
             if (away.sqrMagnitude > 1e-6f) _label.transform.rotation = Quaternion.LookRotation(away, Vector3.up);
