@@ -15,6 +15,7 @@ Meta Quest のコントローラだけで、「噛む → 食感が変わる →
 | `MockDevice`（`MonoBehaviour`、`IDevice`） | 自動で用意されます。シーンに置いてもかまいません | キー入力を `Bitten` / `TextureChanged(TextureId)` / `Confirmed(TextureId)` に変えます。有効になると `Devices` に登録します。入力は新 Input System の `InputAction` だけで読みます。Quest の入力は `<XRController>{RightHand}` です |
 | `MockDeviceLogic` | （コードの中で使います） | 入力にも Unity にも依存しない中身です。経過時間に応じた食感の切替と、決定を扱います |
 | `MockDeviceModel` | 棒の見た目 | 棒の見た目と、先端の内容量（%）を表示します。握ると手に付く動きも扱います。この動きは見た目だけです |
+| `MockInputMode` | `MockDevice` の Input Mode | 操作のしかたです。Any（手とコントローラのどちらでも）、Hand（両手のハンドトラッキング）、RightController（右コントローラ 1 本）から選びます。キーボードとゲームパッドは、どのモードでも効きます。表は [docs/device-mock.md](../../../docs/device-mock.md) にあります |
 
 `IDevice` の中身と、使う側の受け取り方（`Devices.WhenReady`）は、[Core/README.md](../Core/README.md) にあります。
 

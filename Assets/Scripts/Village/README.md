@@ -79,7 +79,7 @@
   - 違う物が届いた（頼まれていない物・よその物）: 困っている村人の Animator に、トリガー `Missed` を送ります。失敗の音が鳴ります。届いた物は、`DeliveryZone` が煙を出して消します。
   - 音を空にしておくと、標準の音を鳴らします。成功は `Assets/Resources/Sounds/Village/Done.ogg`、失敗は `Missed.wav` です。自分の音にしたいときは、**Done Clip** と **Missed Clip** に入れます。
   - 村人の動きを変えるときは、`Villager.controller` の `Missed` ステートの Motion を差し替えます。コードは直しません。今は、うなだれる動き（Defeat）を速く再生しています。
-  - 今の `Villager.controller` に `Missed` が無いときは、メニュー **MouthOfGod > Village > Add Missed To Villager Controller** で足します。
+  - 今の `Villager.controller` に `Missed` が無いときは、メニュー **MouthOfGod > Village > Generate Prefabs** で作り直します。
   - 独自の反応は、`DeliveryFx` の **On Requested** と **On Missed** につなぎます。
 - フィールドごとの独自の演出は、共通の部品を直さずに足します。ステップの子の物に付けたスクリプト（出たときの `OnEnable`）か、`FieldStages.StepDone` を使います。
 

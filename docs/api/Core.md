@@ -422,6 +422,7 @@ flowchart LR
   U_DeliveryZone["DeliveryZone<br/>Village"] --> C_Fields
   U_FieldStages["FieldStages<br/>Village"] --> C_Fields
   U_OpenAllRequestsAfterTutorial["OpenAllRequestsAfterTutorial<br/>Tutorial"] --> C_Fields
+  U_OpenAllRequestsMenu["OpenAllRequestsMenu<br/>DevTools"] --> C_Fields
   U_RequestBubbles["RequestBubbles<br/>UI"] --> C_Fields
   U_T3Recognize["T3Recognize<br/>Tutorial"] --> C_Fields
   U_T4Deliver["T4Deliver<br/>Tutorial"] --> C_Fields
@@ -434,7 +435,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`DeliveryZone`](Village.md#t-deliveryzone)、[`FieldStages`](Village.md#t-fieldstages)、[`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial)、[`RequestBubbles`](UI.md#t-requestbubbles)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialWait`](Tutorial.md#t-tutorialwait)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
+- この型を使う所: [`DeliveryZone`](Village.md#t-deliveryzone)、[`FieldStages`](Village.md#t-fieldstages)、[`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial)、[`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu)、[`RequestBubbles`](UI.md#t-requestbubbles)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialWait`](Tutorial.md#t-tutorialwait)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
 - この型が使う型: [`FieldId`](#t-fieldid)、[`IFieldRequests`](#t-ifieldrequests)
 
 ### この型を使う手順
@@ -687,6 +688,7 @@ flowchart LR
   U_FieldStages["FieldStages<br/>Village"] --> C_IFieldRequests
   U_Fields["Fields<br/>Core"] --> C_IFieldRequests
   U_OpenAllRequestsAfterTutorial["OpenAllRequestsAfterTutorial<br/>Tutorial"] --> C_IFieldRequests
+  U_OpenAllRequestsMenu["OpenAllRequestsMenu<br/>DevTools"] --> C_IFieldRequests
   U_RequestBubbles["RequestBubbles<br/>UI"] --> C_IFieldRequests
   U_StandArea["StandArea<br/>Village"] --> C_IFieldRequests
   U_T3Recognize["T3Recognize<br/>Tutorial"] --> C_IFieldRequests
@@ -704,7 +706,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`DeliveryZone`](Village.md#t-deliveryzone)、[`FieldStages`](Village.md#t-fieldstages)、[`Fields`](#t-fields)、[`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial)、[`RequestBubbles`](UI.md#t-requestbubbles)、[`StandArea`](Village.md#t-standarea)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialWait`](Tutorial.md#t-tutorialwait)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
+- この型を使う所: [`DeliveryZone`](Village.md#t-deliveryzone)、[`FieldStages`](Village.md#t-fieldstages)、[`Fields`](#t-fields)、[`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial)、[`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu)、[`RequestBubbles`](UI.md#t-requestbubbles)、[`StandArea`](Village.md#t-standarea)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialWait`](Tutorial.md#t-tutorialwait)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
 - この型が使う型: [`Delivered`](#t-delivered)、[`DeliveryKind`](#t-deliverykind)、[`FieldId`](#t-fieldid)、[`FoodId`](#t-foodid)、[`RequestClosed`](#t-requestclosed)、[`RequestIssued`](#t-requestissued)
 
 ### この型を使う手順

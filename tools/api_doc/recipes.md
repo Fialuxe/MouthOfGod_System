@@ -251,7 +251,8 @@ foreach (IFieldRequests field in Fields.All)
 - 後から置かれたフィールドも受け取るには、`Fields.All` を見たあと、`Fields.Added` を購読します。
 - 出した欲しい物が終わった知らせは `Closed` です。`Resolved` が true なら届いて解決、false なら待ちきれずに終わった物です。
 - 待ちきれなかった物は、`Expire(番号)` で 1 つずつ終えます。番号は `RequestIssued.Request` です。
-- 2026-10-28 に確かめたとき、Main シーンには `GameRunner` がありませんでした。本編を動かすには、まず `GameRunner` をシーンに置きます。
+- Main シーンには `GameRunner` が置いてあります。どのフィールドも、同時に出せる数をステップの数にそろえています。
+- Play 中に、チュートリアルが終わったあとで `MouthOfGod/Dev/Open All Requests (Play mode, after tutorial)` を押すと、全フィールドで欲しい物を出せるだけ出します。
 
 ## camera-cut | カメラのカットを作る
 types: CameraCutPlayer, CameraShot, ShotKind, ShotAim, CameraEase
