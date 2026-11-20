@@ -19,7 +19,7 @@ flowchart TB
   Game -->|2| Core
   Miko -->|2| Core
   Tutorial -->|172| Core
-  UI -->|42| Core
+  UI -->|47| Core
   Village -->|29| Core
   Tracking
   CameraWork

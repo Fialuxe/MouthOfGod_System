@@ -220,6 +220,7 @@ flowchart LR
   C_Delivered["Delivered<br/>Core"]:::me
   U_DeliveryFx["DeliveryFx<br/>Village"] --> C_Delivered
   U_FieldStages["FieldStages<br/>Village"] --> C_Delivered
+  U_GameResultText["GameResultText<br/>UI"] --> C_Delivered
   U_IFieldRequests["IFieldRequests<br/>Core"] --> C_Delivered
   U_T4Deliver["T4Deliver<br/>Tutorial"] --> C_Delivered
   U_TutorialWait["TutorialWait<br/>Tutorial"] --> C_Delivered
@@ -229,7 +230,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`DeliveryFx`](Village.md#t-deliveryfx)、[`FieldStages`](Village.md#t-fieldstages)、[`IFieldRequests`](#t-ifieldrequests)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialWait`](Tutorial.md#t-tutorialwait)
+- この型を使う所: [`DeliveryFx`](Village.md#t-deliveryfx)、[`FieldStages`](Village.md#t-fieldstages)、[`GameResultText`](UI.md#t-gameresulttext)、[`IFieldRequests`](#t-ifieldrequests)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialWait`](Tutorial.md#t-tutorialwait)
 - この型が使う型: [`CueId`](#t-cueid)、[`FieldId`](#t-fieldid)、[`FoodId`](#t-foodid)
 
 ### この型を使う手順
@@ -421,6 +422,7 @@ flowchart LR
   C_Fields["Fields<br/>Core"]:::me
   U_DeliveryZone["DeliveryZone<br/>Village"] --> C_Fields
   U_FieldStages["FieldStages<br/>Village"] --> C_Fields
+  U_GameResultText["GameResultText<br/>UI"] --> C_Fields
   U_OpenAllRequestsAfterTutorial["OpenAllRequestsAfterTutorial<br/>Tutorial"] --> C_Fields
   U_OpenAllRequestsMenu["OpenAllRequestsMenu<br/>DevTools"] --> C_Fields
   U_RequestBubbles["RequestBubbles<br/>UI"] --> C_Fields
@@ -435,7 +437,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`DeliveryZone`](Village.md#t-deliveryzone)、[`FieldStages`](Village.md#t-fieldstages)、[`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial)、[`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu)、[`RequestBubbles`](UI.md#t-requestbubbles)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialWait`](Tutorial.md#t-tutorialwait)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
+- この型を使う所: [`DeliveryZone`](Village.md#t-deliveryzone)、[`FieldStages`](Village.md#t-fieldstages)、[`GameResultText`](UI.md#t-gameresulttext)、[`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial)、[`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu)、[`RequestBubbles`](UI.md#t-requestbubbles)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialWait`](Tutorial.md#t-tutorialwait)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
 - この型が使う型: [`FieldId`](#t-fieldid)、[`IFieldRequests`](#t-ifieldrequests)
 
 ### この型を使う手順
@@ -687,6 +689,7 @@ flowchart LR
   U_DeliveryZone["DeliveryZone<br/>Village"] --> C_IFieldRequests
   U_FieldStages["FieldStages<br/>Village"] --> C_IFieldRequests
   U_Fields["Fields<br/>Core"] --> C_IFieldRequests
+  U_GameResultText["GameResultText<br/>UI"] --> C_IFieldRequests
   U_OpenAllRequestsAfterTutorial["OpenAllRequestsAfterTutorial<br/>Tutorial"] --> C_IFieldRequests
   U_OpenAllRequestsMenu["OpenAllRequestsMenu<br/>DevTools"] --> C_IFieldRequests
   U_RequestBubbles["RequestBubbles<br/>UI"] --> C_IFieldRequests
@@ -706,7 +709,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`DeliveryZone`](Village.md#t-deliveryzone)、[`FieldStages`](Village.md#t-fieldstages)、[`Fields`](#t-fields)、[`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial)、[`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu)、[`RequestBubbles`](UI.md#t-requestbubbles)、[`StandArea`](Village.md#t-standarea)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialWait`](Tutorial.md#t-tutorialwait)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
+- この型を使う所: [`DeliveryZone`](Village.md#t-deliveryzone)、[`FieldStages`](Village.md#t-fieldstages)、[`Fields`](#t-fields)、[`GameResultText`](UI.md#t-gameresulttext)、[`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial)、[`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu)、[`RequestBubbles`](UI.md#t-requestbubbles)、[`StandArea`](Village.md#t-standarea)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialDebugHud`](DevTools.md#t-tutorialdebughud)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialWait`](Tutorial.md#t-tutorialwait)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
 - この型が使う型: [`Delivered`](#t-delivered)、[`DeliveryKind`](#t-deliverykind)、[`FieldId`](#t-fieldid)、[`FoodId`](#t-foodid)、[`RequestClosed`](#t-requestclosed)、[`RequestIssued`](#t-requestissued)
 
 ### この型を使う手順
@@ -889,6 +892,7 @@ flowchart LR
 flowchart LR
   C_PhaseId["PhaseId<br/>Core"]:::me
   U_FoodShadow["FoodShadow<br/>UI"] --> C_PhaseId
+  U_GameResultText["GameResultText<br/>UI"] --> C_PhaseId
   U_GameRunner["GameRunner<br/>Game"] --> C_PhaseId
   U_Phases["Phases<br/>Core"] --> C_PhaseId
   U_PrologueVideo["PrologueVideo<br/>Tutorial"] --> C_PhaseId
@@ -902,7 +906,7 @@ flowchart LR
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`FoodShadow`](UI.md#t-foodshadow)、[`GameRunner`](Game.md#t-gamerunner)、[`Phases`](#t-phases)、[`PrologueVideo`](Tutorial.md#t-prologuevideo)、[`T1Fork`](Tutorial.md#t-t1fork)、[`T2Spawn`](Tutorial.md#t-t2spawn)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialScript`](Tutorial.md#t-tutorialscript)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
+- この型を使う所: [`FoodShadow`](UI.md#t-foodshadow)、[`GameResultText`](UI.md#t-gameresulttext)、[`GameRunner`](Game.md#t-gamerunner)、[`Phases`](#t-phases)、[`PrologueVideo`](Tutorial.md#t-prologuevideo)、[`T1Fork`](Tutorial.md#t-t1fork)、[`T2Spawn`](Tutorial.md#t-t2spawn)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)、[`TutorialScript`](Tutorial.md#t-tutorialscript)、[`VillageTutorialProbe`](Tutorial.md#t-villagetutorialprobe)
 
 ### メンバー（4）
 
@@ -944,13 +948,14 @@ flowchart LR
 flowchart LR
   C_Phases["Phases<br/>Core"]:::me
   U_FoodShadow["FoodShadow<br/>UI"] --> C_Phases
+  U_GameResultText["GameResultText<br/>UI"] --> C_Phases
   U_GameRunner["GameRunner<br/>Game"] --> C_Phases
   U_TutorialRunner["TutorialRunner<br/>Tutorial"] --> C_Phases
   C_Phases --> D_PhaseId["PhaseId<br/>Core"]
   classDef me stroke-width:3px
 ```
 
-- この型を使う所: [`FoodShadow`](UI.md#t-foodshadow)、[`GameRunner`](Game.md#t-gamerunner)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)
+- この型を使う所: [`FoodShadow`](UI.md#t-foodshadow)、[`GameResultText`](UI.md#t-gameresulttext)、[`GameRunner`](Game.md#t-gamerunner)、[`TutorialRunner`](Tutorial.md#t-tutorialrunner)
 - この型が使う型: [`PhaseId`](#t-phaseid)
 
 ### この型を使う手順

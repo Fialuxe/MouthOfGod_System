@@ -27,7 +27,7 @@
 | [MouthOfGod.Fork](Fork.md) | 体験者が持つフォークです。雲を刺し、口に含み、決定で食べ終えるまでの状態を持ちます。 | 5 |
 | [MouthOfGod.Food](Food.md) | 決定した食感を元に、どの食べ物が生まれるかを表で調べます。その食べ物を口の位置に作り、前へ飛ばします。「食感 → 食べ物」の表は、全フィールド共通の表（`Field Id` が空）と、フィールドごとの表に分けます。 | 7 |
 | [MouthOfGod.Village](Village.md) | 村・山・海・草原の 4 つのフィールドを扱います。フィールドは、欲しい物を出します。欲しい物が届くと、見た目が少しずつ元に戻ります。物が落ちた場所の判定、届いたときの反応、立つ場所の判定も、ここにあります。 | 17 |
-| [MouthOfGod.UI](UI.md) | 表示の部品です。Core のイベントと合図を受けます。 | 7 |
+| [MouthOfGod.UI](UI.md) | 表示の部品です。Core のイベントと合図を受けます。 | 8 |
 | [MouthOfGod.Miko](Miko.md) | 巫女です。浮いて、体験者の方を向き、しゃべり、表情を変え、指さし、体験者についてきます。身振りは Animator が担当します。 | 13 |
 | [MouthOfGod.Tutorial](Tutorial.md) | プロローグとチュートリアル 1〜4 を進めます。1 チュートリアル = 1 つの `TutorialScript`（人形劇スクリプト）を、`TutorialRunner` が順に動かします。 | 24 |
 | [MouthOfGod.Game](Game.md) | 本編の進行です。チュートリアルが終わったら本編を始め、制限時間が来たら終わらせます。 | 3 |
@@ -37,7 +37,7 @@
 
 ## すべての型
 
-<details><summary>名前順の一覧を開く（128 個）</summary>
+<details><summary>名前順の一覧を開く（129 個）</summary>
 
 | 型 | 機能 | 役割 | 説明 |
 |---|---|---|---|
@@ -89,6 +89,7 @@
 | [`ForkTip`](Fork.md#t-forktip) | Fork | コンポーネント | 体験者が持つフォークの先。 |
 | [`ForkWait`](Tutorial.md#t-forkwait) | Tutorial | 待ち（yield return） | フォークで雲を刺すのを待つ（Pierce）。 |
 | [`GameClock`](Game.md#t-gameclock) | Game | クラス | 本編の制限時間の時計。 |
+| [`GameResultText`](UI.md#t-gameresulttext) | UI | コンポーネント | 本編の時間切れのあとに、届けた数を英語の文で正面に出す（#355）。 |
 | [`GameRunner`](Game.md#t-gamerunner) | Game | コンポーネント | 本編の進行役。 |
 | [`HandHeldPose`](Tracking.md#t-handheldpose) | Tracking | コンポーネント | 手（ハンドトラッキング）の位置に、オフセットを足して、手に持ったものの先の位置に自分を動かす。 |
 | [`HandHeldTip`](Tracking.md#t-handheldtip) | Tracking | クラス | 手の姿勢から、手に持ったもの（フォークなど）の先の姿勢を出す。 |
