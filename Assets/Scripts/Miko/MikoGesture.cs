@@ -3,15 +3,19 @@ using UnityEngine;
 namespace MouthOfGod.Miko
 {
     /// <summary>
-    /// 巫女の身振り（指さし）。指さす先の方を向き、腕を向け、Animator の Point を鳴らす。
+    /// 巫女に指さしをさせます。指さす先の方を向き、腕を向け、Animator の Point トリガーを送ります。
     /// </summary>
+    /// <remarks>
+    /// 同じオブジェクトに <see cref="MikoFloat"/> があれば、しばらく指さす先の方を向かせます。
+    /// <see cref="MikoPointer"/> があれば、腕を指さす先へ向けます。どちらも無くてかまいません。
+    /// </remarks>
     public sealed class MikoGesture : MonoBehaviour
     {
         static readonly int PointTrigger = Animator.StringToHash("Point");
 
         [SerializeField] Animator animator;
-        [SerializeField] Transform pointTarget; // 指さす先の既定。PointAt に先を渡さなかったときに使う
-        [SerializeField] float pointLookSeconds = 3f; // 指さしたあと、その方を向いている時間
+        [SerializeField] Transform pointTarget;  // 指さす先の既定。PointAt に先を渡さなかったときに使います
+        [SerializeField] float pointLookSeconds = 3f;  // 指さしたあと、その方を向いている秒数
 
         float _lookUntil;
         Transform _aim;
@@ -27,18 +31,27 @@ namespace MouthOfGod.Miko
             }
         }
 
-        /// <summary>target の方を向いて、指さしをする。target が空なら、既定の先（Point Target）を使う。</summary>
+        /// <summary>指さす先の方を向いて、指さしをします。</summary>
+        /// <param name="target">
+        /// 指さす先です。<see langword="null"/> なら、既定の先（<c>Point Target</c>）を使います。
+        /// </param>
         public void PointAt(Transform target)
         {
             _aim = target;
             Point();
         }
 
-        // Editor から試す。Play 中に、コンポーネントの右上のメニュー（⋮）から選ぶ。
+        // エディタで試すためのものです。Play 中に、コンポーネントの右上のメニュー（⋮）から選びます。
         [ContextMenu("Point")]
         void PointFromEditor() => Point();
 
-        /// <summary>指さしをする。</summary>
+        /// <summary>
+        /// 既定の先（<c>Point Target</c>）へ指さしをします。
+        /// </summary>
+        /// <remarks>
+        /// 先が無くても、Animator の Point トリガーは送ります。
+        /// Animator が空なら、子から探して使います。
+        /// </remarks>
         public void Point()
         {
             var target = _aim != null ? _aim : pointTarget;

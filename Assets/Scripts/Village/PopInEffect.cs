@@ -3,15 +3,17 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 物が出るとき、小さい所から少し大きくなりすぎてから、元の大きさに収まります。出た場所に星の粒も出します。
+    /// 物が出るとき、小さい所から少し大きくなりすぎてから、元の大きさに収めます。
+    /// 出た場所に星の粒も出します。
     /// </summary>
     /// <remarks>
-    /// <see cref="FieldStep"/> が、Play 中だけ付けます。終わるか途中で消えると、元の大きさに戻して自分を外します。
+    /// <see cref="FieldStep"/> が、Play 中だけ付けます。
+    /// 終わるか途中で消えると、元の大きさに戻して自分を外します。
     /// </remarks>
     sealed class PopInEffect : MonoBehaviour
     {
         const float Duration = 0.7f;
-        const float Overshoot = 1.9f; // 1 を超えた分だけ、一度大きくなりすぎます
+        const float Overshoot = 1.9f; // 大きいほど、一度大きくなりすぎる量が増えます
 
         Vector3 _scale;
         float _time;
@@ -49,6 +51,7 @@ namespace MouthOfGod.Village
             Destroy(this);
         }
 
+        // t が 0 で 0、1 で 1 を返し、途中で一度 1 を超えます。
         static float EaseOutBack(float t)
         {
             var c3 = Overshoot + 1f;

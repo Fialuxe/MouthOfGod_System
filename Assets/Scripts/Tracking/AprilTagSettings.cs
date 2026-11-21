@@ -3,9 +3,18 @@ using UnityEngine;
 namespace MouthOfGod.Tracking
 {
     /// <summary>
-    /// AprilTag 検出の設定。<c>Assets/Data/AprilTagSettings.asset</c> があれば、それを使う。なければコードの既定値で動く。
-    /// シーンやオブジェクトに値を入れる必要はなく、変更は、このアセット（ファイル）の差分として残る。
+    /// AprilTag の検出の設定を保持します。
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ふだんは <c>Assets/Data/AprilTagSettings.asset</c> を使います。
+    /// <see cref="AprilTagDetectionService"/> につないでいなければ、コードの既定値で動きます。
+    /// </para>
+    /// <para>
+    /// シーンやオブジェクトに値を入れる必要はありません。
+    /// 変更は、このアセットの差分として Git に残ります。
+    /// </para>
+    /// </remarks>
     [CreateAssetMenu(fileName = "AprilTagSettings", menuName = "MouthOfGod/Tracking/AprilTag Settings")]
     public sealed class AprilTagSettings : ScriptableObject
     {
@@ -22,6 +31,7 @@ namespace MouthOfGod.Tracking
         [Tooltip("検出回数・処理時間・検出した ID を、一定間隔でログに出す。")]
         [SerializeField] bool _logStats = true;
 
+        [Tooltip("Log Stats がオンのとき、ログを出す間隔（秒）。この間の平均と最大を出す。0.5 以上。")]
         [SerializeField, Min(0.5f)] float _statsIntervalSeconds = 2f;
 
         public float TagSizeMeters => _tagSizeMeters;

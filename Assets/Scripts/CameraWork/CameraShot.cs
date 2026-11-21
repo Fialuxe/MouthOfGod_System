@@ -4,44 +4,76 @@ using UnityEngine.Events;
 
 namespace MouthOfGod.CameraWork
 {
-    /// <summary>1 カットの軌道の種類。</summary>
+    /// <summary>
+    /// 1 カットの軌道の種類を表します。
+    /// </summary>
     public enum ShotKind
     {
-        Line, // 直線
-        Curve, // 曲線（ベジェ）
-        Orbit, // 円弧・一周・らせん
-        Hold, // その場で待つ（向きだけ変える）
-    }
+        /// <summary>直線で進みます。</summary>
+        Line,
 
-    /// <summary>動いている間の向きの決め方。</summary>
-    public enum ShotAim
-    {
-        Keep, // 向きは変えない
-        AlongPath, // 進む向きを向く
-        LookAtTarget, // Aim Target を見続ける
-        MatchEnd, // 到着点（End）の向きに、だんだん合わせる
+        /// <summary>ベジェ曲線で進みます。</summary>
+        Curve,
+
+        /// <summary>円弧・一周・らせんでまわります。</summary>
+        Orbit,
+
+        /// <summary>その場で待ちます。向きだけ変えられます。</summary>
+        Hold,
     }
 
     /// <summary>
-    /// カメラの 1 カット。出発点は、前のカットの到着点（最初のカットは、いまの位置）。
-    /// 使う項目は種類しだいで、Inspector では使わない項目も見える。種類ごとの使う項目は、各項目の説明にある。
+    /// 動いている間の向きの決め方を表します。
     /// </summary>
+    public enum ShotAim
+    {
+        /// <summary>向きを変えません。</summary>
+        Keep,
+
+        /// <summary>進む向きを向きます。</summary>
+        AlongPath,
+
+        /// <summary>Aim Target を見続けます。</summary>
+        LookAtTarget,
+
+        /// <summary>到着点（End）の向きに、だんだん合わせます。</summary>
+        MatchEnd,
+    }
+
+    /// <summary>
+    /// カメラの 1 カットの設定を保持します。
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 出発点は、前のカットの到着点です。
+    /// 最初のカットは、再生を始めたときの位置から出ます。
+    /// </para>
+    /// <para>
+    /// 使う項目は、種類によって違います。
+    /// Inspector では、使わない項目も見えます。
+    /// 種類ごとに使う項目は、各項目の Tooltip に書いてあります。
+    /// </para>
+    /// </remarks>
     [Serializable]
     public sealed class CameraShot
     {
         [Tooltip("メモ用の名前。動きには効かない")]
         public string name = "Shot";
 
+        [Tooltip("軌道の種類。Line: 直線、Curve: ベジェ曲線、Orbit: 円弧・一周・らせん、Hold: その場で待つ（向きだけ変える）")]
         public ShotKind kind = ShotKind.Line;
 
         [Header("時間")]
         [Tooltip("入れると、Speed（m / 秒）で動く。外すと、Seconds で動く。Hold は常に Seconds")]
         public bool useSpeed;
 
+        [Tooltip("このカットにかける秒数。Use Speed が外れているとき、または Hold のときに使う")]
         [Min(0f)] public float seconds = 2f;
+        [Tooltip("動く速さ（m / 秒）。Use Speed が入っているときに使う。軌道の長さ ÷ 速さが、かかる秒数になる")]
         [Min(0f)] public float speed = 1f;
 
         [Header("緩急（Lerp 加減）")]
+        [Tooltip("緩急のつけ方。Linear: 一定の速さ、EaseIn: ゆっくり出て速く着く、EaseOut: 速く出てゆっくり着く、EaseInOut: ゆっくり出てゆっくり着く、Custom: Ease Curve で決める")]
         public CameraEase ease = CameraEase.EaseInOut;
 
         [Tooltip("緩急の強さ。1 で一定の速さ、大きいほど出だしと着き際がゆっくりになる")]
@@ -81,6 +113,7 @@ namespace MouthOfGod.CameraWork
         public float heightChange;
 
         [Header("向き")]
+        [Tooltip("動いている間の向き。Keep: 変えない、AlongPath: 進む向き、LookAtTarget: Aim Target を見続ける、MatchEnd: End の向きにだんだん合わせる")]
         public ShotAim aim = ShotAim.AlongPath;
 
         [Tooltip("Aim が LookAtTarget のとき、見る相手")]
@@ -89,7 +122,7 @@ namespace MouthOfGod.CameraWork
         [Tooltip("Aim が LookAtTarget のとき、入れると、見る点が Aim Target からここへ、カットの進みに合わせて移る（山を見ながら始めて、村を見て終わる、など）")]
         public Transform aimTargetEnd;
 
-        [Tooltip("向きを新しい向きに合わせるのにかける秒数（カットの頭で、向きが急に変わらないように）")]
+        [Tooltip("向きを新しい向きに合わせるのにかける秒数（カットの頭で、向きが急に変わらないように）。Aim が AlongPath と LookAtTarget のときに使う。0 ですぐに合わせる")]
         [Min(0f)] public float aimBlendSeconds = 0.3f;
 
         [Header("ズーム")]

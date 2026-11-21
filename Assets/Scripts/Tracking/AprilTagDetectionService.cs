@@ -9,34 +9,54 @@ using Debug = UnityEngine.Debug;
 namespace MouthOfGod.Tracking
 {
     /// <summary>
-    /// パススルーカメラの RGB フレームから AprilTag を検出し、ワールド座標の姿勢を <see cref="IAprilTagSource"/> として公開する。
-    /// シーンに 1 つだけ存在する（<see cref="AprilTagPlace"/> が必要なときに自動で作るので、手で置かなくてよい）。
-    /// カメラの読み出しと検出は重いため、タグごとではなくここで 1 回だけ行い、各 <see cref="AprilTagPlace"/> が結果を共有する。
-    /// 設定は、Inspector でつないだ <see cref="AprilTagSettings"/>（<c>Assets/Data/AprilTagSettings.asset</c>）を使う。
+    /// パススルーカメラの映像から AprilTag を検出します。
+    /// 検出したタグのワールド姿勢を、<see cref="IAprilTagSource"/> として配ります。
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// シーンに 1 つだけ置きます。
+    /// Main シーンには、AprilTag Detection のプレハブを置いてあります。
+    /// 無いときは、<see cref="AprilTagPlace"/> がタグに合わせずに動きます。
+    /// </para>
+    /// <para>
+    /// カメラの読み出しと検出は重い処理です。
+    /// そのため、タグごとには行わず、ここで 1 回だけ行います。
+    /// 各 <see cref="AprilTagPlace"/> は、その結果を共有します。
+    /// </para>
+    /// <para>
+    /// 設定は、Inspector でつないだ <see cref="AprilTagSettings"/> を使います。
+    /// ふだんは <c>Assets/Data/AprilTagSettings.asset</c> をつなぎます。
+    /// </para>
+    /// </remarks>
     [RequireComponent(typeof(PassthroughCameraAccess))]
     [DefaultExecutionOrder(-50)]
     public sealed class AprilTagDetectionService : MonoBehaviour, IAprilTagSource
     {
-        /// <summary>シーンに置いてある検出サービスを返します。無ければ null です（Main には AprilTag Detection を置いてあります）。</summary>
+        /// <summary>
+        /// シーンに置いてある検出サービスを返します。
+        /// </summary>
+        /// <returns>検出サービス。シーンに無ければ <see langword="null"/> を返します。</returns>
         public static AprilTagDetectionService Find()
             => _instance != null ? _instance : FindAnyObjectByType<AprilTagDetectionService>();
 
         static AprilTagDetectionService _instance;
 
-        // Domain Reload を切っていても、Play のたびに初期化する。
+        // Domain Reload を切っていても、Play のたびに初期化します。
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics()
         {
             _instance = null;
         }
 
+        /// <inheritdoc/>
         public event Action<IReadOnlyList<AprilTagObservation>> ObservationsUpdated;
 
+        // 検出のたびに中身を入れ替えて、イベントに渡します。GC を避けるため使い回します。
         readonly List<AprilTagObservation> _observations = new List<AprilTagObservation>();
+        // タグ ID ごとの、最後に検出した結果です。見失っても消しません。
         readonly Dictionary<int, AprilTagObservation> _latest = new Dictionary<int, AprilTagObservation>();
 
-        [Tooltip("検出の設定（Assets/Data/AprilTagSettings.asset）")]
+        [Tooltip("検出の設定（Assets/Data/AprilTagSettings.asset）。空のときは、コードの既定値で動き、Console にエラーを出します。")]
         [SerializeField] AprilTagSettings _settings;
         PassthroughCameraAccess _camera;
         TagDetector _detector;
@@ -45,7 +65,7 @@ namespace MouthOfGod.Tracking
         double _nextDetectAt;
         bool _warnedUnsupported;
 
-        // 診断用
+        // 以下は LogStats 用の集計です。ログを出すたびに 0 に戻します。
         readonly Stopwatch _stopwatch = new Stopwatch();
         double _statsStartedAt;
         int _statsFrames;
@@ -54,6 +74,7 @@ namespace MouthOfGod.Tracking
         double _statsDetectMsMax;
         readonly HashSet<int> _statsIds = new HashSet<int>();
 
+        /// <inheritdoc/>
         public bool TryGetLatest(int tagId, out AprilTagObservation observation)
         {
             return _latest.TryGetValue(tagId, out observation);
@@ -99,7 +120,8 @@ namespace MouthOfGod.Tracking
 
             var now = Time.realtimeSinceStartupAsDouble;
             if (now < _nextDetectAt) return;
-            if (_camera.Timestamp == _lastTimestamp) return; // 新しいフレームが来ていない
+            // 同じフレームを 2 回検出しないよう、新しいフレームが来るまで待ちます。
+            if (_camera.Timestamp == _lastTimestamp) return;
             _lastTimestamp = _camera.Timestamp;
             _nextDetectAt = now + _settings.MinDetectIntervalSeconds;
 
@@ -112,6 +134,7 @@ namespace MouthOfGod.Tracking
             var colors = _camera.GetColors();
             if (!colors.IsCreated) return;
 
+            // カメラの姿勢がまだ取れていないフレームは、ワールド座標に直せないので飛ばします。
             var cameraPose = _camera.GetCameraPose();
             if (!AprilTagGeometry.IsValidRotation(cameraPose.rotation)) return;
 
@@ -148,6 +171,7 @@ namespace MouthOfGod.Tracking
             }
         }
 
+        // 検出器は解像度ごとに作るので、解像度が変わったときだけ作り直します。
         void EnsureDetector(Vector2Int resolution)
         {
             if (_detector != null && _detectorResolution == resolution) return;

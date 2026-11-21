@@ -2,7 +2,11 @@ using System;
 
 namespace MouthOfGod.Core
 {
-    /// <summary>食感の論理 ID。文字列を包んだ値。null と空文字は、どちらも空 ID（TextureId.None）。大文字小文字は区別する。</summary>
+    /// <summary>食感の論理 ID です。文字列を包んだ値です。</summary>
+    /// <remarks>
+    /// <see langword="null"/> と空文字は、どちらも空 ID の <see cref="None"/> として扱います。
+    /// 大文字と小文字は区別します。
+    /// </remarks>
     public readonly struct TextureId : IEquatable<TextureId>
     {
         public static readonly TextureId None = default;
@@ -32,7 +36,11 @@ namespace MouthOfGod.Core
     }
 
 
-    /// <summary>フィールド（山・海・草原・村）の ID。文字列を包んだ値。null と空文字は、どちらも空 ID（FieldId.None）。大文字小文字は区別する。</summary>
+    /// <summary>山・海・草原・村といったフィールドの ID です。文字列を包んだ値です。</summary>
+    /// <remarks>
+    /// <see langword="null"/> と空文字は、どちらも空 ID の <see cref="None"/> として扱います。
+    /// 大文字と小文字は区別します。
+    /// </remarks>
     public readonly struct FieldId : IEquatable<FieldId>
     {
         public static readonly FieldId None = default;
@@ -62,7 +70,12 @@ namespace MouthOfGod.Core
     }
 
 
-    /// <summary>いまの場面（チュートリアルの名前、本編、エンディングなど）の ID。文字列を包んだ値。null と空文字は、どちらも空 ID（PhaseId.None）。大文字小文字は区別する。</summary>
+    /// <summary>いまの場面の ID です。文字列を包んだ値です。</summary>
+    /// <remarks>
+    /// 場面は、チュートリアルの名前・本編・エンディングなどです。
+    /// <see langword="null"/> と空文字は、どちらも空 ID の <see cref="None"/> として扱います。
+    /// 大文字と小文字は区別します。
+    /// </remarks>
     public readonly struct PhaseId : IEquatable<PhaseId>
     {
         public static readonly PhaseId None = default;

@@ -5,14 +5,32 @@ using UnityEngine.InputSystem;
 namespace MouthOfGod.Tracking
 {
     /// <summary>
-    /// 手（ハンドトラッキング）の位置に、オフセットを足して、手に持ったものの先の位置に自分を動かす。
-    /// フォークなら、<c>ForkTip</c> のオブジェクトか、その親に付ける。<c>ForkTip</c> は位置の取り方を知らないので、これを付けるだけでつながる。
-    /// 手は、親の OVRCameraRig の手のアンカー（<c>RightHandAnchor</c>）から読む。リグの外や、PC で試すリグでは何もしない。コントローラで動かしても同じ動きになるが、握る位置が違うので、オフセットは手で測り直す。
+    /// 手に持ったものの先の位置に、自分を動かします。
+    /// 手の位置にオフセットを足して、先の位置を求めます。
     /// </summary>
     /// <remarks>
-    /// - オフセットの測り直し: 先を口に当てて、C キー（開発中）。口の位置は、親のリグの口（<see cref="PlayerRig.Mouth"/>）。
-    ///   Quest の手で押せる入力は、まだ決めていない。
-    /// - 手の追跡が途切れたら、アンカーが止まるので、最後の位置に残る。
+    /// <para>
+    /// フォークなら、<c>ForkTip</c> のオブジェクトか、その親に付けます。
+    /// <c>ForkTip</c> は位置の取り方を知らないので、これを付けるだけでつながります。
+    /// </para>
+    /// <para>
+    /// 手は、親の OVRCameraRig の手のアンカーから読みます。
+    /// 右手なら <c>RightHandAnchor</c> です。
+    /// リグの外や、PC で試すリグでは何もしません。
+    /// </para>
+    /// <para>
+    /// コントローラーで動かしても、同じ動きになります。
+    /// ただし握る位置が違うので、オフセットは手で測り直します。
+    /// </para>
+    /// <para>
+    /// オフセットは、先を口に当てて C キーで測り直します（開発中の入力）。
+    /// 口の位置は、親のリグの <see cref="PlayerRig.Mouth"/> を使います。
+    /// Quest の手で押せる入力は、まだ決めていません。
+    /// </para>
+    /// <para>
+    /// 手の追跡が途切れると、アンカーが止まります。
+    /// そのため、先は最後の位置に残ります。
+    /// </para>
     /// </remarks>
     public sealed class HandHeldPose : MonoBehaviour
     {
@@ -25,7 +43,7 @@ namespace MouthOfGod.Tracking
         [Tooltip("true なら右手、false なら左手")]
         [SerializeField] bool useRightHand = true;
 
-        [Tooltip("先を口に当てて、オフセットを測り直す。開発中の入力")]
+        [Tooltip("先を口に当てて、オフセットを測り直す。開発中の入力（既定は C キー）。親のリグに口が無いときは効かない")]
         [SerializeField] InputAction calibrateAction = new InputAction("CalibrateTip", InputActionType.Button, "<Keyboard>/c");
 
         [Tooltip("測り直した結果を Console に出す")]
@@ -35,7 +53,13 @@ namespace MouthOfGod.Tracking
         OVRCameraRig _rig;
         Transform _mouth;
 
-        /// <summary>手の座標系での、いまの先の位置（m）。</summary>
+        /// <summary>
+        /// 手の座標系での、いまの先の位置（m）を返します。
+        /// </summary>
+        /// <remarks>
+        /// 測り直した後は、その値を返します。
+        /// Awake の前は、Inspector の値を返します。
+        /// </remarks>
         public Vector3 TipOffset => _tip != null ? _tip.LocalOffset : tipOffset;
 
         void Awake()
@@ -64,7 +88,7 @@ namespace MouthOfGod.Tracking
             transform.SetPositionAndRotation(pose.position, pose.rotation);
         }
 
-        // 手のアンカーの姿勢。リグの外や、アンカーがまだ無いときは false。
+        // 手のアンカーの姿勢を返します。リグの外や、アンカーがまだ無いときは false を返します。
         bool TryGetHand(out Pose hand)
         {
             hand = default;

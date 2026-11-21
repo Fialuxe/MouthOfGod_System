@@ -5,33 +5,47 @@ using UnityEngine;
 namespace MouthOfGod.Core
 {
     /// <summary>
-    /// いまシーンにあるフィールド（IFieldRequests）の掲示板。フィールドが自分で Register し、使う側（本編・チュートリアル・吹き出し・届いたかの判定）は
-    /// All と Added で受け取る。誰も相手のクラスを知らずにつながる（docs/requests.md「API 仕様」）。
+    /// いまシーンにあるフィールドの掲示板です。
+    /// フィールドと使う側が、互いのクラスを知らずにつながります。
     /// </summary>
     /// <remarks>
-    /// - 使う側は、All を見てから Added を購読する（後から置かれたフィールドも届く）。OnDisable で Added・Removed の購読を外す。
-    /// - ID が空のフィールド、すでにある ID のフィールドは登録せず、警告を出す（Play は止めない）。データの間違いなので、先のフィールドが外れても、断ったフィールドを後から登録し直すことはしない。
-    /// - すべてメインスレッドから呼ぶ。
-    /// - この形を変えるときは、使う側すべてに効くので、別の PR にする。
+    /// <para>
+    /// フィールドは自分で <see cref="Register"/> します。
+    /// 使う側は <see cref="All"/> と <see cref="Added"/> で受け取ります。
+    /// 使う側は、本編・チュートリアル・吹き出し・届いたかの判定です。
+    /// 詳しくは docs/requests.md の「API 仕様」を見てください。
+    /// </para>
+    /// <para>
+    /// 使う側は、先に <see cref="All"/> を見てから <see cref="Added"/> を購読します。
+    /// こうすると、後から置かれたフィールドも受け取れます。
+    /// OnDisable で <see cref="Added"/> と <see cref="Removed"/> の購読を外します。
+    /// </para>
+    /// <para>
+    /// すべてメインスレッドから呼びます。
+    /// この形を変えると使う側すべてに効くので、別の PR にします。
+    /// </para>
     /// </remarks>
     public static class Fields
     {
         static readonly List<IFieldRequests> _all = new List<IFieldRequests>();
 
-        // 購読先の例外と警告の出し先。テストで差し替える。
+        // 購読先の例外と警告の出し先です。テストで差し替えます。
         internal static Action<Exception> ReportException = Debug.LogException;
         internal static Action<string> ReportWarning = Debug.LogWarning;
 
-        /// <summary>登録されているフィールド（登録した順）。</summary>
+        /// <summary>登録されているフィールドを、登録した順に返します。</summary>
         public static IReadOnlyList<IFieldRequests> All => _all;
 
-        /// <summary>フィールドが登録された。</summary>
+        /// <summary>フィールドが登録された直後に出ます。</summary>
         public static event Action<IFieldRequests> Added;
 
-        /// <summary>フィールドの登録が外れた（シーンから消えた、無効になった）。</summary>
+        /// <summary>フィールドの登録が外れた直後に出ます。</summary>
+        /// <remarks>シーンから消えたときや、無効になったときに外れます。</remarks>
         public static event Action<IFieldRequests> Removed;
 
-        /// <summary>その ID のフィールド。無ければ null。</summary>
+        /// <summary>指定した ID のフィールドを返します。</summary>
+        /// <param name="id">探すフィールドの ID です。</param>
+        /// <returns>見つかったフィールドです。無ければ <see langword="null"/> です。</returns>
         public static IFieldRequests Find(FieldId id)
         {
             foreach (var field in _all)
@@ -39,7 +53,18 @@ namespace MouthOfGod.Core
             return null;
         }
 
-        /// <summary>フィールドを登録する。ID が空・同じ ID がすでにあるなら、登録せずに警告を出して false。同じものを 2 回登録しても 1 つ。</summary>
+        /// <summary>フィールドを登録します。</summary>
+        /// <param name="field">登録するフィールドです。<see langword="null"/> は渡せません。</param>
+        /// <returns>
+        /// 登録できたら <see langword="true"/> です。
+        /// 同じものをもう一度登録したときも <see langword="true"/> で、登録は 1 つのままです。
+        /// ID が空のときと、同じ ID がすでにあるときは、警告を出して <see langword="false"/> を返します。
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="field"/> が <see langword="null"/> の場合です。</exception>
+        /// <remarks>
+        /// 断ったときも Play は止めません。データの間違いなので、警告で知らせるだけにします。
+        /// 先のフィールドが外れても、断ったフィールドを後から登録し直すことはしません。
+        /// </remarks>
         public static bool Register(IFieldRequests field)
         {
             if (field == null) throw new ArgumentNullException(nameof(field));
@@ -60,14 +85,15 @@ namespace MouthOfGod.Core
             return true;
         }
 
-        /// <summary>登録を外す。登録されていなければ何もしない。</summary>
+        /// <summary>登録を外します。</summary>
+        /// <param name="field">外すフィールドです。<see langword="null"/> や、登録されていないものなら何もしません。</param>
         public static void Unregister(IFieldRequests field)
         {
             if (field == null || !_all.Remove(field)) return;
             Raise(Removed, field);
         }
 
-        // 1 つの購読先が例外を投げても、残りには届ける（例外は Console に出す）。
+        // 1 つの購読先が例外を投げても、残りには届けます。例外は Console に出します。
         static void Raise(Action<IFieldRequests> handlers, IFieldRequests field)
         {
             if (handlers == null) return;
@@ -78,7 +104,8 @@ namespace MouthOfGod.Core
             }
         }
 
-        // Play のたびに空にする（ドメインのリロードを切っていても、前回の登録と購読を残さない）。テストからも呼ぶ。
+        // Play のたびに空にします。ドメインのリロードを切っていても、前回の登録と購読を残さないためです。
+        // テストからも呼びます。
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         internal static void Reset()
         {

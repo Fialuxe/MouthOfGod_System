@@ -5,9 +5,12 @@ using UnityEngine;
 namespace MouthOfGod.Tracking
 {
     /// <summary>
-    /// 複数の観測を集め、外れ値を除いて平均した 1 つの姿勢を返す。タグが動かない前提で、位置を「測って固定する」ために使う。
-    /// Unity のオブジェクトに依存しない。
+    /// 複数の観測を集めて、外れ値を除いて平均した 1 つの姿勢を返します。
     /// </summary>
+    /// <remarks>
+    /// タグが動かない前提で、位置を「測って固定する」ために使います。
+    /// Unity のオブジェクトに依存しません。
+    /// </remarks>
     public sealed class PoseCalibrator
     {
         readonly int _requiredSamples;
@@ -15,9 +18,9 @@ namespace MouthOfGod.Tracking
         readonly float _maxAngleOutlierDegrees;
         readonly List<Pose> _samples = new List<Pose>();
 
-        /// <param name="requiredSamples">集めるサンプル数。</param>
-        /// <param name="maxPositionOutlierMeters">位置の中央値からこの距離（メートル）より離れたサンプルは、外れ値として捨てる。</param>
-        /// <param name="maxAngleOutlierDegrees">平均の向きからこの角度（度）より離れたサンプルは、外れ値として捨てる。</param>
+        /// <param name="requiredSamples">集めるサンプルの数です。1 未満は 1 として扱います。</param>
+        /// <param name="maxPositionOutlierMeters">位置の中央値からこの距離（メートル）より離れたサンプルは、外れ値として捨てます。</param>
+        /// <param name="maxAngleOutlierDegrees">平均の向きからこの角度（度）より離れたサンプルは、外れ値として捨てます。</param>
         public PoseCalibrator(int requiredSamples, float maxPositionOutlierMeters, float maxAngleOutlierDegrees)
         {
             _requiredSamples = Mathf.Max(1, requiredSamples);
@@ -29,19 +32,33 @@ namespace MouthOfGod.Tracking
         public int RequiredSamples => _requiredSamples;
         public bool IsComplete => _samples.Count >= _requiredSamples;
 
+        /// <summary>
+        /// 集めたサンプルを捨てて、最初から集め直せるようにします。
+        /// </summary>
         public void Reset()
         {
             _samples.Clear();
         }
 
-        /// <summary>サンプルを足す。必要な数が集まったあとは無視する。</summary>
+        /// <summary>
+        /// サンプルを足します。必要な数が集まった後は無視します。
+        /// </summary>
+        /// <param name="sample">観測した姿勢です。</param>
         public void Add(Pose sample)
         {
             if (IsComplete) return;
             _samples.Add(sample);
         }
 
-        /// <summary>集めたサンプルの平均を返す。サンプルが 1 つもなければ false。</summary>
+        /// <summary>
+        /// 集めたサンプルから、外れ値を除いた平均の姿勢を求めます。
+        /// </summary>
+        /// <remarks>
+        /// 必要な数が集まる前に呼んでもかまいません。そのときは、集まった分で求めます。
+        /// 呼ぶたびにリストを作るので、毎フレーム呼ぶ用途には向きません。
+        /// </remarks>
+        /// <param name="result">平均の姿勢です。失敗したときは <see langword="default"/> です。</param>
+        /// <returns>サンプルが 1 つ以上あれば <see langword="true"/> を返します。</returns>
         public bool TryGetResult(out Pose result)
         {
             result = default;
@@ -56,12 +73,14 @@ namespace MouthOfGod.Tracking
                     positionInliers.Add(sample);
                 }
             }
+            // すべてが外れ値になったときは、捨てずに全部で平均します。
             if (positionInliers.Count == 0) positionInliers.AddRange(_samples);
 
             var meanPosition = Vector3.zero;
             foreach (var sample in positionInliers) meanPosition += sample.position;
             meanPosition /= positionInliers.Count;
 
+            // 向きは 2 段階で求めます。まず仮の平均を出し、そこから離れたものを除いて平均し直します。
             var firstPassRotation = MeanRotation(positionInliers);
             var rotationInliers = new List<Pose>(positionInliers.Count);
             foreach (var sample in positionInliers)
@@ -77,6 +96,7 @@ namespace MouthOfGod.Tracking
             return true;
         }
 
+        // 軸ごとの中央値です。平均と違い、大きく外れた観測に引っぱられません。
         static Vector3 MedianPosition(List<Pose> samples)
         {
             return new Vector3(
@@ -94,7 +114,8 @@ namespace MouthOfGod.Tracking
             return values.Length % 2 == 1 ? values[middle] : 0.5f * (values[middle - 1] + values[middle]);
         }
 
-        // 向きの平均。q と -q は同じ回転なので、符号をそろえてから足して正規化する（小さなばらつきに対して有効）。
+        // 向きの平均を求めます。q と -q は同じ回転なので、符号をそろえてから足して正規化します。
+        // ばらつきが小さいときに有効な近似です。
         static Quaternion MeanRotation(List<Pose> samples)
         {
             var reference = samples[0].rotation;

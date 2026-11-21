@@ -6,74 +6,104 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// フィールド（村・海・草原・山）1 つの、欲しい物と戻り方を管理します。フィールドの Prefab の一番上に付けます。
+    /// フィールド 1 つの、欲しい物と戻り方を管理します。
+    /// フィールドは村・海・草原・山です。
     /// </summary>
     /// <remarks>
-    /// 戻り方の段は、子にある <see cref="FieldStep"/> を Hierarchy の並び順に使います。段に番号はありません。
-    /// 有効になると Core の <see cref="Fields"/> に登録し、ほかの部品は <see cref="IFieldRequests"/> として受け取ります。
-    /// いつ欲しい物を出すかは、呼ぶ側（Flow の場面）が決めます。このクラスは、出す・受け取る・戻すだけを行います。
+    /// <para>
+    /// フィールドの Prefab の一番上に付けます。
+    /// 戻り方の段は、子にある <see cref="FieldStep"/> を Hierarchy の並び順に使います。
+    /// 段に番号はありません。
+    /// </para>
+    /// <para>
+    /// 有効になると Core の <see cref="Fields"/> に登録します。
+    /// ほかの部品は、このクラスを <see cref="IFieldRequests"/> として受け取ります。
+    /// </para>
+    /// <para>
+    /// いつ欲しい物を出すかは、呼ぶ側の Flow の場面が決めます。
+    /// このクラスは、出す・受け取る・戻すだけを行います。
+    /// </para>
     /// </remarks>
     public sealed class FieldStages : MonoBehaviour, IFieldRequests
     {
         public enum RequestOrder { InOrder, Random }
 
-        [Tooltip("フィールドの ID。village / mountain / sea / grassland のどれか。空のままだと、ほかの部品から見つけられない（Play の始めに警告）")]
+        [Tooltip("フィールドの ID です。village / mountain / sea / grassland のどれかを入れます。空のままだと、ほかの部品から見つけられません（Play の始めに警告を出します）。")]
         [SerializeField] string fieldId = "";
 
-        [Tooltip("体験者に来てほしいときに光らせる物。Flow の Field.Glow で出し入れする。空なら光らない")]
+        [Tooltip("体験者に来てほしいときに光らせる物です。Flow の Field.Glow で出し入れします。空なら光りません。")]
         [SerializeField] GameObject glow;
 
-        [Tooltip("欲しい物を出す順番。InOrder: Steps の並び順。Random: まだのステップからランダム")]
+        [Tooltip("欲しい物を出す順番です。InOrder: Steps の並び順に出します。Random: まだのステップからランダムに選びます。")]
         [SerializeField] RequestOrder requestOrder = RequestOrder.InOrder;
 
-        [Tooltip("このフィールドに、同時に出せる欲しい物の数。別々の村人が、それぞれ別の物を欲しがれる")]
+        [Tooltip("このフィールドに、同時に出せる欲しい物の数です。別々の村人が、それぞれ別の物を欲しがれます。1 以上にします。")]
         [SerializeField, Min(1)] int maxOpenRequests = 2;
 
         static readonly System.Random Rng = new System.Random();
 
         FieldStep[] _steps;
         StepProgress _progress;
-        bool _closing; // 見た目を写し直している間。ここで Open されると、村人の吹き出しの出し入れが前後してしまいます
+        // 見た目を写し直している間は true です。
+        // この間に Open されると、村人の吹き出しの出し入れが前後してしまいます。
+        bool _closing;
 
+        /// <inheritdoc/>
+        /// <remarks>
+        /// 欲しがっていた物が届いたときは、<see cref="StepDone"/> より先に出ます。
+        /// 村人の吹き出しを閉じたあとです。
+        /// </remarks>
         public event Action<Delivered> Received;
 
-        /// <summary>ステップが済んだときに出ます。助かった村人の吹き出しを閉じたあとです。</summary>
+        /// <summary>
+        /// ステップが済んだときに出ます。
+        /// 助かった村人の吹き出しを閉じたあとに出ます。
+        /// </summary>
         public event Action<FieldStep> StepDone;
 
         public FieldId Field => new FieldId(fieldId);
         public bool IsOpen => Progress.IsOpen;
         public bool CanOpen => !_closing && Progress.CanOpen;
 
-        /// <summary>出ている欲しい物のうち、いちばん古い物（食べ物の Prefab）です。出ていなければ null です。</summary>
+        /// <summary>出ている欲しい物のうち、いちばん古い物です。</summary>
+        /// <value>食べ物の Prefab です。出ていなければ <see langword="null"/> です。</value>
         public GameObject Current => Progress.Current;
 
-        /// <summary>出ている欲しい物の数です。</summary>
         public int OpenCount => Progress.OpenIndices.Count;
 
         /// <summary>光らせる物を出すか、消します。</summary>
+        /// <param name="on"><see langword="true"/> なら出し、<see langword="false"/> なら消します。光らせる物が空なら何もしません。</param>
         public void SetGlow(bool on)
         {
             if (glow != null) glow.SetActive(on);
         }
 
-        /// <summary>次の欲しい物を出します。上限まで出ているか、出せる物が残っていなければ false です。</summary>
+        /// <inheritdoc/>
+        /// <remarks>
+        /// 出す順は、Inspector の Request Order で決まります。
+        /// 見た目を写し直している間は、出さずに <see langword="false"/> を返します。
+        /// </remarks>
         public bool Open()
         {
             if (_closing || !Progress.TryOpen(out var index, requestOrder == RequestOrder.Random ? Rng : null)) return false;
             return Issue(index);
         }
 
-        /// <summary>food を欲しがる、まだ済んでいないステップを出します。並び順は見ません。出せなければ false です。</summary>
+        /// <inheritdoc/>
+        /// <remarks>
+        /// <paramref name="food"/> が <see langword="null"/> のときは、出さずに <see langword="false"/> を返します。
+        /// </remarks>
         public bool Open(GameObject food)
         {
             if (_closing || !Progress.TryOpen(food, out var index)) return false;
             return Issue(index);
         }
 
-        /// <summary>
-        /// 届いた物を受け取り、何だったかを返します。<see cref="Received"/> は必ず 1 回出ます。
-        /// 欲しがっていた物ならステップを済ませ、村人の吹き出しを閉じてから、Received → StepDone の順に出します。
-        /// </summary>
+        /// <inheritdoc/>
+        /// <remarks>
+        /// 欲しがっていた物なら、ステップを済ませて村人の吹き出しを閉じます。
+        /// そのあと、<see cref="Received"/>、<see cref="StepDone"/> の順に出します。
+        /// </remarks>
         public DeliveryKind Receive(GameObject food)
         {
             if (!Progress.TryResolve(food, out var index))
@@ -90,13 +120,13 @@ namespace MouthOfGod.Village
             return DeliveryKind.Requested;
         }
 
-        /// <summary>出ている欲しい物を、すべて届かないまま終えます。</summary>
+        /// <inheritdoc/>
         public void Expire()
         {
             foreach (var index in Progress.CloseAll()) VillagerOf(index)?.CloseWant(resolved: false);
         }
 
-        /// <summary>すべてのステップを、まだの状態に戻します。出ていた欲しい物も終えます。</summary>
+        /// <inheritdoc/>
         public void Restart()
         {
             var closes = Progress.CloseAll();
@@ -121,6 +151,8 @@ namespace MouthOfGod.Village
 
         FieldStep[] StepsInOrder => _steps ??= GetComponentsInChildren<FieldStep>(includeInactive: true);
 
+        // 初めて読まれたときに、ステップの並びから作ります。
+        // Start より先に Open などが呼ばれても使えるようにするためです。
         StepProgress Progress
         {
             get
@@ -142,7 +174,7 @@ namespace MouthOfGod.Village
             return true;
         }
 
-        // ステップで助かる村人のうち、最初の人です。吹き出しはこの人が出します。
+        // ステップで助かる村人のうち、最初の人を返します。吹き出しはこの人が出します。
         VillagerMood VillagerOf(int index)
         {
             foreach (var mood in StepsInOrder[index].Helped)
@@ -150,6 +182,7 @@ namespace MouthOfGod.Village
             return null;
         }
 
+        // 見た目を写し直してから、closes のステップの吹き出しを閉じます。
         void ApplyThenClose(IReadOnlyList<int> closes, bool resolved, bool celebrate)
         {
             _closing = closes.Count > 0;
@@ -164,7 +197,8 @@ namespace MouthOfGod.Village
             StepDone?.Invoke(StepsInOrder[index]);
         }
 
-        // 済んだステップの物を出し、消す物を消し、村人の気持ちを合わせます。消すほうが、出すより優先です。
+        // 済んだステップの物を出し、消す物を消し、村人の気持ちを合わせます。
+        // 1 つの物が、あるステップで出て、別のステップで消えるときは、消すほうを優先します。
         void Apply(bool celebrate)
         {
             var steps = StepsInOrder;

@@ -5,26 +5,31 @@ using UnityEngine.XR;
 namespace MouthOfGod.DevTools
 {
     /// <summary>
-    /// Quest なしで試すための頭。Main Camera に付けると、キーボードとマウスで歩いて見回せる。
+    /// Quest なしで試すための頭です。Main Camera に付けると、キーボードとマウスで歩いて見回せます。
     /// </summary>
     /// <remarks>
-    /// - WASD で歩く。Shift を押している間は速く歩く。マウスの右ボタンを押しながら動かすと、向きが変わる。
-    /// - 高さは変えない。立っている場所（StandArea）は、頭の水平の位置で決まるため。
-    /// - Quest の頭が動いているときは、何もしない（頭の位置は XR が決める）。
-    /// - 展示では使わない。
+    /// <para>
+    /// WASD で歩きます。Shift を押している間は速く歩きます。
+    /// マウスの右ボタンを押しながら動かすと、向きが変わります。
+    /// </para>
+    /// <para>
+    /// 高さは変えません。立っている場所（StandArea）は、頭の水平の位置で決まるためです。
+    /// Quest の頭が動いているときは、何もしません。頭の位置は XR が決めます。
+    /// 展示では使いません。
+    /// </para>
     /// </remarks>
     public sealed class DesktopHead : MonoBehaviour
     {
-        [Tooltip("歩く速さ（m / 秒）")]
+        [Tooltip("歩く速さです。単位は m / 秒です。1.2 で、人がふつうに歩く速さくらいです。")]
         [SerializeField, Min(0f)] float walkSpeed = 1.2f;
 
-        [Tooltip("Shift を押している間、歩く速さを何倍にするか")]
+        [Tooltip("Shift を押している間、歩く速さを何倍にするかです。")]
         [SerializeField, Min(1f)] float runMultiplier = 3f;
 
-        [Tooltip("マウスを 1 ピクセル動かしたときに回る角度（度）")]
+        [Tooltip("マウスを 1 ピクセル動かしたときに回る角度です。単位は度です。")]
         [SerializeField, Min(0f)] float degreesPerPixel = 0.15f;
 
-        [Tooltip("上下を向ける角度の上限（度）")]
+        [Tooltip("上下を向ける角度の上限です。単位は度です。90 にすると真上・真下で向きが乱れるので、89 までにしています。")]
         [SerializeField, Range(0f, 89f)] float maxPitch = 80f;
 
         float _yaw;
@@ -63,7 +68,9 @@ namespace MouthOfGod.DevTools
             transform.position += Step(_yaw, input) * speed * Time.deltaTime;
         }
 
-        /// <summary>水平の位置だけを移す。高さはそのまま。向きは yaw（度）にする。</summary>
+        /// <summary>頭を指定した場所へ移し、指定した向きにします。</summary>
+        /// <param name="position">移す先です。水平の位置だけを使い、高さは今のままにします。</param>
+        /// <param name="yaw">向く方角です。単位は度です。上下の向きは水平に戻します。</param>
         public void Teleport(Vector3 position, float yaw)
         {
             transform.position = new Vector3(position.x, transform.position.y, position.z);
@@ -72,7 +79,13 @@ namespace MouthOfGod.DevTools
             transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
         }
 
-        /// <summary>入力（x: 右、y: 前）を、yaw（度）の向きの水平の向きに直す。長さは 1 以下。</summary>
+        /// <summary>移動の入力を、頭の向きに合わせた水平の向きに直します。</summary>
+        /// <param name="yaw">頭が向いている方角です。単位は度です。</param>
+        /// <param name="input">移動の入力です。x が右、y が前です。</param>
+        /// <returns>
+        /// ワールドの水平の向きです。y は常に 0 です。
+        /// 長さは 1 以下にします。斜めに歩いても速くならないようにするためです。
+        /// </returns>
         internal static Vector3 Step(float yaw, Vector2 input)
         {
             Vector3 move = Quaternion.Euler(0f, yaw, 0f) * new Vector3(input.x, 0f, input.y);

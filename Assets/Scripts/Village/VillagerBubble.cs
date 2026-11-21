@@ -4,35 +4,45 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 村人の頭の上に出す吹き出しです。村人の Prefab に付けます。何を出すかは、村人（<see cref="VillagerMood"/>）が決めて呼びます。
+    /// 村人の頭の上に出す吹き出しです。村人の Prefab に付けます。
     /// </summary>
     /// <remarks>
-    /// 絵があれば絵だけを、無ければ名前の文字を出します。吹き出しはシーンの直下に作ります。
-    /// ミニチュアの台の拡大縮小を受けないようにするためです。位置は毎フレーム、頭の上に合わせてカメラへ向けます。
+    /// <para>
+    /// 何を出すかは、村人（<see cref="VillagerMood"/>）が決めて呼びます。
+    /// 絵があれば絵だけを、無ければ名前の文字を出します。
+    /// </para>
+    /// <para>
+    /// 吹き出しはシーンの直下に作ります。
+    /// ミニチュアの台の拡大縮小を受けないようにするためです。
+    /// 位置は毎フレーム頭の上に合わせ、カメラへ向けます。
+    /// </para>
     /// </remarks>
     public sealed class VillagerBubble : MonoBehaviour
     {
+        // 吹き出しの中の大きさです。Settings の Size を掛けて、ワールドの大きさになります。
         const float CharWidth = 0.35f; // TextMesh の fontSize 64 × characterSize 0.1 のときの 1 文字の幅
         const float LineHeight = 0.7f;
         const float Padding = 0.3f;
-        const float IconSize = 1.2f; // 吹き出しの中の大きさ。文字 1 行の高さの約 2 倍
+        const float IconSize = 1.2f; // 文字 1 行の高さの約 2 倍
         const int CornerSegments = 6;
         const float TailWidth = 0.4f; // しっぽ（話している人を指す三角）の幅
         const float TailHeight = 0.35f;
 
-        [Tooltip("見た目の設定（Assets/Data/RequestBubbleSettings.asset）")]
+        [Tooltip("見た目の設定です。Assets/Data/RequestBubbleSettings.asset をつなぎます。空だと吹き出しを出せず、エラーを出します。")]
         [SerializeField] RequestBubbleSettings settings;
 
-        [Tooltip("吹き出しを出す位置。空なら、VillagerMood の頭の上の印、それも無ければこの村人")]
+        [Tooltip("吹き出しを出す位置です。空なら、VillagerMood の頭の上の印を使います。それも無ければ、この村人の位置です。")]
         [SerializeField] Transform anchor;
 
         GameObject _root;
         Material _background;
         readonly List<Object> _owned = new List<Object>(); // 吹き出しと一緒に消す物
-        float _hideAt = -1f;
+        float _hideAt = -1f; // この時刻（Time.time）になったら消します。-1 は消す予定なしです
         Camera _camera;
 
-        /// <summary>欲しい物を出します。icon が無ければ、label の文字を出します。前の吹き出しは消します。</summary>
+        /// <summary>欲しい物を吹き出しで出します。前の吹き出しは消します。</summary>
+        /// <param name="icon">欲しい物の絵です。<see langword="null"/> なら、<paramref name="label"/> の文字を出します。</param>
+        /// <param name="label">絵が無いときに出す文字です。絵が無いのに <see langword="null"/> を渡すと、例外になります。</param>
         public void Show(Texture2D icon, string label)
         {
             Hide();
@@ -46,9 +56,11 @@ namespace MouthOfGod.Village
         }
 
         /// <summary>
-        /// 欲しい物が終わったことを見せます。届いたら resolved で緑に、届かなかったら灰色にします。
+        /// 欲しい物が終わったことを、色で見せます。
         /// 少し見せてから消えます。
         /// </summary>
+        /// <param name="resolved">届いたら <see langword="true"/> で緑に、届かなかったら <see langword="false"/> で灰色にします。</param>
+        /// <remarks>吹き出しが出ていなければ、何もしません。</remarks>
         public void Close(bool resolved)
         {
             if (_root == null) return;
