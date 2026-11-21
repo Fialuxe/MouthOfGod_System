@@ -150,3 +150,4 @@ MonoBehaviour:
   births:
   - field: sea
     texture: placeholder-b
+  icon: {fileID: 2800000, guid: 209c88dcdec60664dba7d84b1996090a, type: 3}

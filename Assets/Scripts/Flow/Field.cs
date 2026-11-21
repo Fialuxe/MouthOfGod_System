@@ -44,14 +44,13 @@ namespace MouthOfGod.Flow
             }
         }
 
-        /// <summary>food を欲しがらせます。もう欲しがっていれば何もしません。出せなければ、最初に戻してからもう一度出します。</summary>
-        public void Want(string food)
+        /// <summary>food（食べ物の Prefab）を欲しがらせます。もう欲しがっていれば何もしません。出せなければ、最初に戻してからもう一度出します。</summary>
+        public void Want(GameObject food)
         {
-            if (_requests == null || _requests.IsOpen) return;
-            var id = new FoodId(food);
-            if (_requests.Open(id)) return;
+            if (_requests == null || _requests.IsOpen || food == null) return;
+            if (_requests.Open(food)) return;
             _requests.Restart();
-            if (!_requests.Open(id)) Debug.LogWarning($"[Flow.Field] {Id} に {food} を欲しがらせられませんでした。");
+            if (!_requests.Open(food)) Debug.LogWarning($"[Flow.Field] {Id} に {food.name} を欲しがらせられませんでした。");
         }
 
         /// <summary>出せるだけ、次の欲しい物を出します。</summary>

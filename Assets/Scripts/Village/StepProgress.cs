@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using MouthOfGod.Core;
+using UnityEngine;
 
 namespace MouthOfGod.Village
 {
@@ -9,15 +9,15 @@ namespace MouthOfGod.Village
     /// </summary>
     public sealed class StepProgress
     {
-        readonly FoodId[] _wants;
+        readonly GameObject[] _wants;
         readonly bool[] _done;
         readonly List<int> _open = new List<int>(); // 出ているステップ。出した順（古い順）
 
         /// <param name="maxOpen">同時に出せる欲しい物の数です。1 より小さければ 1 にします。</param>
-        public StepProgress(IReadOnlyList<FoodId> wants, int maxOpen = 1)
+        public StepProgress(IReadOnlyList<GameObject> wants, int maxOpen = 1)
         {
             var count = wants?.Count ?? 0;
-            _wants = new FoodId[count];
+            _wants = new GameObject[count];
             _done = new bool[count];
             for (var i = 0; i < count; i++) _wants[i] = wants[i];
             MaxOpen = maxOpen < 1 ? 1 : maxOpen;
@@ -38,11 +38,11 @@ namespace MouthOfGod.Village
 
         public bool IsOpenAt(int index) => _open.Contains(index);
 
-        /// <summary>出ている欲しい物のうち、一番古いもの。出ていなければ FoodId.None。</summary>
-        public FoodId Current => IsOpen ? _wants[_open[0]] : FoodId.None;
+        /// <summary>出ている欲しい物のうち、一番古いもの。出ていなければ null。</summary>
+        public GameObject Current => IsOpen ? _wants[_open[0]] : null;
 
-        /// <summary>そのステップの欲しい物。範囲の外なら FoodId.None。</summary>
-        public FoodId WantOf(int index) => index >= 0 && index < _wants.Length ? _wants[index] : FoodId.None;
+        /// <summary>そのステップの欲しい物。範囲の外なら null。</summary>
+        public GameObject WantOf(int index) => index >= 0 && index < _wants.Length ? _wants[index] : null;
 
         public bool IsDone(int index) => index >= 0 && index < _done.Length && _done[index];
 
@@ -59,7 +59,7 @@ namespace MouthOfGod.Village
         public bool IsComplete => DoneCount == Count;
 
         // 出せるステップ: まだ済んでおらず、出てもおらず、欲しい物があるもの。
-        bool CanIssue(int index) => !_done[index] && !_open.Contains(index) && !_wants[index].IsEmpty;
+        bool CanIssue(int index) => !_done[index] && !_open.Contains(index) && _wants[index] != null;
 
         /// <summary>次に出すステップです。まだ済んでおらず、出てもおらず、欲しい物があるステップのうち最初の物です。無ければ -1 です。</summary>
         public int NextIndex
@@ -97,19 +97,19 @@ namespace MouthOfGod.Village
         }
 
         /// <summary>このフィールドのどれかのステップが欲しがる物か（済んだステップも含む）。</summary>
-        public bool Wants(FoodId food)
+        public bool Wants(GameObject food)
         {
-            if (food.IsEmpty) return false;
+            if (food == null) return false;
             foreach (var want in _wants)
                 if (want == food) return true;
             return false;
         }
 
         /// <summary>その物を欲しがる、出せる最初のステップを出す。上限まで出ている・出せるステップが無いなら false（index は -1）。</summary>
-        public bool TryOpen(FoodId food, out int index)
+        public bool TryOpen(GameObject food, out int index)
         {
             index = -1;
-            if (_open.Count >= MaxOpen || food.IsEmpty) return false;
+            if (_open.Count >= MaxOpen || food == null) return false;
             for (var i = 0; i < _wants.Length; i++)
             {
                 if (!CanIssue(i) || _wants[i] != food) continue;
@@ -124,10 +124,10 @@ namespace MouthOfGod.Village
         /// 届いた物を、出ている欲しい物のうち、同じ物を欲しがる一番古いものに当てる。当たれば、そのステップを済ませて閉じる（true）。
         /// どれにも当たらなければ false（index は -1）。
         /// </summary>
-        public bool TryResolve(FoodId delivered, out int index)
+        public bool TryResolve(GameObject delivered, out int index)
         {
             index = -1;
-            if (delivered.IsEmpty) return false;
+            if (delivered == null) return false;
             foreach (var open in _open)
             {
                 if (_wants[open] != delivered) continue;

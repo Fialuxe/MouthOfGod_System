@@ -80,7 +80,7 @@ namespace MouthOfGod.Village
 
         void Judge(GameObject food, IFoodItem item, IFieldRequests field)
         {
-            var kind = field.Receive(item.Food);
+            var kind = field.Receive(item.Kind);
             if (kind == DeliveryKind.Requested ? consumeRequested : consumeOthers)
             {
                 if (Application.isPlaying) Destroy(food);

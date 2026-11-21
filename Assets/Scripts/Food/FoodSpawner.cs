@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MouthOfGod.Core;
 using UnityEngine;
 
@@ -28,6 +29,11 @@ namespace MouthOfGod.Food
 
         [Tooltip("生んだ食べ物に、Spawn Point の前向きに与える初速（m/s）。0 以下、または食べ物に Rigidbody がなければ、与えない。そのあとの動きは、食べ物の Rigidbody（Mass など）しだい")]
         [SerializeField, Min(0f)] float launchSpeed = 2f;
+
+        [Tooltip("生める食べ物の一覧（Assets/Prefabs/Food の Prefab）。食べ物を足したら、ここにも足す。生まれる条件は、各食べ物の FoodItem が持つ")]
+        [SerializeField] FoodItem[] foods = new FoodItem[0];
+
+        readonly Dictionary<TextureId, FoodItem> _overrides = new Dictionary<TextureId, FoodItem>(); // 場面の間だけの対応
 
         // 警告と例外の出し先。テストで差し替える。
         internal static Action<string> ReportWarning = Debug.LogWarning;
@@ -79,27 +85,36 @@ namespace MouthOfGod.Food
             Transform origin = spawnPoint != null ? spawnPoint : transform;
             GameObject instance = Instantiate(prefab, origin.position, origin.rotation, foodParent);
             instance.name = prefab.name;
-
-            FoodId food = new FoodId(prefab.name);
+            if (instance.TryGetComponent(out FoodItem item)) item.SetSource(prefab);
 
             Launch(instance, origin);
-            RaiseSpawned(new Spawned(food, instance.transform.position));
+            RaiseSpawned(new Spawned(prefab, instance.transform.position));
             return instance;
         }
 
-        static FoodItem[] _catalog;
+        /// <summary>
+        /// この場面の間だけ、texture のときはどこでも food を生むようにします。チュートリアルが、生ませたい物を決めるときに使います。
+        /// 場面が終わったら <see cref="ClearOverrides"/> で戻します。
+        /// </summary>
+        public void Override(TextureId texture, GameObject food)
+        {
+            if (food != null && food.TryGetComponent(out FoodItem item)) _overrides[texture] = item;
+        }
+
+        /// <summary><see cref="Override"/> で決めた対応を、すべて戻します。</summary>
+        public void ClearOverrides() => _overrides.Clear();
 
         /// <summary>
-        /// 食べ物の Prefab（Resources/Food）から、field と texture に合う物を選びます。
-        /// フィールドが合う物を先に選び、なければフィールドが空（どこでも）の物を選びます。合う物がなければ null です。
+        /// field と texture に合う食べ物を、一覧から選びます。場面の間だけの対応があれば、それを先に使います。
+        /// 次に、フィールドが合う物を選び、なければフィールドが空（どこでも）の物を選びます。合う物がなければ null です。
         /// </summary>
-        internal static GameObject Resolve(FieldId field, TextureId texture)
+        GameObject Resolve(FieldId field, TextureId texture)
         {
             if (texture.IsEmpty) return null;
-            if (_catalog == null || _catalog.Length == 0) _catalog = Resources.LoadAll<FoodItem>("Food");
-            foreach (FoodItem item in _catalog)
+            if (_overrides.TryGetValue(texture, out FoodItem chosen)) return chosen.gameObject;
+            foreach (FoodItem item in foods)
                 if (item != null && item.IsBornFrom(field, texture, anyField: false)) return item.gameObject;
-            foreach (FoodItem item in _catalog)
+            foreach (FoodItem item in foods)
                 if (item != null && item.IsBornFrom(field, texture, anyField: true)) return item.gameObject;
             return null;
         }
@@ -158,6 +173,11 @@ namespace MouthOfGod.Food
         }
 
         void OnConfirmed(TextureId texture) => Spawn(texture);
+
+        void Awake()
+        {
+            if (foods.Length == 0) Debug.LogError("[FoodSpawner] 生める食べ物の一覧（Foods）が空です。", this);
+        }
 
         void OnEnable()
         {

@@ -6,7 +6,11 @@ namespace MouthOfGod.Flow
     public sealed class Tutorial4Deliver : Chapter
     {
         [SerializeField] string field = "sea";
-        [SerializeField] string food = "fish";
+        [Tooltip("届けてほしい食べ物（食べ物の Prefab）")]
+        [SerializeField] GameObject wantedFood;
+
+        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感")]
+        [SerializeField] string wantedTexture = "placeholder-e";
 
         [Header("声（空なら字幕だけ）")]
         [SerializeField] AudioClip walkVoice;
@@ -20,7 +24,8 @@ namespace MouthOfGod.Flow
             // 1. 前の場面の食べ物を片付け、海を光らせ、足あとを出して、巫女がついてきます。
             Foods.Clear();
             Field target = Field.Get(field);
-            target.Want(food);
+            target.Want(wantedFood);
+            Foods.Override(wantedTexture, wantedFood);
             target.Glow(true);
             target.Footprint(true);
             Miko.Follow();
@@ -40,8 +45,8 @@ namespace MouthOfGod.Flow
 
                 Delivery? got = await Player.Delivered(1f); // 1 秒ごとに、着いたかどうかも見直します
                 if (got == null) continue;
-                if (got.Value.Field == field && got.Value.Food == food) { delivered = true; break; }
-                if (got.Value.Field == field) { target.Want(food); continue; } // 違う物が届いた。また欲しがらせます
+                if (got.Value.Field == field && got.Value.Food == wantedFood) { delivered = true; break; }
+                if (got.Value.Field == field) { target.Want(wantedFood); continue; } // 違う物が届いた。また欲しがらせます
 
                 // よその場所に届いた。足あとをもう一度出します。
                 Miko.SayNow("Not here — go to the place that glows.", notHereVoice);
@@ -59,6 +64,7 @@ namespace MouthOfGod.Flow
 
         protected override void CleanUp()
         {
+            Foods.ClearOverrides();
             Field target = Field.Get(field);
             target.Footprint(false);
             target.Glow(false);

@@ -35,6 +35,19 @@ namespace MouthOfGod.Village
         public const string MissedTrigger = "Missed";
 
         public GameObject WorryMark { get => worryMark; set => worryMark = value; }
+
+        /// <summary>欲しい物を、頭の上の吹き出しで見せます。icon が無ければ label の文字を出します。</summary>
+        public void ShowWant(Texture2D icon, string label)
+        {
+            if (TryGetComponent(out VillagerBubble bubble)) bubble.Show(icon, label);
+            else Debug.LogWarning($"[VillagerMood] {name}: 吹き出し（VillagerBubble）が無いので、欲しい物を見せられません。", this);
+        }
+
+        /// <summary>欲しい物が終わったことを、吹き出しで見せます。届いたら resolved です。</summary>
+        public void CloseWant(bool resolved)
+        {
+            if (TryGetComponent(out VillagerBubble bubble)) bubble.Close(resolved);
+        }
         public bool IsWorried => _worried;
 
         /// <summary>Animator に trigger を送ります。Animator Controller にそのトリガーが無ければ false です。</summary>

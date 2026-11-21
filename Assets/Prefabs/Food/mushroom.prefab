@@ -152,3 +152,4 @@ MonoBehaviour:
   births:
   - field: mountain
     texture: placeholder-a
+  icon: {fileID: 2800000, guid: 6a741be5f2e022e40974456abf348846, type: 3}

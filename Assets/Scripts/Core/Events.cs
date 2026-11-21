@@ -2,94 +2,50 @@ using UnityEngine;
 
 namespace MouthOfGod.Core
 {
-    // 機能をまたぐイベントのデータ。値を運ぶだけで、ロジックは持たない（docs/architecture.md §3）。
-    // デバイスの入力（食感が変わった・決定した・噛んだ）は、ここではなく IDevice のイベント。
+    // 機能をまたぐ知らせの中身です。値を運ぶだけで、処理は持ちません。
+    // 食べ物は、名前ではなく元の Prefab（IFoodItem.Kind）で運びます。
 
-    /// <summary>食べ物が生まれた。</summary>
+    /// <summary>食べ物が生まれました。</summary>
     public readonly struct Spawned
     {
-        public readonly FoodId Food;
+        public readonly GameObject Food;
         public readonly Vector3 Position;
 
-        public Spawned(FoodId food, Vector3 position)
+        public Spawned(GameObject food, Vector3 position)
         {
             Food = food;
             Position = position;
         }
     }
 
-    /// <summary>物がフィールドに届いたとき、そのフィールドにとって何だったか。採点や反応は、これを見て決める。</summary>
+    /// <summary>物がフィールドに届いたとき、そのフィールドにとって何だったかです。</summary>
     public enum DeliveryKind
     {
-        /// <summary>吹き出しで欲しがっていた物。そのステップが済み、フィールドの一部が戻る。</summary>
+        /// <summary>欲しがっていた物です。そのステップが済み、フィールドの一部が戻ります。</summary>
         Requested,
 
-        /// <summary>このフィールドの物だが、いま欲しがってはいない（2 本目のにんじん、まだ頼んでいない物）。フィールドは戻らない。</summary>
+        /// <summary>このフィールドの物ですが、いま欲しがってはいません（2 本目のにんじんなど）。フィールドは戻りません。</summary>
         Own,
 
-        /// <summary>このフィールドの物ではない（村に豚）。フィールドは戻らない。</summary>
+        /// <summary>このフィールドの物ではありません（村に豚など）。フィールドは戻りません。</summary>
         Foreign,
     }
 
-    /// <summary>物がフィールドに届いた。何が届いても、届いたたびに 1 回出る。Kind で、欲しがっていた物か・このフィールドの物か・よその物かが分かる。</summary>
+    /// <summary>物がフィールドに届きました。何が届いても、届くたびに 1 回出ます。</summary>
     public readonly struct Delivered
     {
-        public readonly FoodId Food;
+        public readonly GameObject Food;
         public readonly FieldId Field;
         public readonly DeliveryKind Kind;
 
-        public Delivered(FoodId food, FieldId field, DeliveryKind kind)
+        public Delivered(GameObject food, FieldId field, DeliveryKind kind)
         {
             Food = food;
             Field = field;
             Kind = kind;
         }
 
-        /// <summary>欲しがっていた物だったか（Kind == Requested）。</summary>
+        /// <summary>欲しがっていた物でした。</summary>
         public bool WasRequested => Kind == DeliveryKind.Requested;
     }
-
-    /// <summary>
-    /// フィールドの困っている人が、欲しい物を出した（吹き出しを出す合図）。1 つのフィールドに、同時に複数出ていることがある。
-    /// どの欲しい物かは <see cref="Request"/>（番号）で見分ける。終わったときの <see cref="RequestClosed"/> にも、同じ番号が入る。
-    /// </summary>
-    public readonly struct RequestIssued
-    {
-        public readonly FoodId Food;
-        public readonly FieldId Field;
-
-        /// <summary>吹き出しを出す場所（困っている人の頭の上など）。ミニチュアと一緒に動くので、位置ではなく Transform で渡す。無ければ null。</summary>
-        public readonly Transform Anchor;
-
-        /// <summary>欲しい物の番号。同じフィールドの中で、出すたびに変わる。フィールドと組で、1 つの欲しい物を見分ける。</summary>
-        public readonly int Request;
-
-        public RequestIssued(FoodId food, FieldId field, Transform anchor = null, int request = 0)
-        {
-            Food = food;
-            Field = field;
-            Anchor = anchor;
-            Request = request;
-        }
-    }
-
-    /// <summary>出ていた欲しい物が終わった（吹き出しを消す合図）。Resolved は、届いて解決したか（false なら、待ちきれなかった・やり直した）。</summary>
-    public readonly struct RequestClosed
-    {
-        public readonly FoodId Food;
-        public readonly FieldId Field;
-        public readonly bool Resolved;
-
-        /// <summary>終わった欲しい物の番号。出したときの <see cref="RequestIssued.Request"/> と同じ。</summary>
-        public readonly int Request;
-
-        public RequestClosed(FoodId food, FieldId field, bool resolved, int request = 0)
-        {
-            Food = food;
-            Field = field;
-            Resolved = resolved;
-            Request = request;
-        }
-    }
-
 }
