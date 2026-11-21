@@ -12,7 +12,7 @@ namespace MouthOfGod.Tracking
     /// パススルーカメラの RGB フレームから AprilTag を検出し、ワールド座標の姿勢を <see cref="IAprilTagSource"/> として公開する。
     /// シーンに 1 つだけ存在する（<see cref="AprilTagPlace"/> が必要なときに自動で作るので、手で置かなくてよい）。
     /// カメラの読み出しと検出は重いため、タグごとではなくここで 1 回だけ行い、各 <see cref="AprilTagPlace"/> が結果を共有する。
-    /// 設定は <see cref="AprilTagSettings"/>（<c>Resources/AprilTagSettings.asset</c>）から読む。
+    /// 設定は、Inspector でつないだ <see cref="AprilTagSettings"/>（<c>Assets/Data/AprilTagSettings.asset</c>）を使う。
     /// </summary>
     [RequireComponent(typeof(PassthroughCameraAccess))]
     [DefaultExecutionOrder(-50)]
@@ -36,7 +36,8 @@ namespace MouthOfGod.Tracking
         readonly List<AprilTagObservation> _observations = new List<AprilTagObservation>();
         readonly Dictionary<int, AprilTagObservation> _latest = new Dictionary<int, AprilTagObservation>();
 
-        AprilTagSettings _settings;
+        [Tooltip("検出の設定（Assets/Data/AprilTagSettings.asset）")]
+        [SerializeField] AprilTagSettings _settings;
         PassthroughCameraAccess _camera;
         TagDetector _detector;
         Vector2Int _detectorResolution;
@@ -69,7 +70,11 @@ namespace MouthOfGod.Tracking
                 _instance = this;
             }
 
-            _settings = AprilTagSettings.Load();
+            if (_settings == null)
+            {
+                Debug.LogError("[AprilTagDetectionService] 検出の設定（Settings）が空なので、既定の値で動きます。", this);
+                _settings = ScriptableObject.CreateInstance<AprilTagSettings>();
+            }
             _camera = GetComponent<PassthroughCameraAccess>();
         }
 

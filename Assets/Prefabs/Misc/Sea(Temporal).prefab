@@ -151,6 +151,7 @@ GameObject:
   - component: {fileID: 3139215949213777448}
   - component: {fileID: 4777242993760791749}
   - component: {fileID: 1011363873151461378}
+  - component: {fileID: 3800431500309117944}
   m_Layer: 0
   m_Name: Sea(Temporal)
   m_TagString: Untagged
@@ -306,7 +307,27 @@ MonoBehaviour:
   consumeOthers: 0
   vanishOthers: 1
   vanishSeconds: 1
-  vanishFx: {fileID: 0}
+--- !u!114 &3800431500309117944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4357285810100875601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5baa993ea4ef8a1409074b674912a675, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  reactions: {fileID: 11400000, guid: 731062e665ba8f849a78aa4f88fcf094, type: 2}
+  onRequested:
+    m_PersistentCalls:
+      m_Calls: []
+  missedTrigger: Missed
+  onMissed:
+    m_PersistentCalls:
+      m_Calls: []
+  fxParent: {fileID: 0}
 --- !u!1 &6443254968902137190
 GameObject:
   m_ObjectHideFlags: 0
@@ -351,7 +372,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: fish
   wantedFood: {fileID: 5556158422024356725, guid: a53700841e218e940bfdf95f54d47041, type: 3}
   helped: []
   hideWhenDone: []
