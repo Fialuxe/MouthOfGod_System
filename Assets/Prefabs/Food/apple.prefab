@@ -96,10 +96,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   births:
-  - field: 
+  - field: mountain
     texture: placeholder-e
   - field: mountain
-    texture: placeholder-b
+    texture: placeholder-f
   icon: {fileID: 2800000, guid: 0b3279c6ff2c0a442a587ba110cc56c9, type: 3}
 --- !u!1001 &5142732853117680219
 PrefabInstance:
