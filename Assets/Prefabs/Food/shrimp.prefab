@@ -149,5 +149,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   births:
   - field: sea
-    texture: placeholder-b
+    texture: placeholder-c
+  - field: sea
+    texture: placeholder-d
   icon: {fileID: 2800000, guid: 209c88dcdec60664dba7d84b1996090a, type: 3}

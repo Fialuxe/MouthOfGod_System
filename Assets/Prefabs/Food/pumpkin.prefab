@@ -97,7 +97,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   births:
   - field: village
-    texture: placeholder-c
+    texture: placeholder-f
   icon: {fileID: 2800000, guid: c83796e9ccb3c9c4f8a62787ba5811a4, type: 3}
 --- !u!1001 &7022547749378445484
 PrefabInstance:

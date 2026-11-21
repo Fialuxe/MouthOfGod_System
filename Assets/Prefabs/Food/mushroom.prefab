@@ -151,5 +151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   births:
   - field: mountain
-    texture: placeholder-a
+    texture: placeholder-c
+  - field: mountain
+    texture: placeholder-d
   icon: {fileID: 2800000, guid: 6a741be5f2e022e40974456abf348846, type: 3}
