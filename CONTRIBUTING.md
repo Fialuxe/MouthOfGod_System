@@ -52,8 +52,8 @@ Unity Hub の `Add project from disk` で開きます。初回は `Library/` を
 
 - 作業を始める前に Issue を選びます。Issue の書き方は [`.claude/skills/write-issue/`](.claude/skills/write-issue/SKILL.md) に、ラベルや担当の扱いは [docs/issue-workflow.md](docs/issue-workflow.md) にあります。
 - PR の本文には、目的、変えたこと、確かめ方を書きます。
-- この PR で終わる Issue は、本文に `Closes #番号` と書きます（1 行に 1 つ）。マージすると Issue が閉じ、ロードマップが進み、その Issue を待っていた作業が始められるようになります。迷ったら、閉じる側に倒します。一部だけ進める PR は `Refs #番号` にして、残りを本文に書きます。
-- マージは Squash か Rebase です。できるだけ 1 人に見てもらいます。見てもらえないときは、自分で動かして確かめてからマージし、確かめた内容を PR に書きます。
+- この PR で終わる Issue は、本文に `Closes #番号` と書きます（1 行に 1 つ）。マージすると、Issue は閉じます。Issue が閉じると、ロードマップが進み、その Issue を待っていた作業が始められます。迷ったら、閉じる側に倒します。一部だけ進める PR は `Refs #番号` にして、残りを本文に書きます。
+- マージは Squash か Rebase です。できるだけ 1 人に見てもらいます。見てもらえないときは、自分で動かして確かめます。確かめてからマージし、確かめた内容を PR に書きます。
 
 コミットの前に、次を確かめます。
 
