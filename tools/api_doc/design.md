@@ -114,7 +114,7 @@ types: MikoLineBook, MikoLine, T1Fork, T2Spawn, T3Recognize, T4Deliver, Prologue
 source: docs/decisions.md 2026-10-25
 
 ### 決めたこと
-プロローグとチュートリアル 1〜4 は、1 本ずつ Prefab（`Resources/Prefabs/Tutorial/`）にします。共有シーンには、その Prefab を `TutorialRunner` の子として置くだけです。そのチュートリアルのセリフは、その Prefab に付けた `MikoLineBook` に書きます。
+プロローグとチュートリアル 1〜4 は、1 本ずつ Prefab（`Prefabs/Tutorial/`）にします。共有シーンには、その Prefab を `TutorialRunner` の子として置くだけです。そのチュートリアルのセリフは、その Prefab に付けた `MikoLineBook` に書きます。
 
 ### なぜ
 チュートリアルは、担当者が並行して作ります。セリフが巫女の 1 つの一覧にあると、全員が同じ一覧を直すことになり、順番待ちになります。チュートリアルが共有シーンに直接あると、直すたびに Scene Fusion のセッションが要ります。Prefab に分ければ、担当者は自分の Prefab だけを直せます。

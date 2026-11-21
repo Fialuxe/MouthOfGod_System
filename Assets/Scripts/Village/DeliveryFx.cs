@@ -17,12 +17,12 @@ namespace MouthOfGod.Village
     /// </remarks>
     public sealed class DeliveryFx : MonoBehaviour
     {
-        const string DefaultJoyPath = "Prefabs/Village/Fx_Joy";
+        const string DefaultJoyPath = "Fx/Fx_Joy";
         const string DefaultDoneClipPath = "Sounds/Village/Done";     // Kenney「Music Jingles」の jingles_PIZZI02（CC0）
         const string DefaultMissedClipPath = "Sounds/Village/Missed"; // このリポジトリで作った音（下がる 2 音）
 
         [Header("欲しい物が届いたとき")]
-        [Tooltip("助かった村人の頭の上に出す粒。一度だけ出して、終わると自分で消える（Stop Action を Destroy にする）。空なら Resources/Prefabs/Village/Fx_Joy")]
+        [Tooltip("助かった村人の頭の上に出す粒。一度だけ出して、終わると自分で消える（Stop Action を Destroy にする）。空なら Resources/Fx/Fx_Joy")]
         [SerializeField] ParticleSystem joy;
 
         [Tooltip("ステップが済んだときの音（短い物）。空なら Resources/Sounds/Village/Done")]

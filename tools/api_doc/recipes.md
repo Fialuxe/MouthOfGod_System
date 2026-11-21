@@ -204,7 +204,7 @@ types: TutorialScript, TutorialRunner, MikoLineBook, Phases
 
 1. `Assets/Scripts/Tutorial/` に、`TutorialScript` を継いだクラスを 1 つ書きます。`Phase` には、やることを表す名前を返します（例: `new PhaseId("harvest")`）。番号は使いません。
 2. 場面の名前を、`docs/progress-keys.md` の表に足します。
-3. Prefab を `Assets/Resources/Prefabs/Tutorial/` に作ります。同じ Prefab に `MikoLineBook` を付け、このチュートリアルのセリフを書きます。セリフの id は、シーン全体で重ならないようにします。
+3. Prefab を `Assets/Prefabs/Tutorial/` に作ります。同じ Prefab に `MikoLineBook` を付け、このチュートリアルのセリフを書きます。セリフの id は、シーン全体で重ならないようにします。
 4. 共有シーンで、その Prefab を `TutorialRunner` の子に置きます。並び順が、動く順番です。シーンは Scene Fusion の中で直します。
 5. 最後のチュートリアルの場面名を変えたときは、`GameRunner` の After Phase と、`TutorialRunner` の Skip Phase も合わせます。
 
@@ -230,7 +230,7 @@ void OnCue(CueRequested request)
 ## add-food | 新しい食べ物を足す
 types: FoodTable, FoodTables, FoodRow, FoodSpawner, FieldStep
 
-1. 食べ物の Prefab を `Assets/Resources/Prefabs/Food/` に置きます。ファイル名が食べ物の ID になります（例: `cat_food.prefab` → `cat_food`）。飛ばすには `Rigidbody` が要ります。
+1. 食べ物の Prefab を `Assets/Resources/Food/` に置きます。ファイル名が食べ物の ID になります（例: `cat_food.prefab` → `cat_food`）。飛ばすには `Rigidbody` が要ります。
 2. 大きさは、メニュー `MouthOfGod/Food/Fit Prefab Sizes` でそろえられます。吹き出しのアイコンは `MouthOfGod/Food/Generate Icons` で作ります。
 3. どの食感で生まれるかを、自分のフィールドの `FoodTable` に 1 行足します。全フィールドで生まれる物だけは、共通の表（`FoodSpawner` の Prefab に付いた表）に足します。
 4. フィールドに欲しがらせるなら、その段の `FieldStep` の Food に、同じ ID を書きます。

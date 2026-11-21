@@ -92,7 +92,7 @@
 ## 使い方
 
 1. メニュー **MouthOfGod > Village > Generate Prefabs** で、置き物と村人の Prefab を作ります。詳しくは docs/village.md の「Prefab を作る」です。
-2. **MouthOfGod > Village > Bake Draft Village Prefab** で、下書きの配置から `Assets/Resources/Prefabs/Village/Village.prefab` を作ります。
+2. **MouthOfGod > Village > Bake Draft Village Prefab** で、下書きの配置から `Assets/Prefabs/Village/Village.prefab` を作ります。
 3. サンドボックスのシーンで、`Village`（地面）の子に `Village.prefab` を置きます。
 4. Play して、`Village.prefab` の `FieldStages` を右クリックし、メニューで確かめます。Open Next Want → Deliver Wanted Food の順か、Complete Next Step を使います。Restart で、はじめに戻ります。
 5. 配置を直すときは、**`Village.prefab` を開いて手で動かします**。ステップで出したい物は、そのステップ（`Steps` の下）の子に入れます。消したい物は、そのステップの `Hide When Done` に入れます。

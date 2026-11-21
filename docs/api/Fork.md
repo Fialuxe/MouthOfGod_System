@@ -18,7 +18,7 @@
 | コンポーネント | [`CloudCues`](#t-cloudcues) | 雲の合図（Cues）を受けて、雲に見せる。 |
 | コンポーネント | [`CloudRing`](#t-cloudring) | 体験者の前に、雲（Cloud）を半円状に浮かべる。 |
 | コンポーネント | [`ForkTip`](#t-forktip) | 体験者が持つフォークの先。 |
-| エディタ | [`CloudPrefabGenerator`](#t-cloudprefabgenerator) | 雲の Prefab を、白い球を重ねて Assets/Resources/Prefabs/Fork/Cloud.prefab に作る。 |
+| エディタ | [`CloudPrefabGenerator`](#t-cloudprefabgenerator) | 雲の Prefab を、白い球を重ねて Assets/Resources/Fork/Cloud.prefab に作る。 |
 
 ---
 
@@ -131,7 +131,7 @@ flowchart LR
 **コンポーネント**（GameObject に付ける）・ `sealed class` ・ 名前空間 `MouthOfGod.Fork` ・ [`Fork/CloudRing.cs`](../../Assets/Scripts/Fork/CloudRing.cs)
 <br>継承・実装: `MonoBehaviour`
 
-体験者の前に、雲（[`Cloud`](#t-cloud)）を半円状に浮かべる。体験者が歩くと、ついて来る。シーンのどこか 1 か所に置く。雲の Prefab は Resources/Prefabs/Fork/[`Cloud`](#t-cloud)（メニュー「MouthOfGod/Fork/Generate [`Cloud`](#t-cloud) Prefab」で作る）。
+体験者の前に、雲（[`Cloud`](#t-cloud)）を半円状に浮かべる。体験者が歩くと、ついて来る。シーンのどこか 1 か所に置く。雲の Prefab は Prefabs/Fork/[`Cloud`](#t-cloud)（メニュー「MouthOfGod/Fork/Generate [`Cloud`](#t-cloud) Prefab」で作る）。
 
 ### しくみ・注意
 
@@ -155,7 +155,7 @@ flowchart LR
 
 | 項目 | 型 | 既定値 | 説明 |
 |---|---|---|---|
-| Cloud Prefab | `Cloud` | なし | 雲の Prefab。空なら Resources/Prefabs/Fork/Cloud を使う |
+| Cloud Prefab | `Cloud` | なし | 雲の Prefab。空なら Prefabs/Fork/Cloud を使う |
 | Count | `int` | `5` | 浮かべる雲の数。仮の値 |
 | Radius | `float` | 0.45 | 頭から雲までの水平の距離（m）。腕を伸ばして届く所。仮の値 |
 | Height | `float` | -0.3 | 頭から見た雲の高さ（m）。マイナスで頭より下。仮の値 |
@@ -240,6 +240,6 @@ flowchart LR
 
 `Fork/Editor/CloudPrefabGenerator.cs`（エディタ）
 
-雲の Prefab を、白い球を重ねて Assets/Resources/Prefabs/Fork/Cloud.prefab に作る。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない。素材の雲が無いので仮の見た目にしている。素材ができたら、この Prefab の見た目だけを差し替える（Cloud と当たり判定は残す）。
+雲の Prefab を、白い球を重ねて Assets/Resources/Fork/Cloud.prefab に作る。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない。素材の雲が無いので仮の見た目にしている。素材ができたら、この Prefab の見た目だけを差し替える（Cloud と当たり判定は残す）。
 
 - メニュー: `MouthOfGod/Fork/Generate Cloud Prefab`

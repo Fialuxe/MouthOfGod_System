@@ -54,7 +54,7 @@
 | [`CameraShot`](CameraWork.md#t-camerashot) | CameraWork | データ | カメラの 1 カット。 |
 | [`Cloud`](Fork.md#t-cloud) | Fork | コンポーネント | フォークで刺せる雲。 |
 | [`CloudCues`](Fork.md#t-cloudcues) | Fork | コンポーネント | 雲の合図（Cues）を受けて、雲に見せる。 |
-| [`CloudPrefabGenerator`](Fork.md#t-cloudprefabgenerator) | Fork | エディタ | 雲の Prefab を、白い球を重ねて Assets/Resources/Prefabs/Fork/Cloud.prefab に作る。 |
+| [`CloudPrefabGenerator`](Fork.md#t-cloudprefabgenerator) | Fork | エディタ | 雲の Prefab を、白い球を重ねて Assets/Resources/Fork/Cloud.prefab に作る。 |
 | [`CloudRing`](Fork.md#t-cloudring) | Fork | コンポーネント | 体験者の前に、雲（Cloud）を半円状に浮かべる。 |
 | [`ConfirmWait`](Tutorial.md#t-confirmwait) | Tutorial | 待ち（yield return） | デバイスで決定する（Confirmed）のを待つ。 |
 | [`CueId`](Core.md#t-cueid) | Core | データ | Tutorial から Village や UI への指示の ID。 |
@@ -77,7 +77,7 @@
 | [`FoodIconGenerator`](Food.md#t-foodicongenerator) | Food | エディタ | 食べ物の Prefab を、遠近のあるカメラで斜め前から写し、背景が透明な PNG にする。 |
 | [`FoodId`](Core.md#t-foodid) | Core | データ | 食べ物の ID。 |
 | [`FoodPrefabFitter`](Food.md#t-foodprefabfitter) | Food | エディタ | 手で作った食べ物の Prefab（FoodPrefabGenerator を通っていないもの）の大きさを、その場で合わせる。 |
-| [`FoodPrefabGenerator`](Food.md#t-foodprefabgenerator) | Food | エディタ | 食べ物の Prefab を、素材（FBX）から Assets/Resources/Prefabs/Food/ に作る。 |
+| [`FoodPrefabGenerator`](Food.md#t-foodprefabgenerator) | Food | エディタ | 食べ物の Prefab を、素材（FBX）から Assets/Resources/Food/ に作る。 |
 | [`FoodRow`](Food.md#t-foodrow) | Food | データ | FoodTable の 1 行。 |
 | [`FoodShadow`](UI.md#t-foodshadow) | UI | コンポーネント | 口に含んでいる間、「いまの食感なら生まれる物」の影（シルエット）を、霞の中に見せる（シナリオブック S4・S5）。 |
 | [`FoodSpawner`](Food.md#t-foodspawner) | Food | コンポーネント | デバイスで決定した食感から、食べ物を引いて生み、前へ飛ばす。 |
@@ -110,11 +110,11 @@
 | [`MikoMode`](Miko.md#t-mikomode) | Miko | 選択肢（enum） | 巫女の居場所の決め方。 |
 | [`MikoMover`](Miko.md#t-mikomover) | Miko | コンポーネント | 巫女を動かす。 |
 | [`MikoPointer`](Miko.md#t-mikopointer) | Miko | コンポーネント | 指さしの腕を、指さし先の方へ向ける。 |
-| [`MikoPrefabGenerator`](Miko.md#t-mikoprefabgenerator) | Miko | エディタ | 巫女の Prefab と、身振りのアニメーション（浮いて待つ・指さす）を、Assets/Resources/Prefabs/Miko/ に作る。 |
+| [`MikoPrefabGenerator`](Miko.md#t-mikoprefabgenerator) | Miko | エディタ | 巫女の Prefab と、身振りのアニメーション（浮いて待つ・指さす）を、Assets/Prefabs/Miko/ に作る。 |
 | [`MikoSpeech`](Miko.md#t-mikospeech) | Miko | コンポーネント | 巫女にしゃべらせる。 |
 | [`MockDevice`](Device.md#t-mockdevice) | Device | コンポーネント | デバイスなしで動かす IDevice。 |
 | [`MockDeviceModel`](Device.md#t-mockdevicemodel) | Device | コンポーネント | MockDevice の雑な見た目。 |
-| [`MockDevicePrefabGenerator`](Device.md#t-mockdeviceprefabgenerator) | Device | エディタ | MockDevice の Prefab を Assets/Resources/Prefabs/Device/ に作る。 |
+| [`MockDevicePrefabGenerator`](Device.md#t-mockdeviceprefabgenerator) | Device | エディタ | MockDevice の Prefab を Assets/Prefabs/Device/ に作る。 |
 | [`MockInputMode`](Device.md#t-mockinputmode) | Device | 選択肢（enum） | Mock を何で操作するか。 |
 | [`OpenAllRequestsAfterTutorial`](Tutorial.md#t-openallrequestsaftertutorial) | Tutorial | 試験用 | チュートリアルが終わったら、すべてのフィールドに、欲しい物をいっぺんに出す仮のスクリプト。 |
 | [`OpenAllRequestsMenu`](DevTools.md#t-openallrequestsmenu) | DevTools | エディタ | Play 中に使うメニュー。 |
@@ -153,7 +153,7 @@
 | [`TutorialEvent`](Tutorial.md#t-tutorialevent) | Tutorial | 選択肢（enum） | TutorialHistory が記録すること。 |
 | [`TutorialHistory`](Tutorial.md#t-tutorialhistory) | Tutorial | クラス | チュートリアルが始まってから、体験者がしたことの記録。 |
 | [`TutorialMemory`](Tutorial.md#t-tutorialmemory) | Tutorial | クラス | チュートリアルのあいだで引き継ぐ「覚えたこと」。 |
-| [`TutorialPrefabGenerator`](Tutorial.md#t-tutorialprefabgenerator) | Tutorial | エディタ | プロローグとチュートリアル 1〜4 の Prefab を、Assets/Resources/Prefabs/Tutorial/ に作る。 |
+| [`TutorialPrefabGenerator`](Tutorial.md#t-tutorialprefabgenerator) | Tutorial | エディタ | プロローグとチュートリアル 1〜4 の Prefab を、Assets/Prefabs/Tutorial/ に作る。 |
 | [`TutorialRunner`](Tutorial.md#t-tutorialrunner) | Tutorial | コンポーネント | 子の TutorialScript（人形劇スクリプト）を、Hierarchy の並び順に 1 つずつ動かす。 |
 | [`TutorialScript`](Tutorial.md#t-tutorialscript) | Tutorial | コンポーネント | 人形劇スクリプトの土台。 |
 | [`TutorialTestSceneBuilder`](DevTools.md#t-tutorialtestscenebuilder) | DevTools | エディタ | Quest なしで、プロローグとチュートリアル 1〜4 を通して試すシーンを作る。 |
@@ -161,10 +161,10 @@
 | [`VideoScreen`](Tutorial.md#t-videoscreen) | Tutorial | コンポーネント | VR で動画を見せる画面。 |
 | [`VillageBaker`](Village.md#t-villagebaker) | Village | エディタ | 下書きの配置（VillageLayout）から、村のフィールドの Prefab（Village.prefab）を作る。 |
 | [`VillageField`](Village.md#t-villagefield) | Village | エディタ |  |
-| [`VillageFxGenerator`](Village.md#t-villagefxgenerator) | Village | エディタ | 村の演出（煙・喜びの粒）の Prefab を、Assets/Resources/Prefabs/Village/ に作る。 |
+| [`VillageFxGenerator`](Village.md#t-villagefxgenerator) | Village | エディタ | 村の演出（煙・喜びの粒）の Prefab を、Assets/Prefabs/Village/ に作る。 |
 | [`VillageItem`](Village.md#t-villageitem) | Village | エディタ | フィールドの 1 つの置き物（下書き）。 |
 | [`VillageLayout`](Village.md#t-villagelayout) | Village | エディタ | 村の配置の下書き。 |
-| [`VillagePrefabGenerator`](Village.md#t-villageprefabgenerator) | Village | エディタ | 村の置き物の Prefab を、素材（FBX）から Assets/Resources/Prefabs/Village/ に作る。 |
+| [`VillagePrefabGenerator`](Village.md#t-villageprefabgenerator) | Village | エディタ | 村の置き物の Prefab を、素材（FBX）から Assets/Prefabs/Village/ に作る。 |
 | [`VillagerMood`](Village.md#t-villagermood) | Village | コンポーネント | 村人の気持ち。 |
 | [`VillageStep`](Village.md#t-villagestep) | Village | エディタ | 戻り方の 1 段（下書き）。 |
 | [`VillageTourBuilder`](CameraWork.md#t-villagetourbuilder) | CameraWork | エディタ | 草原から村へ引いていく「村の一連」のカットを、開いているシーンに組む。 |

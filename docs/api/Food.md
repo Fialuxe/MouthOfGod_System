@@ -22,7 +22,7 @@
 | データ | [`FoodRow`](#t-foodrow) | FoodTable の 1 行。 |
 | エディタ | [`FoodIconGenerator`](#t-foodicongenerator) | 食べ物の Prefab を、遠近のあるカメラで斜め前から写し、背景が透明な PNG にする。 |
 | エディタ | [`FoodPrefabFitter`](#t-foodprefabfitter) | 手で作った食べ物の Prefab（FoodPrefabGenerator を通っていないもの）の大きさを、その場で合わせる。 |
-| エディタ | [`FoodPrefabGenerator`](#t-foodprefabgenerator) | 食べ物の Prefab を、素材（FBX）から Assets/Resources/Prefabs/Food/ に作る。 |
+| エディタ | [`FoodPrefabGenerator`](#t-foodprefabgenerator) | 食べ物の Prefab を、素材（FBX）から Assets/Resources/Food/ に作る。 |
 
 ---
 
@@ -276,7 +276,7 @@ flowchart LR
 
 `Food/Editor/FoodIconGenerator.cs`（エディタ）
 
-食べ物の Prefab を、遠近のあるカメラで斜め前から写し、背景が透明な PNG にする。村人の吹き出しのアイコンに使う。Assets/Resources/Prefabs/Food/ のすべての Prefab から、Assets/Resources/Icons/Food/<食べ物の ID>.png を作る。1 回実行して、できた PNG をコミットする（Play 時には使わない）。既にある PNG は上書きしない。手で描いたアイコンを同じ名前で置けば、そちらが使われる。作り直すときは、Project で食べ物の Prefab を選び、右クリックの「MouthOfGod/Food/Generate Icon From Selected」を使う（上書きする）。
+食べ物の Prefab を、遠近のあるカメラで斜め前から写し、背景が透明な PNG にする。村人の吹き出しのアイコンに使う。Assets/Resources/Food/ のすべての Prefab から、Assets/Resources/Icons/Food/<食べ物の ID>.png を作る。1 回実行して、できた PNG をコミットする（Play 時には使わない）。既にある PNG は上書きしない。手で描いたアイコンを同じ名前で置けば、そちらが使われる。作り直すときは、Project で食べ物の Prefab を選び、右クリックの「MouthOfGod/Food/Generate Icon From Selected」を使う（上書きする）。
 
 - メニュー: `MouthOfGod/Food/Generate Icons`
 - メニュー: `Assets/MouthOfGod/Food/Generate Icon From Selected`
@@ -297,7 +297,7 @@ flowchart LR
 
 `Food/Editor/FoodPrefabGenerator.cs`（エディタ）
 
-食べ物の Prefab を、素材（FBX）から Assets/Resources/Prefabs/Food/ に作る。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない。Prefab のファイル名が食べ物の ID（FoodId）になるので、村の欲しい物（FieldStep の Food）と同じ小文字にする。素材の置き場所は docs/quaternius-assets.md。
+食べ物の Prefab を、素材（FBX）から Assets/Resources/Food/ に作る。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない。Prefab のファイル名が食べ物の ID（FoodId）になるので、村の欲しい物（FieldStep の Food）と同じ小文字にする。素材の置き場所は docs/quaternius-assets.md。
 
 - メニュー: `MouthOfGod/Food/Generate Prefabs`
 - メニュー: `MouthOfGod/Food/Regenerate Prefabs (Overwrite)`

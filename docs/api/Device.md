@@ -18,7 +18,7 @@
 | コンポーネント | [`MockDevice`](#t-mockdevice) | デバイスなしで動かす IDevice。 |
 | コンポーネント | [`MockDeviceModel`](#t-mockdevicemodel) | MockDevice の雑な見た目。 |
 | 選択肢（enum） | [`MockInputMode`](#t-mockinputmode) | Mock を何で操作するか。 |
-| エディタ | [`MockDevicePrefabGenerator`](#t-mockdeviceprefabgenerator) | MockDevice の Prefab を Assets/Resources/Prefabs/Device/ に作る。 |
+| エディタ | [`MockDevicePrefabGenerator`](#t-mockdeviceprefabgenerator) | MockDevice の Prefab を Assets/Prefabs/Device/ に作る。 |
 
 ---
 
@@ -165,6 +165,6 @@ flowchart LR
 
 `Device/Editor/MockDevicePrefabGenerator.cs`（エディタ）
 
-MockDevice の Prefab を Assets/Resources/Prefabs/Device/ に作る。1 回実行して、できた Prefab をコミットする。Play すると、MockDevice はこの Prefab から作られる（Inspector で変えた設定が残る）。既にある Prefab は上書きしない。
+MockDevice の Prefab を Assets/Prefabs/Device/ に作る。1 回実行して、できた Prefab をコミットする。Play すると、MockDevice はこの Prefab から作られる（Inspector で変えた設定が残る）。既にある Prefab は上書きしない。
 
 - メニュー: `MouthOfGod/Device/Create MockDevice Prefab`

@@ -76,7 +76,7 @@ flowchart BT
 
 | 自動で置かれるもの | 条件 | 置く所 |
 |---|---|---|
-| `MockDevice`（と `MockDeviceModel`） | シーン読み込みのあと、実機のデバイスが先に `Devices` へ登録していなければ | `MockDevice.GetOrCreate`。Prefab `Resources/Prefabs/Device/MockDevice` があればそれ、なければコードで作る。`DontDestroyOnLoad` |
+| `MockDevice`（と `MockDeviceModel`） | シーン読み込みのあと、実機のデバイスが先に `Devices` へ登録していなければ | `MockDevice.GetOrCreate`。Prefab `Prefabs/Device/MockDevice` があればそれ、なければコードで作る。`DontDestroyOnLoad` |
 | `RequestBubbles` | シーン読み込みのあと | 自分で GameObject を作って付く（村人の頭の上の吹き出し） |
 | `AprilTagDetectionService` | `AprilTagPlace` が必要なとき | `AprilTagDetectionService.GetOrCreate` |
 | `AprilTagRecalibrateInput` | `AprilTagDetectionService` が起動したとき | 同じ GameObject に自動で付く |
@@ -240,24 +240,24 @@ Prefab として置かれている物と、その中のコンポーネントで�
 
 | Prefab の置き場 | 中身 |
 |---|---|
-| `Resources/Prefabs/Miko/Miko` | `Body` に `MikoFloat`・`MikoMover`・`MikoPointer`・`MikoCueReceiver`・`MikoFace`・`MikoSpeech`。子の `LineBook` に `MikoLineBook` |
-| `Resources/Prefabs/Misc/FoodSpawner` | `FoodSpawner`、`FoodTable`（共通の表） |
-| `Resources/Prefabs/Misc/FoodShadow` | `FoodShadow` |
-| `Resources/Prefabs/Misc/TutorialRunner` | `TutorialRunner`。Main では、子に `Prologue`・`T1Fork`・`T2Spawn`・`T3Recognize`・`T4Deliver` の Prefab が並ぶ（この順がチュートリアルの順） |
-| `Resources/Prefabs/Tutorial/<名前>` | `PrologueVideo`（子に `VideoScreen`）、`T1Fork`、`T2Spawn`、`T3Recognize`、`T4Deliver`。どれにも `MikoLineBook` が付く |
+| `Prefabs/Miko/Miko` | `Body` に `MikoFloat`・`MikoMover`・`MikoPointer`・`MikoCueReceiver`・`MikoFace`・`MikoSpeech`。子の `LineBook` に `MikoLineBook` |
+| `Prefabs/Misc/FoodSpawner` | `FoodSpawner`、`FoodTable`（共通の表） |
+| `Prefabs/Misc/FoodShadow` | `FoodShadow` |
+| `Prefabs/Misc/TutorialRunner` | `TutorialRunner`。Main では、子に `Prologue`・`T1Fork`・`T2Spawn`・`T3Recognize`・`T4Deliver` の Prefab が並ぶ（この順がチュートリアルの順） |
+| `Prefabs/Tutorial/<名前>` | `PrologueVideo`（子に `VideoScreen`）、`T1Fork`、`T2Spawn`、`T3Recognize`、`T4Deliver`。どれにも `MikoLineBook` が付く |
 | `[BuildingBlock] Camera Rig with MouthAnchor` | Meta XR のカメラ装置 |
 
-フィールドの Prefab です。Main では、`Resources/Prefabs/Misc/` の Variant（`Village`、`Grass Variant`、`MountVer2 Variant`）と、`Resources/Prefabs/Sea/Sea_work` を使います。Variant は、元の Prefab に、Main 用の部品（`StandArea`、`DeliveryZone` など）を足した物です。
+フィールドの Prefab です。Main では、`Prefabs/Misc/` の Variant（`Village`、`Grass Variant`、`MountVer2 Variant`）と、`Prefabs/Sea/Sea_work` を使います。Variant は、元の Prefab に、Main 用の部品（`StandArea`、`DeliveryZone` など）を足した物です。
 
 | フィールド | 元の Prefab | ルートのコンポーネント | ステップ（`FieldStep`、順に欲しい物） |
 |---|---|---|---|
-| 村 `village` | `Resources/Prefabs/Village/Village` | `FieldStages`、`SurfaceAnchor`、`DeliveryFx`、`DeliveryZone`、`FoodTable` | pumpkin、carrot、turnip、tomato |
-| 海 `sea` | `Resources/Prefabs/Sea/Sea_work` | `SurfaceAnchor`、`FieldStages`、`FoodTable`、`DeliveryZone`、`DeliveryFx`、`CueReaction` | fish、shell、shrimp |
-| 草原 `grassland` | `Resources/Prefabs/Grass/Grass` | `FieldStages`、`FoodTable` | chicken、pig、sheep、cow |
-| 山 `mountain` | `Resources/Prefabs/Mount/MountVer2` | `FoodTable`、`FieldStages`、`DeliveryZone`、`DeliveryFx` | mushroom、apple、chestnut |
+| 村 `village` | `Prefabs/Village/Village` | `FieldStages`、`SurfaceAnchor`、`DeliveryFx`、`DeliveryZone`、`FoodTable` | pumpkin、carrot、turnip、tomato |
+| 海 `sea` | `Prefabs/Sea/Sea_work` | `SurfaceAnchor`、`FieldStages`、`FoodTable`、`DeliveryZone`、`DeliveryFx`、`CueReaction` | fish、shell、shrimp |
+| 草原 `grassland` | `Prefabs/Grass/Grass` | `FieldStages`、`FoodTable` | chicken、pig、sheep、cow |
+| 山 `mountain` | `Prefabs/Mount/MountVer2` | `FoodTable`、`FieldStages`、`DeliveryZone`、`DeliveryFx` | mushroom、apple、chestnut |
 
 - 村人は、各フィールドの子に `VillagerMood` として置かれます。`FieldStep` の Helped に入れた村人が、そのステップが済むまで悩みます。
-- 食べ物の Prefab は、`Resources/Prefabs/Food/` にあります（apple、carrot、chestnut、chicken、cow、fish、mushroom、pig、pumpkin、sheep、shell、shrimp、tomato、turnip）。ファイル名が食べ物の ID です。
+- 食べ物の Prefab は、`Resources/Food/` にあります（apple、carrot、chestnut、chicken、cow、fish、mushroom、pig、pumpkin、sheep、shell、shrimp、tomato、turnip）。ファイル名が食べ物の ID です。
 
 ### 3.3 Main の本編の設定
 
@@ -396,13 +396,13 @@ Quest なしで試すための道具です。展示では使いません。
 
 | パス | 読む所 | 中身 |
 |---|---|---|
-| `Resources/Prefabs/Device/MockDevice` | `MockDevice.GetOrCreate` | MockDevice の Prefab |
-| `Resources/Prefabs/Fork/Cloud` | `CloudRing` | 雲の Prefab |
-| `Resources/Prefabs/Food/<食べ物の ID>` | `FoodTable`（Prefab の参照）、`FoodTables.IdOf` | 食べ物の Prefab。ファイル名が食べ物の ID |
+| `Prefabs/Device/MockDevice` | `MockDevice.GetOrCreate` | MockDevice の Prefab |
+| `Prefabs/Fork/Cloud` | `CloudRing` | 雲の Prefab |
+| `Resources/Food/<食べ物の ID>` | `FoodTable`（Prefab の参照）、`FoodTables.IdOf` | 食べ物の Prefab。ファイル名が食べ物の ID |
 | `Resources/Icons/Food/<食べ物の ID>` | `RequestBubbleText.IconPath` | 吹き出しのアイコン |
-| `Resources/Prefabs/Village/Fx_Joy`・`Fx_Smoke` | `DeliveryFx`、`DeliveryZone`、`PopInEffect` | 喜びの粒・煙 |
+| `Resources/Fx/Fx_Joy`・`Fx_Smoke` | `DeliveryFx`、`DeliveryZone`、`PopInEffect` | 喜びの粒・煙 |
 | `Resources/Sounds/Village/Done`・`Missed` | `DeliveryFx` | 欲しい物が届いた音・違う物が届いた音 |
-| `Resources/Prefabs/Miko/Miko` | シーンの Miko | 巫女の Prefab |
-| `Resources/Prefabs/Tutorial/<名前>` | `TutorialRunner` の子 | プロローグと T1〜T4 の Prefab |
+| `Prefabs/Miko/Miko` | シーンの Miko | 巫女の Prefab |
+| `Prefabs/Tutorial/<名前>` | `TutorialRunner` の子 | プロローグと T1〜T4 の Prefab |
 | `Resources/AprilTagSettings` | `AprilTagSettings.Load` | AprilTag の設定（無ければコードの既定値） |
 | `Resources/RequestBubbleSettings` | `RequestBubbleSettings.Load` | 吹き出しの設定（無ければコードの既定値） |

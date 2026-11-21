@@ -48,9 +48,9 @@ yield return WaitForMouth();
 1. フォークの先の位置に、空のオブジェクトを作ります。名前は `ForkTip` にし、`ForkTip` を付けます。
 2. このオブジェクトは、フォークの模型やその当たり判定とは別にします。`ForkTip` が同じオブジェクトの `SphereCollider` を書き換えるためです。自分用の小さなトリガーにします。フォークの位置を推定する部品は、このオブジェクトか、その親を動かします。
 3. `ForkTip` の `Mouth` に、Main Camera の子の `MouthAnchor` を入れます。
-   `Assets/Resources/Prefabs/Fork/ForkTip.prefab` は、`ForkTip` と `HandHeldPose`（手の位置にオフセットを足して先を動かす）を付けた Prefab です。`Mouth` は空なので、置いたあとに入れます。空のままなら、Main Camera から `Mouth Offset` だけずらした所を口とします。
+   `Assets/Prefabs/Fork/ForkTip.prefab` は、`ForkTip` と `HandHeldPose`（手の位置にオフセットを足して先を動かす）を付けた Prefab です。`Mouth` は空なので、置いたあとに入れます。空のままなら、Main Camera から `Mouth Offset` だけずらした所を口とします。
 4. 刺した雲のかけらの見た目があれば、`ForkTip` の子に置きます。`Loaded Piece` に入れると、刺している間だけ表示されます。
-5. メニュー **MouthOfGod > Fork > Generate Cloud Prefab** で、雲の Prefab を作ります。白い球を重ねた、仮の見た目です。`Assets/Resources/Prefabs/Fork/Cloud.prefab` にできます。
+5. メニュー **MouthOfGod > Fork > Generate Cloud Prefab** で、雲の Prefab を作ります。白い球を重ねた、仮の見た目です。`Assets/Resources/Fork/Cloud.prefab` にできます。
 6. シーンに空のオブジェクトを作り、`CloudRing` を付けます。Play すると、体験者の前に雲が 5 つ浮かびます。
 
 ### 雲の置き方（仮）

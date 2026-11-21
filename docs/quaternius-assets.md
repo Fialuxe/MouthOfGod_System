@@ -59,7 +59,7 @@
 
 - 構成: `FBX/`（176）、`OBJ/`（176 ×（obj + mtl））、`glTF/`（176 + `.bin` + テクスチャ 22 枚）、`Textures/`、`License_Standard.txt`、`Preview.jpg`
 - 無料版（Standard）。有料版にだけあるパーツは入っていない。
-- **完成した家ではなく、家を組み立てるパーツ**。壁・屋根・床などを並べて 1 軒を作る。組み立て例は `Assets/Resources/Prefabs/Village/House_Sample.prefab`。
+- **完成した家ではなく、家を組み立てるパーツ**。壁・屋根・床などを並べて 1 軒を作る。組み立て例は `Assets/Prefabs/Village/House_Sample.prefab`。
 - 名前は `<部位>_<素材・形>_<バリエーション>`。部位ごとのパーツ数:
 
 | 部位（名前の頭） | 数 | 中身 |
