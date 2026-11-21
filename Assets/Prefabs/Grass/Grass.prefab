@@ -7116,6 +7116,7 @@ GameObject:
   - component: {fileID: 7497828650378240209}
   - component: {fileID: 9073087520004813787}
   - component: {fileID: 3528975872303092285}
+  - component: {fileID: 1344142186109641944}
   m_Layer: 0
   m_Name: Grass
   m_TagString: Untagged
@@ -7255,6 +7256,27 @@ MonoBehaviour:
   glow: {fileID: 0}
   requestOrder: 0
   maxOpenRequests: 1
+--- !u!114 &1344142186109641944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4211588451141696924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5baa993ea4ef8a1409074b674912a675, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  reactions: {fileID: 11400000, guid: 731062e665ba8f849a78aa4f88fcf094, type: 2}
+  onRequested:
+    m_PersistentCalls:
+      m_Calls: []
+  missedTrigger: Missed
+  onMissed:
+    m_PersistentCalls:
+      m_Calls: []
+  fxParent: {fileID: 0}
 --- !u!1 &4216301496077157380
 GameObject:
   m_ObjectHideFlags: 0
@@ -7911,7 +7933,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: cow
   wantedFood: {fileID: 7978039674701303498, guid: df1511ee40f79bc468d156c8d5de970f, type: 3}
   helped:
   - {fileID: 3509266754568001685}
@@ -11347,7 +11368,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: sheep
   wantedFood: {fileID: 8280665287723641000, guid: d85a49f1699f5784db66c79f05a49039, type: 3}
   helped:
   - {fileID: 5119614221128372352}
@@ -12415,7 +12435,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: pig
   wantedFood: {fileID: 2676174945490884697, guid: 6cf52826ab2b7094881e156a9058f7c6, type: 3}
   helped:
   - {fileID: 8399617801955544350}
@@ -15777,7 +15796,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: 
   wantedFood: {fileID: 0}
   helped:
   - {fileID: 1827881423772347205}

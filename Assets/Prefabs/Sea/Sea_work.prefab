@@ -53,7 +53,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: fish
   wantedFood: {fileID: 5556158422024356725, guid: a53700841e218e940bfdf95f54d47041, type: 3}
   helped:
   - {fileID: 4943595118878087992}
@@ -1314,7 +1313,6 @@ MonoBehaviour:
   consumeOthers: 0
   vanishOthers: 1
   vanishSeconds: 1
-  vanishFx: {fileID: 0}
 --- !u!114 &3919945568090746816
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1327,18 +1325,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5baa993ea4ef8a1409074b674912a675, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  joy: {fileID: 4205001690606194231, guid: 1c69f29e0c297bf4ebdaebcff211bc15, type: 3}
-  doneClip: {fileID: 8300000, guid: b8e0a77d6051b7f428379c3cf6651c24, type: 3}
+  reactions: {fileID: 11400000, guid: 731062e665ba8f849a78aa4f88fcf094, type: 2}
   onRequested:
     m_PersistentCalls:
       m_Calls: []
   missedTrigger: Missed
-  missedClip: {fileID: 0}
   onMissed:
     m_PersistentCalls:
       m_Calls: []
   fxParent: {fileID: 0}
-  volume: 0.6
 --- !u!1 &2498958562546468593
 GameObject:
   m_ObjectHideFlags: 0
@@ -3665,7 +3660,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: shell
   wantedFood: {fileID: 8299282164789584457, guid: e882dc6f7be6fcb4cad6e867deca9b2c, type: 3}
   helped:
   - {fileID: 8316208228109010404}
@@ -4780,7 +4774,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: shrimp
   wantedFood: {fileID: 1922435988134907004, guid: b70453fb0c88dc04783e49e8e59818d3, type: 3}
   helped:
   - {fileID: 9036690517377719851}

@@ -12,8 +12,6 @@ namespace MouthOfGod.Village
     {
         const float Duration = 0.7f;
         const float Overshoot = 1.9f; // 1 を超えた分だけ、一度大きくなりすぎます
-        const string AppearFx = "Fx/Fx_Joy";
-        const float AppearFxScale = 2.5f; // 村人の頭の上の粒より目立たせます
 
         Vector3 _scale;
         float _time;
@@ -25,8 +23,10 @@ namespace MouthOfGod.Village
             _started = true;
             _scale = transform.localScale;
             transform.localScale = Vector3.zero;
-            var fx = Resources.Load<GameObject>(AppearFx);
-            if (fx != null) Instantiate(fx, transform.position, Quaternion.identity, DeliveryFx.FxParentOf(this)).transform.localScale = Vector3.one * AppearFxScale;
+            var fx = DeliveryFx.Of(this);
+            var reactions = fx != null ? fx.Reactions : null;
+            if (reactions != null && reactions.StepItemSparkles != null)
+                Instantiate(reactions.StepItemSparkles, transform.position, Quaternion.identity, fx.FxParent).transform.localScale = Vector3.one * reactions.StepItemSparklesScale;
         }
 
         void Update()

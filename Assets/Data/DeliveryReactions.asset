@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aca7a74c4e785bb40b406e65e33af33f, type: 3}
+  m_Name: DeliveryReactions
+  m_EditorClassIdentifier: 
+  helpedVillagerSparkles: {fileID: 4205001690606194231, guid: 1c69f29e0c297bf4ebdaebcff211bc15, type: 3}
+  requestFulfilledSound: {fileID: 8300000, guid: da9ae167cebe4224eba43567c4571478, type: 3}
+  wrongFoodSmoke: {fileID: 6233896487566191122, guid: 6b970a0df6c0ec944badb25a95c1f71c, type: 3}
+  wrongFoodSound: {fileID: 8300000, guid: 15871b4f444d00c4e89ab318254a6bf1, type: 3}
+  stepItemSparkles: {fileID: 772552648908948963, guid: 1c69f29e0c297bf4ebdaebcff211bc15, type: 3}
+  stepItemSparklesScale: 2.5
+  volume: 0.6

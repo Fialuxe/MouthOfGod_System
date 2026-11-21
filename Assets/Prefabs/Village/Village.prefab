@@ -87,7 +87,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: turnip
   wantedFood: {fileID: 3048745929501445134, guid: f9b986c57110e1e4b912f3cdbb909ddf, type: 3}
   helped:
   - {fileID: 8909335631021346485}
@@ -153,7 +152,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: tomato
   wantedFood: {fileID: 6847438048219240567, guid: 19d847f83f13adb4bba31c86bd4d30fa, type: 3}
   helped:
   - {fileID: 281865933984981354}
@@ -219,7 +217,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: pumpkin
   wantedFood: {fileID: 5964104816730550264, guid: 222afe5a41860824bbb5c2c46ca87da8, type: 3}
   helped:
   - {fileID: 394063946555639885}
@@ -285,7 +282,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68c3756681ff4bc0ad182cea73c2133f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  food: carrot
   wantedFood: {fileID: 5419384467535430876, guid: b794701f554c57b4ab2e6b2fe24340ae, type: 3}
   helped:
   - {fileID: 7858232307509827247}
@@ -420,18 +416,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5baa993ea4ef8a1409074b674912a675, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  joy: {fileID: 4205001690606194231, guid: 1c69f29e0c297bf4ebdaebcff211bc15, type: 3}
-  doneClip: {fileID: 8300000, guid: b8e0a77d6051b7f428379c3cf6651c24, type: 3}
+  reactions: {fileID: 11400000, guid: 731062e665ba8f849a78aa4f88fcf094, type: 2}
   onRequested:
     m_PersistentCalls:
       m_Calls: []
   missedTrigger: Missed
-  missedClip: {fileID: 0}
   onMissed:
     m_PersistentCalls:
       m_Calls: []
   fxParent: {fileID: 0}
-  volume: 0.6
 --- !u!65 &4688528537227369660
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -471,7 +464,6 @@ MonoBehaviour:
   consumeOthers: 0
   vanishOthers: 1
   vanishSeconds: 1
-  vanishFx: {fileID: 0}
 --- !u!1001 &8565985572401945
 PrefabInstance:
   m_ObjectHideFlags: 0
