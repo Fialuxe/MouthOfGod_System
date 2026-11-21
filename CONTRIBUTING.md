@@ -69,7 +69,7 @@ Unity Hub の `Add project from disk` で開きます。初回は `Library/` を
 - スクリプトは `Assets/Scripts/<機能>/` に置きます。名前空間は `MouthOfGod.<機能>` です。
 - Prefab は `Assets/Prefabs/<機能>/`、ScriptableObject のデータは `Assets/Data/`、音は `Assets/Audio/`、画像は `Assets/Art/` に置きます。使う物は、Inspector でつなぎます。シーンにはつなぎを持たせず、Prefab の中でつなぎます。コードから `Resources.Load` で名前を指定して読むことはしません。`Assets/Resources/` に置くのは、Meta の SDK が決まった場所から読む設定だけです。
 - 体験の流れ（プロローグ → チュートリアル 1〜4 → 本編 → エンディング）は、`Flow` の場面のスクリプトに書きます。`Flow` は、各機能の部品を直接呼んでかまいません。各機能どうしは直接参照せず、`Core` の interface かイベントでつなぎます。機能が別の機能を参照すると、PR に警告が出ます（`.github/scripts/check_coupling.py`）。
-- 各機能の部品は、自分のことを自分で行います（巫女は浮いて体験者を向く、雲は並んで補充される、食べ物は自分が生まれる条件を持つ）。場面のスクリプトは、何をしてほしいかだけを呼びます。
+- 各機能の部品は、自分の振る舞いを自分で持ちます。たとえば、巫女は浮いて体験者を向きます。雲は並んで補充されます。食べ物は、自分が生まれる条件を持ちます。場面のスクリプトは、何をしてほしいかだけを呼びます。
 - 既定は `private` です。Inspector に出したいだけなら `[SerializeField] private` にします。しきい値などの値は、コードに埋め込まず Inspector で渡します。
 - 展示の会場では、キーボードも Inspector も使いません。調整ややり直しは、Quest のコントローラの操作でできるようにします。
 
