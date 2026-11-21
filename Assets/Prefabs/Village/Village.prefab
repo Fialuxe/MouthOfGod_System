@@ -88,6 +88,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: turnip
+  wantedFood: {fileID: 3048745929501445134, guid: f9b986c57110e1e4b912f3cdbb909ddf, type: 3}
   helped:
   - {fileID: 8909335631021346485}
   hideWhenDone:
@@ -153,6 +154,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: tomato
+  wantedFood: {fileID: 6847438048219240567, guid: 19d847f83f13adb4bba31c86bd4d30fa, type: 3}
   helped:
   - {fileID: 281865933984981354}
   hideWhenDone:
@@ -218,6 +220,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: pumpkin
+  wantedFood: {fileID: 5964104816730550264, guid: 222afe5a41860824bbb5c2c46ca87da8, type: 3}
   helped:
   - {fileID: 394063946555639885}
   hideWhenDone:
@@ -283,6 +286,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: carrot
+  wantedFood: {fileID: 5419384467535430876, guid: b794701f554c57b4ab2e6b2fe24340ae, type: 3}
   helped:
   - {fileID: 7858232307509827247}
   hideWhenDone:
@@ -462,6 +466,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fieldId: 
+  judgeDelaySeconds: 1
   consumeRequested: 1
   consumeOthers: 0
   vanishOthers: 1

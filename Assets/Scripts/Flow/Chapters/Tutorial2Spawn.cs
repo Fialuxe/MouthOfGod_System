@@ -8,8 +8,11 @@ namespace MouthOfGod.Flow
         [Tooltip("村人が供えたお供え物。この場面の間だけ出します")]
         [SerializeField] GameObject offering;
 
-        [Tooltip("生んでほしい食べ物")]
-        [SerializeField] string targetFood = "apple";
+        [Tooltip("生んでほしい食べ物（食べ物の Prefab）")]
+        [SerializeField] GameObject wantedFood;
+
+        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感")]
+        [SerializeField] string wantedTexture = "placeholder-b";
 
         [Header("声（空なら字幕だけ）")]
         [SerializeField] AudioClip rememberVoice;
@@ -24,6 +27,7 @@ namespace MouthOfGod.Flow
         {
             // 1. お供え物を出し、刺して口に入れてもらいます。チュートリアル 1 を自分で終えていれば、説明を短くします。
             if (offering != null) offering.SetActive(true);
+            Foods.Override(wantedTexture, wantedFood);
             Clouds.Glow();
             if (Memory.Contains("fork-learned"))
                 Miko.SayNow("Remember the apple the villagers offered? Try it again.", rememberShortVoice);
@@ -38,9 +42,9 @@ namespace MouthOfGod.Flow
             bool born = false;
             while (!GaveUp)
             {
-                string food = await Player.Spawned(20f);
+                GameObject food = await Player.Spawned(20f);
                 if (food == null) Miko.SayNow("As the feel changes, so does the blessing. Wait for the apple.", waitAppleVoice);
-                else if (food == targetFood) { born = true; break; }
+                else if (food == wantedFood) { born = true; break; }
                 else Miko.SayNow("That too is a blessing — but now, the apple.", wrongVoice);
             }
 
@@ -57,6 +61,7 @@ namespace MouthOfGod.Flow
         protected override void CleanUp()
         {
             if (offering != null) offering.SetActive(false);
+            Foods.ClearOverrides();
             Clouds.Calm();
         }
     }

@@ -47,3 +47,18 @@ MonoBehaviour:
   spawnPoint: {fileID: 0}
   foodParent: {fileID: 0}
   launchSpeed: 2
+  foods:
+  - {fileID: 1671772132291780417, guid: e8ab356fc01797d46beae35a3378db54, type: 3}
+  - {fileID: 9095440727286148490, guid: b794701f554c57b4ab2e6b2fe24340ae, type: 3}
+  - {fileID: 6706280997755392237, guid: eba683d3769ed254da07d22d22a6c89c, type: 3}
+  - {fileID: 7818350383338182777, guid: 347a37183a9f79c4aa3f83f06b4b208f, type: 3}
+  - {fileID: 4333720628431015148, guid: df1511ee40f79bc468d156c8d5de970f, type: 3}
+  - {fileID: 79366349725907554, guid: a53700841e218e940bfdf95f54d47041, type: 3}
+  - {fileID: 4099860374738114945, guid: a87158f9c174eee419f7a36c3be84821, type: 3}
+  - {fileID: 373360233481182836, guid: 6cf52826ab2b7094881e156a9058f7c6, type: 3}
+  - {fileID: 6513009975708294654, guid: 222afe5a41860824bbb5c2c46ca87da8, type: 3}
+  - {fileID: 6287471319737080055, guid: d85a49f1699f5784db66c79f05a49039, type: 3}
+  - {fileID: 7876877409601534921, guid: e882dc6f7be6fcb4cad6e867deca9b2c, type: 3}
+  - {fileID: 3317272506424988853, guid: b70453fb0c88dc04783e49e8e59818d3, type: 3}
+  - {fileID: 5346834470670105322, guid: 19d847f83f13adb4bba31c86bd4d30fa, type: 3}
+  - {fileID: 2223769266273396066, guid: f9b986c57110e1e4b912f3cdbb909ddf, type: 3}

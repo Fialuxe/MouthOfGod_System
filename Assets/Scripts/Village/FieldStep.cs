@@ -14,8 +14,8 @@ namespace MouthOfGod.Village
     /// </remarks>
     public sealed class FieldStep : MonoBehaviour
     {
-        [Tooltip("欲しい物の FoodId（食べ物のデータの ID）。空なら欲しい物は出さない（開発中の右クリックメニューでだけ済ませられる）")]
-        [SerializeField] string food;
+        [Tooltip("欲しい物（食べ物の Prefab）。空なら欲しい物を出さない")]
+        [SerializeField] GameObject wantedFood;
 
         [Tooltip("このステップで困りごとが解ける人。1 人目の頭の上に吹き出しを出す。全部のステップが済むと元気になる")]
         [SerializeField] VillagerMood[] helped = System.Array.Empty<VillagerMood>();
@@ -29,7 +29,8 @@ namespace MouthOfGod.Village
         [Tooltip("このステップが済んだとき（音・光など）。Inspector からつなぐ")]
         [SerializeField] UnityEvent onDone = new UnityEvent();
 
-        public string Food { get => food; set => food = value; }
+        /// <summary>欲しい物（食べ物の Prefab）です。空なら欲しい物を出しません。</summary>
+        public GameObject Food => wantedFood;
         public IReadOnlyList<VillagerMood> Helped => helped;
         public IReadOnlyList<GameObject> HideWhenDone => hideWhenDone;
 

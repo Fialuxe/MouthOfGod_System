@@ -6,7 +6,11 @@ namespace MouthOfGod.Flow
     public sealed class Tutorial3Recognize : Chapter
     {
         [SerializeField] string field = "sea";
-        [SerializeField] string food = "fish";
+        [Tooltip("届けてほしい食べ物（食べ物の Prefab）")]
+        [SerializeField] GameObject wantedFood;
+
+        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感")]
+        [SerializeField] string wantedTexture = "placeholder-e";
 
         [Header("声（空なら字幕だけ）")]
         [SerializeField] AudioClip troubledVoice;
@@ -18,7 +22,8 @@ namespace MouthOfGod.Flow
         {
             // 1. 海の人に、魚を欲しがらせます。
             Field target = Field.Get(field);
-            target.Want(food);
+            target.Want(wantedFood);
+            Foods.Override(wantedTexture, wantedFood);
             target.Glow(true);
             await Miko.Say("Oh, the people by the sea are troubled. They want fish.", troubledVoice);
 
@@ -27,8 +32,8 @@ namespace MouthOfGod.Flow
             Miko.SayNow("Pierce a new cloud. Which feel was the fish?", whichFeelVoice);
             while (!GaveUp)
             {
-                string got = await Player.Spawned(Remaining);
-                if (got == null || got == food) break;
+                GameObject got = await Player.Spawned(Remaining);
+                if (got == null || got == wantedFood) break;
                 Miko.SayNow("Not that one. Which feel was the fish?", wrongVoice);
             }
 
@@ -37,6 +42,10 @@ namespace MouthOfGod.Flow
             await Miko.Say("That's the fish — but blessings fall where you stand. Fish belong in the sea.", fishHereVoice);
         }
 
-        protected override void CleanUp() => Clouds.Calm();
+        protected override void CleanUp()
+        {
+            Foods.ClearOverrides();
+            Clouds.Calm();
+        }
     }
 }

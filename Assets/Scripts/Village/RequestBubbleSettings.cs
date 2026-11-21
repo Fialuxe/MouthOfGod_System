@@ -1,17 +1,15 @@
 using UnityEngine;
 
-namespace MouthOfGod.UI
+namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 村人の吹き出しの見た目の設定。<c>Assets/Resources/RequestBubbleSettings.asset</c> があれば、それを使う。なければコードの既定値で動く。
+    /// 村人の吹き出し（<see cref="VillagerBubble"/>）の見た目の設定です。アセットは Assets/Data/RequestBubbleSettings.asset の 1 つで、各村人の VillagerBubble がつなぎます。
     /// Project でアセットを選び、Inspector で値を直す。Play 中に直しても、すぐ吹き出しに効き、Play を止めても値は残る。
     /// 変更は、このアセット（ファイル）の差分として残るので、誰が直しても PR で見える。
     /// </summary>
-    [CreateAssetMenu(fileName = ResourceName, menuName = "MouthOfGod/UI/Request Bubble Settings")]
+    [CreateAssetMenu(fileName = "RequestBubbleSettings", menuName = "MouthOfGod/Village/Request Bubble Settings")]
     public sealed class RequestBubbleSettings : ScriptableObject
     {
-        public const string ResourceName = "RequestBubbleSettings";
-
         [Tooltip("吹き出し全体の大きさ（ワールドでの倍率）。1 で、アイコンの一辺が約 1.2 m。ミニチュアに合わせて直す")]
         [SerializeField, Min(0.001f)] float _size = 0.07f;
 
@@ -48,15 +46,5 @@ namespace MouthOfGod.UI
         public Color OpenColor => _openColor;
         public Color ResolvedColor => _resolvedColor;
         public Color UnresolvedColor => _unresolvedColor;
-
-        /// <summary>アセットがあればそれを、なければ既定値のインスタンスを返す。</summary>
-        public static RequestBubbleSettings Load()
-        {
-            var asset = Resources.Load<RequestBubbleSettings>(ResourceName);
-            if (asset != null) return asset;
-            var defaults = CreateInstance<RequestBubbleSettings>();
-            defaults.hideFlags = HideFlags.DontSave; // アセットが無いときの既定値。保存しない
-            return defaults;
-        }
     }
 }

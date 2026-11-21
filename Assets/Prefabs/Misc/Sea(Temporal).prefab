@@ -301,6 +301,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fieldId: 
+  judgeDelaySeconds: 1
   consumeRequested: 1
   consumeOthers: 0
   vanishOthers: 1
@@ -351,6 +352,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: fish
+  wantedFood: {fileID: 5556158422024356725, guid: a53700841e218e940bfdf95f54d47041, type: 3}
   helped: []
   hideWhenDone: []
   popIn: 1

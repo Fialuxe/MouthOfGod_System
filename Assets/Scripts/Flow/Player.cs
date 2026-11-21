@@ -53,13 +53,13 @@ namespace MouthOfGod.Flow
             finally { device.Confirmed -= onConfirmed; }
         }
 
-        /// <summary>食べ物が生まれるまで待ち、生まれた食べ物の名前を返します。時間切れなら null です。</summary>
-        public static async Awaitable<string> Spawned(float timeout = 0f)
+        /// <summary>食べ物が生まれるまで待ち、生まれた食べ物の元の Prefab を返します。時間切れなら null です。</summary>
+        public static async Awaitable<GameObject> Spawned(float timeout = 0f)
         {
             await Wait.Until(() => FoodSpawners.Current != null);
             IFoodSpawner spawner = FoodSpawners.Current;
-            string food = null;
-            Action<SpawnedFood> onSpawned = s => food ??= s.Food.ToString();
+            GameObject food = null;
+            Action<SpawnedFood> onSpawned = s => { if (food == null) food = s.Food; };
             spawner.Spawned += onSpawned;
             try { return await Wait.Until(() => food != null, timeout) ? food : null; }
             finally { spawner.Spawned -= onSpawned; }
@@ -71,8 +71,8 @@ namespace MouthOfGod.Flow
             Delivery? got = null;
             Action<DeliveredFood> onReceived = d =>
             {
-                Debug.Log($"[Flow] 届きました: {d.Field} に {d.Food}（{d.Kind}）");
-                got ??= new Delivery(d.Field.ToString(), d.Food.ToString(), d.WasRequested);
+                Debug.Log($"[Flow] 届きました: {d.Field} に {(d.Food != null ? d.Food.name : "?")}（{d.Kind}）");
+                got ??= new Delivery(d.Field.ToString(), d.Food, d.WasRequested);
             };
             foreach (IFieldRequests field in Fields.All) field.Received += onReceived;
             try { return await Wait.Until(() => got.HasValue, timeout) ? got : null; }
@@ -86,10 +86,10 @@ namespace MouthOfGod.Flow
         }
     }
 
-    /// <summary>届いた食べ物です。Field は届いたフィールド、Food は食べ物、WasWanted は欲しがられていた物かどうかです。</summary>
+    /// <summary>届いた食べ物です。Field は届いたフィールド、Food は食べ物の元の Prefab、WasWanted は欲しがられていた物かどうかです。</summary>
     public readonly struct Delivery
     {
-        public Delivery(string field, string food, bool wasWanted)
+        public Delivery(string field, GameObject food, bool wasWanted)
         {
             Field = field;
             Food = food;
@@ -97,7 +97,7 @@ namespace MouthOfGod.Flow
         }
 
         public string Field { get; }
-        public string Food { get; }
+        public GameObject Food { get; }
         public bool WasWanted { get; }
     }
 }

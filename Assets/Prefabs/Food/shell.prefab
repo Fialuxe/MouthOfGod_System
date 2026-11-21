@@ -99,6 +99,7 @@ MonoBehaviour:
   births:
   - field: sea
     texture: placeholder-a
+  icon: {fileID: 2800000, guid: 2e8099d1e36d54342992dc192c1c28eb, type: 3}
 --- !u!1001 &876920571439542018
 PrefabInstance:
   m_ObjectHideFlags: 0
