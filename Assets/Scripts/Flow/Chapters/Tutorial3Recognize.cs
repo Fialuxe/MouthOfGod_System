@@ -17,6 +17,10 @@ namespace MouthOfGod.Flow
         [SerializeField] AudioClip whichFeelVoice;
         [SerializeField] AudioClip wrongVoice;
         [SerializeField] AudioClip fishHereVoice;
+        [SerializeField] AudioClip alreadyDeliveredVoice;
+
+        /// <summary>この場面で、魚がたまたま海に届いたときに、<see cref="Chapter.Memory"/> に入れる印です。チュートリアル 4 は、これがあると歩く所を飛ばします。</summary>
+        internal const string DeliveredEarly = "fish-delivered-early";
 
         protected override async Awaitable Run()
         {
@@ -37,8 +41,17 @@ namespace MouthOfGod.Flow
                 Miko.SayNow("Not that one. Which feel was the fish?", wrongVoice);
             }
 
-            // 3. 恵みは立っている場所に落ちる、と教えます。魚の欲しい物は出したまま、チュートリアル 4 で海に届けます。
-            await Wait.Seconds(0.5f);
+            // 3. 生まれた魚が落ちるまで待ちます。届いた判定には 1 秒の間があるので、少し長めに待ちます。
+            //    たまたま海に届いたらほめて、チュートリアル 4 の歩く所を飛ばします。
+            Delivery? landed = GaveUp ? null : await Player.Delivered(3f);
+            if (landed is { } d && d.Field == field && d.Food == wantedFood)
+            {
+                Memory.Add(DeliveredEarly);
+                await Miko.Say("Oh! The fish reached the sea already. Splendid!", alreadyDeliveredVoice);
+                return;
+            }
+
+            // 恵みは立っている場所に落ちる、と教えます。魚の欲しい物は出したまま、チュートリアル 4 で海に届けます。
             await Miko.Say("That's the fish — but blessings fall where you stand. Fish belong in the sea.", fishHereVoice);
         }
 
