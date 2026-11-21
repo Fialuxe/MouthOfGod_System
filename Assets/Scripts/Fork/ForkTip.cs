@@ -8,22 +8,16 @@ namespace MouthOfGod.Fork
     /// <summary>
     /// 体験者が持つフォークの先。雲（<see cref="Cloud"/>）に触れたら刺したとし、口に近づいたら口に入ったとする。
     /// フォークの先の位置に置く。位置の取り方は知らない。手（ハンドトラッキング）や AprilTag からフォークの位置を推定する部品が、このオブジェクトか親を動かす。
-    /// 有効になると、自分で <see cref="Forks"/> に登録する。
+    /// 体験者のリグ（<see cref="PlayerRig"/>）の子に置く。デバイスと口は、親のリグから受け取る。
     /// </summary>
     /// <remarks>
     /// - 刺す: 先の小さな当たり判定（トリガー）が、<see cref="Cloud"/> の当たり判定に入ったとき。
-    /// - 口: 先と口の位置の距離で決める。口の位置は <c>Mouth</c>。空なら、Main Camera から <c>Mouth Offset</c> だけずらした所。
+    /// - 口: 先と口の位置の距離で決める。口の位置は、親のリグの口（<see cref="PlayerRig.Mouth"/>）。
     /// - かけらは、デバイスで決定したときになくなる（食べ物が生まれるのと同じとき）。
     /// - Quest がなくても試せるように、キーで「刺す」「口に入れる（押している間）」を代わりにできる。展示では使わない。
     /// </remarks>
     public sealed class ForkTip : MonoBehaviour, IFork
     {
-        [Tooltip("口の位置。FoodSpawner の Spawn Point と同じ MouthAnchor を入れる。空なら、Main Camera から Mouth Offset だけずらした所")]
-        [SerializeField] Transform mouth;
-
-        [Tooltip("Mouth が空のときに使う、Main Camera から見た口の位置（m）。仮の値")]
-        [SerializeField] Vector3 mouthOffset = new Vector3(0f, -0.1f, 0.1f);
-
         [Tooltip("先と口の距離がこれ以下になったら、口に入ったとする（m）。仮の値")]
         [SerializeField, Min(0f)] float mouthEnterRadius = 0.06f;
 
@@ -50,6 +44,7 @@ namespace MouthOfGod.Fork
 
         ForkLogic _logic;
         IDevice _device;
+        Transform _mouth;
 
         public bool IsLoaded => _logic != null && _logic.IsLoaded;
         public bool InMouth => _logic != null && _logic.InMouth;
@@ -72,21 +67,23 @@ namespace MouthOfGod.Fork
 
         void OnEnable()
         {
-            Forks.Register(this);
             pierceAction.Enable();
             AddBindingOnce(mouthAction, MockMouthHandBinding);
             mouthAction.Enable();
-            Devices.WhenReady(Attach);
+
+            PlayerRig rig = PlayerRig.Of(this);
+            _mouth = rig != null ? rig.Mouth : null;
+            _device = rig != null ? rig.Device : null;
+            if (_device != null) _device.Confirmed += OnConfirmed;
+            else Debug.LogError("[Fork] 親のリグ（PlayerRig）にデバイスがないので、決定してもかけらがなくなりません。", this);
         }
 
         void OnDisable()
         {
             pierceAction.Disable();
             mouthAction.Disable();
-            Devices.CancelWhenReady(Attach);
             if (_device != null) _device.Confirmed -= OnConfirmed;
             _device = null;
-            Forks.Unregister(this);
         }
 
         static void AddBindingOnce(InputAction action, string path)
@@ -94,12 +91,6 @@ namespace MouthOfGod.Fork
             foreach (InputBinding binding in action.bindings)
                 if (binding.path == path) return;
             action.AddBinding(path);
-        }
-
-        void Attach(IDevice device)
-        {
-            _device = device;
-            device.Confirmed += OnConfirmed;
         }
 
         void OnConfirmed(TextureId texture) => _logic.Confirm(texture);
@@ -119,14 +110,7 @@ namespace MouthOfGod.Fork
         }
 
         // 先と口の距離。口の位置が分からなければ、無限大（口の外）。
-        float MouthDistance()
-        {
-            Vector3 mouthPosition;
-            if (mouth != null) mouthPosition = mouth.position;
-            else if (Camera.main != null) mouthPosition = Camera.main.transform.TransformPoint(mouthOffset);
-            else return float.PositiveInfinity;
-            return Vector3.Distance(transform.position, mouthPosition);
-        }
+        float MouthDistance() => _mouth != null ? Vector3.Distance(transform.position, _mouth.position) : float.PositiveInfinity;
 
         // 先に、トリガーの小さな球と、動かない Rigidbody を付ける（トリガーの知らせを受けるのに、どちらかに Rigidbody が要る）。
         void PrepareTip()
