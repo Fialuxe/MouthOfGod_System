@@ -8,7 +8,7 @@ namespace MouthOfGod.Device
     /// <summary>
     /// デバイスなしで動かす IDevice。Meta Quest のコントローラ（ゲームパッド・キーボードも可）で「噛む・決定する」を代わりにする。
     /// 噛み始めで Bitten、噛んでいる間は一定間隔で TextureChanged、決定操作で Confirmed。操作の割り当ては Inspector（InputAction）で変えられる。
-    /// スクリプトで作れる（GetOrCreate）。Play すると自動で用意する。
+    /// シーンに置いて使う（Main には Prefab の MockDevice を置いてある）。実機のデバイスとつなぐときは、置き換える。
     /// 操作のしかたは <c>Input Mode</c> で選ぶ。Any は手とコントローラのどちらでも、Hand は両手のハンドトラッキングだけ、
     /// RightController は右コントローラ 1 本だけ（片手で、噛む・決定する・棒を持つ）。キーボードとゲームパッドは、どのモードでも効く。
     /// </summary>
@@ -85,30 +85,6 @@ namespace MouthOfGod.Device
         /// <summary>Prefab の置き場所（Resources から読む）。メニュー「MouthOfGod/Device/Create MockDevice Prefab」で作る。</summary>
         internal const string PrefabResourcePath = "Prefabs/Device/MockDevice";
 
-        /// <summary>
-        /// シーン内の MockDevice を返す。無ければ、Prefab があれば Prefab から、無ければスクリプトで作る（既定の操作割り当て付き）。
-        /// Prefab にしておくと、Inspector で変えた設定（操作の割り当て・間隔・食感 ID）が残る。
-        /// </summary>
-        public static MockDevice GetOrCreate()
-        {
-            var existing = FindFirstObjectByType<MockDevice>();
-            if (existing != null) return existing;
-
-            var prefab = Resources.Load<MockDevice>(PrefabResourcePath);
-            if (prefab != null)
-            {
-                var instance = Instantiate(prefab);
-                instance.name = prefab.name;
-                DontDestroyOnLoad(instance.gameObject); // 自動で作ったものは、シーンが変わっても残す（AutoCreate は最初の 1 回しか走らない）
-                return instance;
-            }
-
-            var device = CreateInactive();
-            device.gameObject.SetActive(true);
-            DontDestroyOnLoad(device.gameObject);
-            return device;
-        }
-
         /// <summary>既定の操作割り当てを付けた MockDevice を、非アクティブで作る。Prefab を作るメニューからも使う。</summary>
         internal static MockDevice CreateInactive()
         {
@@ -121,14 +97,6 @@ namespace MouthOfGod.Device
             return device;
         }
 
-        // Play したときに自動で用意する（Inspector の設定は不要。ビルドでも用意する）。
-        // シーンの Awake・OnEnable の後に呼ばれるので、実機のデバイスが先に Devices に登録していれば作らない。
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void AutoCreate()
-        {
-            if (Devices.Current != null) return;
-            GetOrCreate();
-        }
 
         void Awake()
         {

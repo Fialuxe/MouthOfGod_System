@@ -135,7 +135,7 @@ Fields.Find(currentField)?.Receive(spawned.Food); // 戻るのは頼まれた物
 - 食感・食べ物・フィールドを `enum` にしない。ID は文字列（`TextureId` `FoodId` `FieldId`）。
 - 「チュートリアル 1 ならこう」という分岐を、共通のコードに書かない。進行は `TutorialRunner` が共通で、中身はチュートリアルごとの人形劇スクリプト（`TutorialScript`。コルーチン）。フィールドの見せ方は、合図（`Cues`）を受けて、フィールドの担当が決める。
 - チュートリアルのあいだで引き継ぐものは、`TutorialMemory` の名前だけを見る（T2 のことは見ない）。名前を足すときは [progress-keys.md](../../docs/progress-keys.md) に 1 行足す。
-- 型と、データの置き場所: [CONTRIBUTING「型の名前とデータの置き場所」](../../CONTRIBUTING.md#型の名前とデータの置き場所)。型の一覧とイベントの流れ: [docs/architecture.md](../../docs/architecture.md)。
+- 型と、データの置き場所: [CONTRIBUTING「型の名前とデータの置き場所」](../../CONTRIBUTING.md#4-スクリプト)。型の一覧とイベントの流れ: [docs/architecture.md](../../docs/architecture.md)。
 
 **素材担当**
 - モデル・テクスチャ・音は、`Assets/Resources/` の外（`Assets/ArtisticResources/` など）に置く。タグ（食感・置き場所）を素材に埋め込まない。データ側で持つ。

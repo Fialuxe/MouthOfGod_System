@@ -70,7 +70,8 @@ namespace MouthOfGod.Miko.Editor
             root.AddComponent<MikoFloat>();
             root.AddComponent<MikoMover>();
             root.AddComponent<MikoPointer>();
-            root.AddComponent<MikoCueReceiver>();
+            root.AddComponent<MikoGesture>();
+            root.AddComponent<MikoController>();
             if (eyes.HasValue)
             {
                 foreach (var eye in new[] { eyes.Value.ViewerLeft, eyes.Value.ViewerRight })
@@ -92,21 +93,20 @@ namespace MouthOfGod.Miko.Editor
             Debug.Log($"[Miko] Prefab を作った → {OutputFolder}Miko.prefab（調べた前: {rig.Forward}、右腕の側: {rig.Right}）");
         }
 
-        // Prefab の形: Miko（空）の下に、Body（モデルと動きの部品）と LineBook（セリフ）を置く。
-        // 2 回目からは Body だけ作り直し、LineBook は触らない。シーンの Miko に入れた設定を残すため。
+        // Prefab の形: Miko（空）の下に、Body（モデルと動きの部品）を置く。
+        // 2 回目からは Body だけ作り直し、Miko に入れた設定を残す。
         static void SaveAsPrefab(GameObject body)
         {
             const string BodyName = "Body";
-            const string LineBookName = "LineBook";
             var path = OutputFolder + "Miko.prefab";
 
             GameObject prefabRoot = null;
-            var keepLineBook = false;
+            var keepRoot = false;
             if (File.Exists(path))
             {
                 prefabRoot = PrefabUtility.LoadPrefabContents(path);
-                keepLineBook = prefabRoot.transform.Find(LineBookName) != null;
-                if (!keepLineBook)
+                keepRoot = prefabRoot.transform.Find(BodyName) != null;
+                if (!keepRoot)
                 {
                     // 古い形（部品が一番上にある）。作り直す。
                     PrefabUtility.UnloadPrefabContents(prefabRoot);
@@ -117,8 +117,6 @@ namespace MouthOfGod.Miko.Editor
             if (prefabRoot == null)
             {
                 prefabRoot = new GameObject("Miko");
-                new GameObject(LineBookName).transform.SetParent(prefabRoot.transform, false);
-                prefabRoot.transform.Find(LineBookName).gameObject.AddComponent<MikoLineBook>(); // 見本のセリフが入る
             }
             else
             {
@@ -130,7 +128,7 @@ namespace MouthOfGod.Miko.Editor
             body.transform.SetParent(prefabRoot.transform, false);
             body.transform.SetAsFirstSibling();
             PrefabUtility.SaveAsPrefabAsset(prefabRoot, path);
-            if (keepLineBook) PrefabUtility.UnloadPrefabContents(prefabRoot);
+            if (keepRoot) PrefabUtility.UnloadPrefabContents(prefabRoot);
             else Object.DestroyImmediate(prefabRoot);
         }
 

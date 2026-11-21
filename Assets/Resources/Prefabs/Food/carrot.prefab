@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8867135393627887023}
   - component: {fileID: 8575668396410310688}
   - component: {fileID: 8590502314621533619}
+  - component: {fileID: 9095440727286148490}
   m_Layer: 0
   m_Name: carrot
   m_TagString: Untagged
@@ -82,6 +83,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &9095440727286148490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5419384467535430876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04b09649240e4297bff8955d96205a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  births:
+  - field: village
+    texture: placeholder-a
 --- !u!1001 &4763156538728026231
 PrefabInstance:
   m_ObjectHideFlags: 0

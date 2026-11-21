@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4650406887500222279}
   - component: {fileID: 8246192251750282265}
   - component: {fileID: 2131414530045498314}
+  - component: {fileID: 7876877409601534921}
   m_Layer: 0
   m_Name: shell
   m_TagString: Untagged
@@ -83,6 +84,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &7876877409601534921
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8299282164789584457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04b09649240e4297bff8955d96205a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  births:
+  - field: sea
+    texture: placeholder-a
 --- !u!1001 &876920571439542018
 PrefabInstance:
   m_ObjectHideFlags: 0

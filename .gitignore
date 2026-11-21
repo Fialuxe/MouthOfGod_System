@@ -104,3 +104,5 @@ __pycache__/
 *.pyc
 
 waveletNoiseTile.bin
+# CodeGraph の索引（各自の PC で作る）
+.codegraph/

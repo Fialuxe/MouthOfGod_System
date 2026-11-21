@@ -100,8 +100,12 @@ namespace MouthOfGod.Tracking
 
         void OnEnable()
         {
-            // 検出サービスは、なければ自動で作られる。手で置いたり、つないだりしなくてよい。
-            _source = AprilTagDetectionService.GetOrCreate();
+            _source = AprilTagDetectionService.Find();
+            if (_source == null)
+            {
+                Debug.LogWarning($"[AprilTagPlace] {name}: シーンに AprilTagDetectionService がありません。タグに合わせずに、今の位置のまま使います。", this);
+                return;
+            }
             ActivePlaces.Add(this);
 
             _tracker = new PoseTracker(_smoothingSeconds, _lostTimeoutSeconds);

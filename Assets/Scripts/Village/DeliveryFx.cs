@@ -5,18 +5,15 @@ using UnityEngine.Events;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 物が届いたときの、フィールドの標準の反応。<see cref="FieldStages"/> と同じ物に付ける（無ければ FieldStages が自分で付ける）。
-    /// 何も入れなくても、標準の反応が出る。見た目を変えたいときだけ、Inspector で差し替える。
+    /// 物が届いたときの、フィールドの標準の反応です。<see cref="FieldStages"/> と同じ物に付けます。
     /// </summary>
     /// <remarks>
-    /// - 欲しい物が届いた（ステップが済んだ）: 助かった村人の頭の上に喜びの粒を出し、音を 2D で鳴らす。村人の喜ぶ動きは <see cref="VillagerMood"/> が出す。
-    /// - 違う物が届いた（頼まれていない物・よその物。どちらも同じ反応）: 困っている村人に、Animator のトリガー（<c>Missed Trigger</c>）を送り、がっかりした音を鳴らす。
-    /// - 粒と音を空にしておくと、Resources の標準の物を使う（粒: Prefabs/Village/Fx_Joy、音: Sounds/Village/Done と Missed）。
-    ///   動きを変えるときは、村人の Animator Controller の、このトリガーで入るステートの Motion を差し替える。コードは直さない。
-    ///   トリガーを持たない Animator（動物など）には、何もしない。
-    /// - 届いた物そのものの消え方（違う物は霞のように消える）は、<see cref="DeliveryZone"/> が受け持つ。
-    /// - <c>Fx Parent</c> を入れると、粒・煙・出現の星を、その子として出す。
-    /// - 独自の反応を足すときは、On Requested / On Missed に、つなぐ。
+    /// 欲しい物が届くと、助かった村人の頭の上に粒を出して音を鳴らします。
+    /// 違う物が届くと、困っている村人に Animator のトリガーを送り、がっかりした音を鳴らします。
+    /// 粒と音が空なら、Resources にある標準の物を使います。
+    /// 村人の動きを変えるときは、Animator Controller の、トリガーで入るステートの Motion を差し替えます。コードは直しません。
+    /// トリガーを持たない Animator（動物など）には、何もしません。
+    /// フィールドごとの反応を足すときは、On Requested と On Missed につなぎます。
     /// </remarks>
     public sealed class DeliveryFx : MonoBehaviour
     {
@@ -54,14 +51,14 @@ namespace MouthOfGod.Village
         FieldStages _stages;
         AudioSource _audio;
 
-        /// <summary>効果の置き場（親）。空ならシーンの直下。DeliveryZone・PopInEffect の効果もここに出る。</summary>
+        /// <summary>このフィールドの効果を置く親です。空ならシーンの直下です。</summary>
         public Transform FxParent
         {
             get => fxParent;
             set => fxParent = value;
         }
 
-        /// <summary>この物が属するフィールドの効果の置き場。DeliveryFx が見つからない・空なら null。</summary>
+        /// <summary>from が属するフィールドの、効果を置く親です。見つからなければ null です。</summary>
         internal static Transform FxParentOf(Component from)
         {
             var fx = from != null ? from.GetComponentInParent<DeliveryFx>() : null;
@@ -73,7 +70,7 @@ namespace MouthOfGod.Village
             _stages = GetComponent<FieldStages>();
             if (_audio == null)
             {
-                // 2D の音にする。村が小さく、聞く人の位置で音量が変わると、鳴っても聞こえないことがあるため
+                // 2D の音にします。ミニチュアは小さいので、3D だと聞く位置しだいで聞こえないことがあります。
                 _audio = gameObject.AddComponent<AudioSource>();
                 _audio.playOnAwake = false;
                 _audio.spatialBlend = 0f;
@@ -112,7 +109,7 @@ namespace MouthOfGod.Village
 
         void OnReceived(Delivered delivered)
         {
-            if (delivered.Kind == DeliveryKind.Requested) return; // 喜ぶのは StepDone で
+            if (delivered.Kind == DeliveryKind.Requested) return; // 喜ぶ反応は OnStepDone で出します
             foreach (var mood in GetComponentsInChildren<VillagerMood>())
                 if (mood.IsWorried) mood.React(missedTrigger);
             Play(missedClip);

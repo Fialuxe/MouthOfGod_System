@@ -284,7 +284,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   food: carrot
   helped:
-  - {fileID: 1877444183849442731}
+  - {fileID: 7858232307509827247}
   hideWhenDone:
   - {fileID: 798771754860873921}
   - {fileID: 2205758921953634917}
@@ -309,7 +309,6 @@ GameObject:
   - component: {fileID: 8385268552650817579}
   - component: {fileID: 4688528537227369660}
   - component: {fileID: 9196134249421434380}
-  - component: {fileID: 3294834702182526531}
   m_Layer: 0
   m_Name: Village
   m_TagString: Untagged
@@ -341,7 +340,7 @@ Transform:
   - {fileID: 5947080635287282504}
   - {fileID: 430267342360087728}
   - {fileID: 1476166078892420401}
-  - {fileID: 3564802197904770263}
+  - {fileID: 8836439592275947481}
   - {fileID: 689120591469623302}
   - {fileID: 805778250772008723}
   - {fileID: 845994817704533124}
@@ -352,7 +351,7 @@ Transform:
   - {fileID: 7508894740478870446}
   - {fileID: 1028335243607037137}
   - {fileID: 5198733917603674523}
-  - {fileID: 7859526014096261624}
+  - {fileID: 1878753570954758908}
   - {fileID: 7286669805887247454}
   - {fileID: 170948931180755100}
   - {fileID: 717216070348830545}
@@ -389,6 +388,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fieldId: village
+  glow: {fileID: 0}
   requestOrder: 0
   maxOpenRequests: 2
 --- !u!114 &4166094503415110433
@@ -426,6 +426,7 @@ MonoBehaviour:
   onMissed:
     m_PersistentCalls:
       m_Calls: []
+  fxParent: {fileID: 0}
   volume: 0.6
 --- !u!65 &4688528537227369660
 BoxCollider:
@@ -466,28 +467,6 @@ MonoBehaviour:
   vanishOthers: 1
   vanishSeconds: 1
   vanishFx: {fileID: 0}
---- !u!114 &3294834702182526531
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5275658027437201430}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e20bc7ec88144282b6e1b2b8998f90ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fieldId: village
-  rows:
-  - texture: placeholder-a
-    food: {fileID: 5419384467535430876, guid: b794701f554c57b4ab2e6b2fe24340ae, type: 3}
-  - texture: placeholder-b
-    food: {fileID: 3048745929501445134, guid: f9b986c57110e1e4b912f3cdbb909ddf, type: 3}
-  - texture: placeholder-c
-    food: {fileID: 5964104816730550264, guid: 222afe5a41860824bbb5c2c46ca87da8, type: 3}
-  - texture: placeholder-d
-    food: {fileID: 6847438048219240567, guid: 19d847f83f13adb4bba31c86bd4d30fa, type: 3}
 --- !u!1001 &8565985572401945
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2869,7 +2848,7 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 35247bda31f4d0c488ac056d96c4f3d0, type: 3}
---- !u!4 &3564802197904770263 stripped
+--- !u!4 &8836439592275947481 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5956977629090414274, guid: 35247bda31f4d0c488ac056d96c4f3d0, type: 3}
   m_PrefabInstance: {fileID: 2885181640797049115}
@@ -5665,7 +5644,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 02a827cb871974047a9fce917440b61f, type: 3}
---- !u!114 &1877444183849442731 stripped
+--- !u!4 &1878753570954758908 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8423779787214213479, guid: 02a827cb871974047a9fce917440b61f, type: 3}
+  m_PrefabInstance: {fileID: 7995555643795020699}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7858232307509827247 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 287077919553654068, guid: 02a827cb871974047a9fce917440b61f, type: 3}
   m_PrefabInstance: {fileID: 7995555643795020699}
@@ -5676,11 +5660,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a8f6729b0fb9164e953c800932a433c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!4 &7859526014096261624 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8423779787214213479, guid: 02a827cb871974047a9fce917440b61f, type: 3}
-  m_PrefabInstance: {fileID: 7995555643795020699}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8088287859261742681
 PrefabInstance:
   m_ObjectHideFlags: 0

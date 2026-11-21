@@ -3,23 +3,17 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// ステップの子の物を、このスクリプトで「ぽんっ」と出さないようにする印。付けた物は、出るときに拡大しない。
-    /// 自分のスクリプトで出方を作る物（OnEnable で大きさを動かす物など）に付ける。
+    /// 物が出るとき、小さい所から少し大きくなりすぎてから、元の大きさに収まります。出た場所に星の粒も出します。
     /// </summary>
-    public sealed class SkipPopIn : MonoBehaviour { }
-
-    /// <summary>
-    /// 物が出るとき、小さい所から少し大きくなりすぎて、元の大きさに収まる。<see cref="FieldStep"/> が、出す物に実行時だけ付ける（シーンや Prefab には残らない）。
-    /// 出た場所に、星の粒（Resources の Fx_Joy。無ければ出さない）も 1 回出す。
-    /// 終わると元の大きさに戻し、自分を消す。途中で消された（リセットなど）ときも、元の大きさに戻す。
-    /// </summary>
+    /// <remarks>
+    /// <see cref="FieldStep"/> が、Play 中だけ付けます。終わるか途中で消えると、元の大きさに戻して自分を外します。
+    /// </remarks>
     sealed class PopInEffect : MonoBehaviour
     {
         const float Duration = 0.7f;
-        const float AppearFxScale = 2.5f; // 星の粒の大きさと広がりの倍率。喜びの粒（村人の頭の上）より目立たせる
-        const string AppearFx = "Prefabs/Village/Fx_Joy"; // 出た場所で、星の粒を 1 回出す（小さい物でも、出たと分かるように）
-        // 1.0 を超えるぶんだけ、一度大きくなりすぎてから収まる
-        const float Overshoot = 1.9f;
+        const float Overshoot = 1.9f; // 1 を超えた分だけ、一度大きくなりすぎます
+        const string AppearFx = "Prefabs/Village/Fx_Joy";
+        const float AppearFxScale = 2.5f; // 村人の頭の上の粒より目立たせます
 
         Vector3 _scale;
         float _time;
