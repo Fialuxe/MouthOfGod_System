@@ -102,6 +102,7 @@ GameObject:
   - component: {fileID: 1981093985238048472}
   - component: {fileID: 4627895042628842875}
   - component: {fileID: 6929372623005823340}
+  - component: {fileID: 5774498230310338509}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -159,6 +160,10 @@ MonoBehaviour:
   followHeight: -0.15
   followSpeed: 2.5
   followDeadZone: 0.4
+  followPitch: 0
+  followHeightSpeed: 3
+  followHeightDeadZone: 0.08
+  smoothTime: 0.45
 --- !u!114 &295698918090064968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -314,10 +319,28 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   voiceSource: {fileID: 4627895042628842875}
   font: {fileID: 0}
-  subtitleDistance: 1.2
-  subtitleDrop: 0.3
-  subtitleWidth: 0.9
+  subtitleDistanceMeters: 0.7
+  secondsPerCharacter: 0.06
+  subtitlePaddingSeconds: 1.5
+  minSubtitleSeconds: 2
+  minShowSeconds: 1
+  subtitleBelowGaze: 12
+  pitchRange: {x: -55, y: 10}
+  subtitleWidthMeters: 0.55
   followSpeed: 3
+  alwaysOnTop: 1
+--- !u!114 &5774498230310338509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5524347930307387315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98e696fc935eb054fa884833271f2ffb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6034711220953746451
 GameObject:
   m_ObjectHideFlags: 0
@@ -404,85 +427,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &8020368538854276658
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5823715208203050370}
-  - component: {fileID: 9097219116146958413}
-  m_Layer: 0
-  m_Name: LineBook
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5823715208203050370
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8020368538854276658}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8135580663775183559}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9097219116146958413
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8020368538854276658}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6411f8459331c3542aed6b2d12b00812, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lines:
-  - id: welcome
-    text: 'Long time no see, our god!
-
-      Well, let''s help villagers with me!'
-    voice: {fileID: 8300000, guid: d6e04766b4383b241a5dbae96280df58, type: 3}
-    changeExpression: 0
-    expression: 1
-    point: 0
-    pointTarget: {fileID: 0}
-    moveTo: {fileID: 0}
-    speakAfterMove: 0
-    seconds: 0
-  - id: give
-    text: 'Oh, somewhat he wants something!
-
-      let''s help him'
-    voice: {fileID: 8300000, guid: 88d932c109ae25a47b75a5ac83b08e2b, type: 3}
-    changeExpression: 1
-    expression: 0
-    point: 1
-    pointTarget: {fileID: 0}
-    moveTo: {fileID: 0}
-    speakAfterMove: 0
-    seconds: 0
-  - id: thanks
-    text: Well done! Thank you for helping the villagers.
-    voice: {fileID: 0}
-    changeExpression: 1
-    expression: 3
-    point: 0
-    pointTarget: {fileID: 0}
-    moveTo: {fileID: 0}
-    speakAfterMove: 0
-    seconds: 0
 --- !u!1 &8843148106946082486
 GameObject:
   m_ObjectHideFlags: 0
@@ -513,7 +457,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3782104431987549034}
-  - {fileID: 5823715208203050370}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &6069870616614661500

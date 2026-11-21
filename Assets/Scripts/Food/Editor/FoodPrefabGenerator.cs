@@ -70,7 +70,7 @@ namespace MouthOfGod.Food.Editor
         public static void Generate() => Run(overwrite: false);
 
         // 大きさ（Sources の長さ）を変えたあとに使う。ファイルを消さず、同じ場所に上書きするので、GUID が変わらない。
-        // シーンの FoodTable など、Prefab を参照している所は、つながったまま。Prefab を手で直した所（Mass など）は、元に戻る。
+        // Prefab を参照している所は、つながったまま。Prefab を手で直した所（Mass など）は、元に戻る。
         [MenuItem("MouthOfGod/Food/Regenerate Prefabs (Overwrite)")]
         public static void Regenerate()
         {

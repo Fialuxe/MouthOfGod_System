@@ -92,14 +92,4 @@ namespace MouthOfGod.Core
         }
     }
 
-    /// <summary>Tutorial から Village や UI への指示（「この場所を光らせる」など）。</summary>
-    public readonly struct CueRequested
-    {
-        public readonly CueId Cue;
-
-        public CueRequested(CueId cue)
-        {
-            Cue = cue;
-        }
-    }
 }

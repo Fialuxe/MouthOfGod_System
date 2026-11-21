@@ -78,6 +78,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: aa773925f9e13984593b218ddd11dc2d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7426967811281146923}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: aa773925f9e13984593b218ddd11dc2d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3317272506424988853}
   m_SourcePrefab: {fileID: 100100000, guid: aa773925f9e13984593b218ddd11dc2d, type: 3}
 --- !u!1 &1922435988134907004 stripped
 GameObject:
@@ -132,3 +135,18 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &3317272506424988853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1922435988134907004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04b09649240e4297bff8955d96205a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  births:
+  - field: sea
+    texture: placeholder-b

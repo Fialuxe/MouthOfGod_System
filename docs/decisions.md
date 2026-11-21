@@ -183,7 +183,7 @@
 - 密結合の防ぎ方 → 全機能に asmdef を強制するのは重い。まず、直接参照を PR の警告で知らせる軽い検査を入れた。
 
 **どうなったか**
-- 型は `Food`（`FoodDefinition` `FoodId` `FoodCatalog`）、`FieldId` `FieldDefinition`、`TutorialStep`、`TextureId` の 5 つ。`RequestSet` は 2026-10-15 にやめた（上の記録）。ID は文字列。データは `Assets/Resources/Data/<種類>/`、1 件 = 1 アセット。→ [CONTRIBUTING「型の名前とデータの置き場所」](../CONTRIBUTING.md#型の名前とデータの置き場所)
+- 型は `Food`（`FoodDefinition` `FoodId` `FoodCatalog`）、`FieldId` `FieldDefinition`、`TutorialStep`、`TextureId` の 5 つ。`RequestSet` は 2026-10-15 にやめた（上の記録）。ID は文字列。データは `Assets/Resources/Data/<種類>/`、1 件 = 1 アセット。→ [CONTRIBUTING「型の名前とデータの置き場所」](../CONTRIBUTING.md#4-スクリプト)
 - 実行用の共有シーンは `Assets/Scenes/Main.unity` の 1 つ。個人の確認用は `Assets/Scenes/Sandbox/`。
 - 引き継ぎは `IProgress` の案（**案のまま。実装するときに確定する**）。記録の名前は [progress-keys.md](progress-keys.md) の 1 か所に書く。
 - 機能が他の機能を直接参照すると、PR に警告が出る（`.github/scripts/check_coupling.py`、止めはしない）。

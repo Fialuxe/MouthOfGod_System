@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -7,7 +6,7 @@ using UnityEngine.UI;
 namespace MouthOfGod.Miko
 {
     /// <summary>
-    /// 巫女にしゃべらせる。セリフの一覧（MikoLineBook）から id で引いて、字幕を出し、音声を鳴らし、表情と指さしをつける。
+    /// 巫女にしゃべらせる。渡したセリフ（MikoLine）の字幕を出し、音声を鳴らし、表情と指さしをつける。
     /// 字幕は、見ている人の視線の少し下に出す。頭を回す・見下ろすと、ゆっくり追う。台のミニチュアより手前に置き、ほかの物に隠れないように描く。
     /// </summary>
     public sealed class MikoSpeech : MonoBehaviour
@@ -45,22 +44,17 @@ namespace MouthOfGod.Miko
         Vector3 _flatForward = Vector3.forward; // 字幕を置く向き（水平）。頭に、ゆっくり追わせる
         float _pitch; // 字幕を置く上下の角度（度。下が負）。頭に、ゆっくり追わせる
         Material _onTopMaterial;
-        bool _restoreExpression;
-        Coroutine _pending; // 着くのを待っているセリフ
         readonly MikoLineQueue _queue = new MikoLineQueue(); // しゃべっている間に来たセリフ。新しい 1 つだけ残す
         float _shownAt; // いまのセリフを出しはじめた時刻
 
         // しゃべっている、または着くのを待っている。
-        bool Busy => IsSpeaking || _pending != null;
+        bool Busy => IsSpeaking;
 
         public bool IsSpeaking => _subtitle != null && _subtitle.activeSelf;
 
-        /// <summary>id のセリフをしゃべる。見つからなければ false。</summary>
-        public bool Say(string id)
+        /// <summary>渡したセリフをしゃべる。line が null なら false。</summary>
+        public bool Say(MikoLine line)
         {
-            // まず親（Miko）の下の LineBook を見る。無ければ、シーンにある場面ごとの LineBook から探す。
-            var book = transform.parent != null ? transform.parent.GetComponentInChildren<MikoLineBook>(true) : GetComponent<MikoLineBook>();
-            var line = (book != null ? book.Find(id) : null) ?? MikoLineBook.FindAny(id);
             if (line == null) return false;
             if (!Busy) Speak(line);
             else if (IsSpeaking)
@@ -69,7 +63,6 @@ namespace MouthOfGod.Miko
                 _queue.Enqueue(line);
                 _hideAt = MikoLineQueue.CutAt(_hideAt, _shownAt, minShowSeconds, Time.time);
             }
-            else Speak(line); // 着くのを待っているセリフは、捨てて新しい方を言う
             return true;
         }
 
@@ -82,37 +75,13 @@ namespace MouthOfGod.Miko
 
         void Stop()
         {
-            if (_pending != null)
-            {
-                StopCoroutine(_pending);
-                _pending = null;
-            }
             if (voiceSource != null) voiceSource.Stop();
             if (_subtitle != null) _subtitle.SetActive(false);
-            RestoreExpression();
         }
 
         void Speak(MikoLine line)
         {
             Stop();
-            var mover = GetComponent<MikoMover>();
-            if (line.moveTo != null && mover != null)
-            {
-                mover.GoTo(line.moveTo);
-                if (line.speakAfterMove)
-                {
-                    _pending = StartCoroutine(SpeakAfterMove(line, mover));
-                    return;
-                }
-            }
-            Begin(line);
-        }
-
-        // 着いてからしゃべる。着くまで、字幕も声も出さない。
-        IEnumerator SpeakAfterMove(MikoLine line, MikoMover mover)
-        {
-            while (mover.Mode == MikoMode.Go) yield return null;
-            _pending = null;
             Begin(line);
         }
 
@@ -122,18 +91,6 @@ namespace MouthOfGod.Miko
             _text.text = line.text;
             _subtitle.SetActive(true);
             FitSubtitle();
-
-            var face = GetComponent<MikoFace>();
-            if (face != null && line.changeExpression)
-            {
-                face.Set(line.expression);
-                _restoreExpression = true;
-            }
-            if (line.point)
-            {
-                var receiver = GetComponent<MikoCueReceiver>();
-                if (receiver != null) receiver.PointAt(line.pointTarget);
-            }
 
             var duration = line.seconds;
             if (line.voice != null && voiceSource != null)
@@ -198,14 +155,6 @@ namespace MouthOfGod.Miko
             var rect = _subtitle.GetComponent<RectTransform>();
             var height = Mathf.Max(MinHeight, _text.preferredHeight + 2f * TextPaddingY + 20f);
             rect.sizeDelta = new Vector2(rect.sizeDelta.x, height);
-        }
-
-        void RestoreExpression()
-        {
-            if (!_restoreExpression) return;
-            _restoreExpression = false;
-            var face = GetComponent<MikoFace>();
-            if (face != null) face.Set(MikoExpression.Normal);
         }
 
         void EnsureSubtitle()
@@ -277,10 +226,7 @@ namespace MouthOfGod.Miko
             rect.offsetMax = Vector2.zero;
         }
 
-        [ContextMenu("テスト: 最初のセリフ")]
-        void TestFirst()
-        {
-            if (!Say("welcome")) Debug.LogWarning("[Miko] MikoLineBook が無いか、welcome のセリフがありません。");
-        }
+        [ContextMenu("テスト: 話す")]
+        void TestSay() => Say(new MikoLine { text = "Long time no see, our god!" });
     }
 }

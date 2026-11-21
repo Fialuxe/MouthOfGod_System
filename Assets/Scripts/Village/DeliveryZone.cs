@@ -1,23 +1,28 @@
+using System.Collections;
 using MouthOfGod.Core;
 using UnityEngine;
 
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 食べ物が落ちる場所。フィールドの上に置き、食べ物が入ったら、そのフィールドの <see cref="IFieldRequests.Receive"/> を呼ぶ。
-    /// Collider（Is Trigger）と一緒に付ける。頼まれた物かどうかは、フィールドが判断する。ここでは判断しない。
+    /// 食べ物が落ちる場所です。食べ物が入ると、そのフィールドの <see cref="IFieldRequests.Receive"/> を呼びます。
+    /// Trigger の Collider と一緒に付けます。
     /// </summary>
     /// <remarks>
-    /// - 食べ物は、Core の <see cref="IFoodItem"/> で読む。Food のコードは使わない。
-    /// - 届けるフィールドは、<c>Field Id</c> に書いた ID（<see cref="Fields"/> から引く）。空なら、親にあるフィールド（FieldStages）。
-    /// - 1 つの食べ物は、1 回しか届けない（残した物が、もう一度入っても数えない）。
-    /// - 届けたあとの食べ物は、頼まれた物（Requested）なら消す。それ以外は残す。どちらも Inspector で変えられる。
+    /// 欲しがっていた物かどうかは、フィールドが決めます。ここでは決めません。
+    /// 食べ物は Core の <see cref="IFoodItem"/> として読むので、Food のコードには依存しません。
+    /// 1 つの食べ物は 1 回しか届けません。届いたあとに残した物が、もう一度入っても数えません。
+    /// 入ってすぐには判定せず、<c>judgeDelaySeconds</c> だけ待ちます。その間に、体験者が何を届けたかを目で確かめられます。
+    /// 判定のあと、欲しがっていた物は消し、それ以外は煙を出して小さくしながら消します。どちらも Inspector で変えられます。
     /// </remarks>
     [RequireComponent(typeof(Collider))]
     public sealed class DeliveryZone : MonoBehaviour
     {
         [Tooltip("届けるフィールドの ID（village など）。空なら、親にあるフィールド（FieldStages）に届ける")]
         [SerializeField] string fieldId = "";
+
+        [Tooltip("食べ物が入ってから、判定するまでの秒数。この間、食べ物は落ちたまま見えている。0 ならすぐ判定する")]
+        [SerializeField, Min(0f)] float judgeDelaySeconds = 1f;
 
         [Tooltip("頼まれた物が届いたら、その食べ物を消す")]
         [SerializeField] bool consumeRequested = true;
@@ -34,7 +39,6 @@ namespace MouthOfGod.Village
         [Tooltip("消えるときに出す物（煙など）。空なら Resources/Prefabs/Village/Fx_Smoke")]
         [SerializeField] GameObject vanishFx;
 
-        // Component を付けたとき、Collider を Is Trigger にする。
         void Reset()
         {
             foreach (var collider in GetComponents<Collider>()) collider.isTrigger = true;
@@ -43,8 +47,8 @@ namespace MouthOfGod.Village
         void OnTriggerEnter(Collider other) => Deliver(other);
 
         /// <summary>
-        /// 入った物が食べ物なら、フィールドに届ける。届けたら true。
-        /// 食べ物でない・もう届けた・届け先のフィールドが見つからないときは、何もせず false。
+        /// 入った物が食べ物なら、フィールドに届けます。判定は <c>judgeDelaySeconds</c> のあとです。
+        /// 食べ物でない・もう届けた・届け先が見つからないときは false です。
         /// </summary>
         public bool Deliver(Component other)
         {
@@ -62,18 +66,30 @@ namespace MouthOfGod.Village
                 return false;
             }
 
+            food.AddComponent<DeliveredMark>(); // 待っている間に、もう一度入っても数えないようにします
+            if (judgeDelaySeconds > 0f && Application.isPlaying) StartCoroutine(JudgeLater(food, item, field));
+            else Judge(food, item, field);
+            return true;
+        }
+
+        IEnumerator JudgeLater(GameObject food, IFoodItem item, IFieldRequests field)
+        {
+            yield return new WaitForSeconds(judgeDelaySeconds);
+            if (food != null) Judge(food, item, field); // 待っている間に片付けられた食べ物は、判定しません
+        }
+
+        void Judge(GameObject food, IFoodItem item, IFieldRequests field)
+        {
             var kind = field.Receive(item.Food);
             if (kind == DeliveryKind.Requested ? consumeRequested : consumeOthers)
             {
                 if (Application.isPlaying) Destroy(food);
                 else DestroyImmediate(food);
             }
-            else
+            else if (vanishOthers && Application.isPlaying)
             {
-                food.AddComponent<DeliveredMark>();
-                if (vanishOthers && Application.isPlaying) Vanish(food);
+                Vanish(food);
             }
-            return true;
         }
 
         void Vanish(GameObject food)
@@ -83,7 +99,6 @@ namespace MouthOfGod.Village
             food.AddComponent<Vanishing>().Seconds = vanishSeconds;
         }
 
-        // 届いた違う物を、だんだん小さくして消す。
         sealed class Vanishing : MonoBehaviour
         {
             public float Seconds = 1f;
@@ -104,7 +119,6 @@ namespace MouthOfGod.Village
         IFieldRequests ResolveField()
             => string.IsNullOrEmpty(fieldId) ? GetComponentInParent<IFieldRequests>() : Fields.Find(new FieldId(fieldId));
 
-        // 届けた食べ物の印。同じ食べ物を 2 回届けない。
         sealed class DeliveredMark : MonoBehaviour { }
     }
 }

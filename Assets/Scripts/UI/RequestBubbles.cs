@@ -46,7 +46,7 @@ namespace MouthOfGod.UI
     }
 
     /// <summary>
-    /// 村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。食べ物のアイコンがあれば絵を、無ければ英語の名前を出す。Play で自動で置かれるので、手で置かなくてよい。
+    /// 村人の欲しい物を、頭の上の吹き出しで見せる（#59・#270）。食べ物のアイコンがあれば絵を、無ければ英語の名前を出す。シーンに 1 つ置きます（Main の Request Bubbles）。
     /// <see cref="Fields"/> のフィールドの Issued で <see cref="RequestIssued.Anchor"/> の上に出し、Closed で消す（届いたか・待ちきれなかったかで色を変えて、少しだけ見せてから消す）。
     /// Village の型は参照しない。Prefab もシーンも使わず、子の物をコードで作る。
     /// 遠くの村人への気づき方（見えない位置の村人をどう知らせるか）は別 Issue。
@@ -66,26 +66,6 @@ namespace MouthOfGod.UI
         const int CornerSegments = 6; // 角の丸みを何本の線で作るか
         const float TailWidth = 0.4f; // しっぽ（話している人を指す三角）の幅
         const float TailHeight = 0.35f;
-
-        static bool _placed;
-
-        // Domain Reload を切っていても、Play のたびに初期化する。
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics()
-        {
-            _placed = false;
-        }
-
-        // 新しく 1 つ作るだけ（シーンから探さない）。二重に作らないのは static フラグ 1 つ。
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void AutoPlace()
-        {
-            if (_placed) return;
-            _placed = true;
-            var go = new GameObject("Request Bubbles");
-            DontDestroyOnLoad(go);
-            go.AddComponent<RequestBubbles>();
-        }
 
         sealed class Bubble
         {

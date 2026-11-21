@@ -3,12 +3,13 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 村人の気持ち。<see cref="FieldStages"/> が、この人の名前があるステップ（<see cref="FieldStep"/> の Helped）がすべて済むまで「悩む」にする。
-    /// 悩んでいる間: 頭の上に印を出し、肩を落としてゆっくり立つ（Worried）。ときどき、がっくりうなだれる（Slump = Defeat）。
-    ///   うなだれる間隔と長さは人ごとにばらつかせ、全員が同時に動かないようにする（止まって見えないように）。
-    /// 元気: Idle。ステップが済んだときは、元気な人が Victory を 1 回やって喜ぶ。
-    /// Animator は Villager.controller（VillagePrefabGenerator が作る）。村人の Prefab に付いている。
+    /// 村人の気持ちを、Animator と頭の上の印で見せます。悩んでいるか元気かは <see cref="FieldStages"/> が決めます。
     /// </summary>
+    /// <remarks>
+    /// 悩んでいる間は Worried で、ときどきうなだれます（Slump）。間隔は人ごとにばらつかせ、全員が同時に動かないようにします。
+    /// 元気なときは Idle で、ステップが済むと Victory を 1 回やって喜びます。
+    /// Animator Controller は Villager.controller で、VillagePrefabGenerator が作ります。動きを直すときは、そちらを直します。
+    /// </remarks>
     public sealed class VillagerMood : MonoBehaviour
     {
         static readonly int WorriedBool = Animator.StringToHash("Worried");
@@ -30,16 +31,13 @@ namespace MouthOfGod.Village
         bool _slumped;
         float _nextSwitch;
 
-        /// <summary>違う物が届いたときに送る、Animator のトリガーの名前（Villager.controller に入っている）。</summary>
+        /// <summary>違う物が届いたときに送る、Animator のトリガーの名前です。</summary>
         public const string MissedTrigger = "Missed";
 
         public GameObject WorryMark { get => worryMark; set => worryMark = value; }
         public bool IsWorried => _worried;
 
-        /// <summary>
-        /// Animator に、その名前のトリガーを送る。Animator Controller にその名前のトリガーが無ければ、何もしないで false。
-        /// 動きを足すときは、Animator Controller にトリガーとステートを足し、ここに名前を渡すだけでよい（コードは直さない）。
-        /// </summary>
+        /// <summary>Animator に trigger を送ります。Animator Controller にそのトリガーが無ければ false です。</summary>
         public bool React(string trigger)
         {
             if (string.IsNullOrEmpty(trigger) || !HasAnimator()) return false;
@@ -52,7 +50,7 @@ namespace MouthOfGod.Village
             return false;
         }
 
-        /// <summary>悩むか元気かを決める。celebrate なら、元気な人は喜ぶ（ステップが済んだとき）。<see cref="FieldStages"/> が呼ぶ。</summary>
+        /// <summary>悩むか元気かを決めます。celebrate なら、元気になった人が喜びます。</summary>
         public void SetWorried(bool worried, bool celebrate)
         {
             var wasWorried = _worried;
@@ -66,7 +64,7 @@ namespace MouthOfGod.Village
             _animator.SetBool(WorriedBool, _worried);
             if (first)
             {
-                // 始まり: 人ごとに、動きの途中から始める。うなだれている人と起きている人を混ぜる
+                // 最初は、人ごとに動きの途中から始め、うなだれている人と起きている人を混ぜます。
                 _slumped = _worried && Random.value < 0.4f;
                 _animator.SetBool(SlumpBool, _slumped);
                 _animator.Play(_slumped ? "Slump" : _worried ? "Worried" : "Idle", 0, Random.value);
@@ -78,7 +76,7 @@ namespace MouthOfGod.Village
             {
                 _slumped = false;
                 _animator.SetBool(SlumpBool, false);
-                if (celebrate) _animator.SetTrigger(DeliveredTrigger); // ステップが済んだら喜ぶ
+                if (celebrate) _animator.SetTrigger(DeliveredTrigger);
             }
             else if (!wasWorried)
             {
@@ -86,7 +84,6 @@ namespace MouthOfGod.Village
             }
         }
 
-        // 悩んでいる間、起きる ⇄ うなだれる、を繰り返す。
         void Update()
         {
             if (!_worried || !HasAnimator() || Time.time < _nextSwitch) return;
@@ -99,11 +96,11 @@ namespace MouthOfGod.Village
         {
             var range = _slumped ? slumpSeconds : uprightSeconds;
             var seconds = Random.Range(range.x, range.y);
-            if (firstTime) seconds *= Random.value; // 始まりは、途中まで過ぎたことにして、切り替えの時刻をずらす
+            if (firstTime) seconds *= Random.value; // 最初は切り替えの時刻をずらします
             _nextSwitch = Time.time + seconds;
         }
 
-        // FieldStages が先に呼んでもよいように、Awake を待たずに探す。
+        // FieldStages が Awake より先に呼ぶことがあるので、その場で探します。
         bool HasAnimator() => (_animator != null || (_animator = GetComponentInChildren<Animator>()) != null) && _animator.runtimeAnimatorController != null && _animator.isActiveAndEnabled;
     }
 }

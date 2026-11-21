@@ -6,14 +6,14 @@ namespace MouthOfGod.Food
 {
     /// <summary>
     /// デバイスで決定した食感から、食べ物を引いて生み、前へ飛ばす。
-    /// 食感が決まったとき（<see cref="IDevice.Confirmed"/>）に、<see cref="FoodTables.Resolve"/> で Prefab を引き、<c>Spawn Point</c> の位置に生む。
+    /// 食感が決まったとき（<see cref="IDevice.Confirmed"/>）に、食べ物の Prefab（<see cref="FoodItem"/>）から合う物を選び、<c>Spawn Point</c> の位置に生む。
     /// </summary>
     /// <remarks>
     /// - デバイスは Core の <see cref="Devices.WhenReady"/> で受け取る。Mock か実機かは知らない。
     /// - 飛ばす: <c>Launch Speed</c> が 0 より大きく、生んだ食べ物に Rigidbody があれば、<c>Spawn Point</c> の前向きに初速を与える。そのあとの動きは、食べ物の Rigidbody（Mass など）と物理しだい。
     ///   体験者は、顔を向けて狙いを定め、欲しがっている人のところへ飛ばす。どこに届いたかは、落ちた所の DeliveryZone（Village）が決める。
     /// - <c>Food Parent</c> を入れると、生んだ食べ物をその子にする（位置と向きは Spawn Point のまま）。
-    /// - 生んだ食べ物には、どの食べ物かを渡す <see cref="IFoodItem"/>（<c>FoodItemTag</c>）を付ける。
+    /// - どの食べ物かは、食べ物の Prefab に付いた <see cref="FoodItem"/>（<see cref="IFoodItem"/>）が持っている。
     /// - 「体験者の前のフィールド」は、Core の <see cref="Standing.Field"/> を読む。<see cref="CurrentField"/> に関数を入れたときは、そちらを使う（テストや、別の決め方を試すとき）。
     /// - 有効になると、自分で Core の <see cref="FoodSpawners"/> に登録する。チュートリアルや影の UI は、そこから受け取る。
     /// - 間違えたとき（欲しい物と違う食べ物が届いたとき）の反応は、ここにはない。届いた知らせ（<see cref="IFieldRequests.Received"/>）を受ける側が足す。
@@ -37,7 +37,7 @@ namespace MouthOfGod.Food
 
         /// <summary>
         /// 体験者の前のフィールドを返す関数。入れたときだけ、<see cref="Standing.Field"/> の代わりに使う。
-        /// 空のままなら、Core の <see cref="Standing.Field"/>（立っている場所。どこにも立っていなければ共通の表だけ）。
+        /// 空のままなら、Core の <see cref="Standing.Field"/>（立っている場所。どこにも立っていなければ、フィールドが空の条件だけ）。
         /// </summary>
         public Func<FieldId> CurrentField { get; set; }
 
@@ -55,7 +55,7 @@ namespace MouthOfGod.Food
         /// 食感から、生まれる食べ物の Prefab を引くだけ。生まない。
         /// チュートリアルで、噛んでいる間に、その食感で生まれる物の影を見せるときに使う。引けなければ null。
         /// </summary>
-        public GameObject Preview(TextureId texture) => FoodTables.Resolve(ResolveField(), texture);
+        public GameObject Preview(TextureId texture) => Resolve(ResolveField(), texture);
 
         /// <summary>
         /// 食感から食べ物を引いて、1 つ生む。生んだ食べ物を返す。
@@ -66,7 +66,7 @@ namespace MouthOfGod.Food
             if (texture.IsEmpty) return null;
 
             FieldId field = ResolveField();
-            GameObject prefab = FoodTables.Resolve(field, texture);
+            GameObject prefab = Resolve(field, texture);
             if (prefab == null)
             {
                 ReportWarning("[FoodSpawner] 食感「" + texture + "」に対応する食べ物がありません（フィールド: "
@@ -74,20 +74,34 @@ namespace MouthOfGod.Food
                 return null;
             }
 
-            Debug.Log("[FoodSpawner] " + (field.IsEmpty ? "フィールドなし（共通の表）" : field.Value) + " / " + texture + " → " + prefab.name);
+            Debug.Log("[FoodSpawner] " + (field.IsEmpty ? "フィールドなし" : field.Value) + " / " + texture + " → " + prefab.name);
 
             Transform origin = spawnPoint != null ? spawnPoint : transform;
             GameObject instance = Instantiate(prefab, origin.position, origin.rotation, foodParent);
             instance.name = prefab.name;
 
-            FoodId food = FoodTables.IdOf(prefab);
-            FoodItemTag tag;
-            if (!instance.TryGetComponent<FoodItemTag>(out tag)) tag = instance.AddComponent<FoodItemTag>();
-            tag.Food = food;
+            FoodId food = new FoodId(prefab.name);
 
             Launch(instance, origin);
             RaiseSpawned(new Spawned(food, instance.transform.position));
             return instance;
+        }
+
+        static FoodItem[] _catalog;
+
+        /// <summary>
+        /// 食べ物の Prefab（Resources/Prefabs/Food）から、field と texture に合う物を選びます。
+        /// フィールドが合う物を先に選び、なければフィールドが空（どこでも）の物を選びます。合う物がなければ null です。
+        /// </summary>
+        internal static GameObject Resolve(FieldId field, TextureId texture)
+        {
+            if (texture.IsEmpty) return null;
+            if (_catalog == null || _catalog.Length == 0) _catalog = Resources.LoadAll<FoodItem>("Prefabs/Food");
+            foreach (FoodItem item in _catalog)
+                if (item != null && item.IsBornFrom(field, texture, anyField: false)) return item.gameObject;
+            foreach (FoodItem item in _catalog)
+                if (item != null && item.IsBornFrom(field, texture, anyField: true)) return item.gameObject;
+            return null;
         }
 
         // 初速（m/s）。Spawn Point の前向き × 速さ。
@@ -155,13 +169,6 @@ namespace MouthOfGod.Food
         {
             Detach();
             FoodSpawners.Unregister(this);
-        }
-
-        // 表がそろってから（OnEnable がすべて済んでから）、食い違いを 1 回出す。
-        void Start()
-        {
-            foreach (string warning in FoodTables.Validate())
-                ReportWarning("[FoodSpawner] " + warning);
         }
     }
 }
