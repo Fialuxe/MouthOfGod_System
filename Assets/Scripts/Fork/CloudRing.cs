@@ -3,12 +3,22 @@ using UnityEngine;
 namespace MouthOfGod.Fork
 {
     /// <summary>
-    /// 体験者の前に、雲（<see cref="Cloud"/>）を半円状に浮かべる。体験者が歩くと、ついて来る。
-    /// シーンのどこか 1 か所に置く。雲の Prefab は Prefabs/Fork/Cloud（メニュー「MouthOfGod/Fork/Generate Cloud Prefab」で作る）。
+    /// 体験者の前に、<see cref="Cloud"/> を半円状に浮かべます。体験者が歩くと、ついて来ます。
     /// </summary>
     /// <remarks>
-    /// - どこに、いくつ浮かべるかは、まだ決まっていない（シナリオブックの未決事項）。数・半径・高さは仮の値で、Inspector で変えられる。
-    /// - 体験者の位置は Main Camera。向きは、置いたときの頭の向きで決め、そのあとは回らない（首を振るたびに雲が動かないように）。
+    /// <para>
+    /// シーンのどこか 1 か所に置きます。
+    /// 雲の Prefab は Prefabs/Fork/Cloud です。
+    /// メニューの「MouthOfGod/Fork/Generate Cloud Prefab」で作ります。
+    /// </para>
+    /// <para>
+    /// 数・半径・高さは仮の値です。シナリオブックで場所と数が決まったら、Inspector で合わせます。
+    /// </para>
+    /// <para>
+    /// 体験者の位置には、Main Camera を使います。
+    /// 向きは、Start のときの頭の向きで決め、そのあとは回しません。
+    /// 首を振るたびに、雲が動かないようにするためです。
+    /// </para>
     /// </remarks>
     public sealed class CloudRing : MonoBehaviour
     {
@@ -28,10 +38,10 @@ namespace MouthOfGod.Fork
         [Tooltip("雲を並べる角度の幅（度）。正面を中心に、この幅に並べる。360 で体験者を囲む")]
         [SerializeField, Range(0f, 360f)] float spreadDegrees = 120f;
 
-        [Tooltip("上下にゆれる幅（m）")]
+        [Tooltip("上下にゆれる幅（m）。0 でゆれない")]
         [SerializeField, Min(0f)] float bobAmplitude = 0.02f;
 
-        [Tooltip("体験者について来る速さ。大きいほど早く追いつく")]
+        [Tooltip("体験者について来る速さ（1/秒）。大きいほど早く追いつく。0 にすると、Start の位置から動かない")]
         [SerializeField, Min(0f)] float followSpeed = 2f;
 
         Transform[] _clouds;
@@ -83,9 +93,17 @@ namespace MouthOfGod.Fork
         }
 
         /// <summary>
-        /// i 番目の雲の位置（体験者の頭から見た向き。z が正面）。spread の幅に等間隔で並べる。
-        /// 360 度のときは、最初と最後が重ならないように、count 等分にする。
+        /// <paramref name="index"/> 番目の雲の位置を、頭から見た向きで返します。
         /// </summary>
+        /// <param name="index">0 から数えた雲の番号です。</param>
+        /// <param name="count">雲の数です。1 以下なら、正面に置きます。</param>
+        /// <param name="radius">頭からの水平の距離（m）です。</param>
+        /// <param name="height">頭から見た高さ（m）です。</param>
+        /// <param name="spreadDegrees">
+        /// 並べる角度の幅（度）です。正面を中心に、等間隔に並べます。
+        /// 360 以上のときは、最初と最後が重ならないよう <paramref name="count"/> 等分にします。
+        /// </param>
+        /// <returns>頭を原点にした位置です。z が正面、x が右です。</returns>
         internal static Vector3 Offset(int index, int count, float radius, float height, float spreadDegrees)
         {
             float angle;

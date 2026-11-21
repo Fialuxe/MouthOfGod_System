@@ -3,26 +3,28 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 床に、光る足あとを 1 組描きます。つま先はフィールドのほうを向きます。<see cref="StandArea"/> の足あとの物に付けます。
+    /// 床に、光る足あとを 1 組描きます。つま先はフィールドのほうを向きます。
     /// </summary>
     /// <remarks>
-    /// 足の裏の形は、Play の始めにテクスチャへ描くので、絵の素材は要りません。
+    /// <see cref="StandArea"/> の足あとの物に付けます。
+    /// 足の裏の形は、Play の始めにテクスチャへ描きます。そのため、絵の素材は要りません。
     /// 出し入れは <see cref="StandArea.ShowFootprint"/> が行います。
     /// </remarks>
     public sealed class Footprints : MonoBehaviour
     {
-        [Tooltip("つま先を向ける先です。空なら、親のフィールド（FieldStages）に向けます")]
+        [Tooltip("つま先を向ける先です。空なら、親のフィールド（FieldStages）に向けます。向きは Play の始めに 1 回だけ決めます。")]
         [SerializeField] Transform faceTowards;
 
-        [Tooltip("足の長さ（m）")]
+        [Tooltip("足の長さ（m）です。幅は長さの 0.4 倍になります。大人の足はおよそ 0.25〜0.28 m です。")]
         [SerializeField, Min(0.05f)] float footLength = 0.26f;
 
-        [Tooltip("左右の足の中心どうしの間（m）")]
+        [Tooltip("左右の足の中心どうしの間（m）です。")]
         [SerializeField, Min(0f)] float stance = 0.2f;
 
+        [Tooltip("足あとの色です。不透明度（A）が、いちばん明るいときの濃さになります。")]
         [SerializeField] Color color = new Color(1f, 0.85f, 0.45f, 0.9f);
 
-        [Tooltip("明るさが 1 往復する回数（1 秒あたり）。0 なら変えません")]
+        [Tooltip("明るさが 1 往復する回数（1 秒あたり）です。0 なら明るさを変えません。")]
         [SerializeField, Min(0f)] float pulsePerSecond = 0.8f;
 
         const int TextureWidth = 64;
@@ -72,7 +74,8 @@ namespace MouthOfGod.Village
             if (toField.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(toField.normalized, Vector3.up);
         }
 
-        // ローカル座標に平らな四角を 2 枚作ります。+Z が前で、右足は UV を左右反転します。
+        // ローカル座標に平らな四角を 2 枚作ります。+Z が前です。
+        // 右足は、左足の絵を UV で左右反転して使います。
         static Mesh BuildMesh(float length, float stance)
         {
             float width = length * 0.4f;
@@ -102,6 +105,7 @@ namespace MouthOfGod.Village
             return mesh;
         }
 
+        // URP が無いときは Sprites/Default に落とします。
         static Material BuildMaterial(Color color)
         {
             Shader shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default");
@@ -120,7 +124,7 @@ namespace MouthOfGod.Village
             return material;
         }
 
-        // 左足の裏を描きます。v = 0 がかかとで、親指は右（u = 1）です。
+        // 左足の裏を、白と透明度だけで描きます。v = 0 がかかとで、親指は右（u = 1）です。
         static Texture2D PaintLeftSole()
         {
             var texture = new Texture2D(TextureWidth, TextureHeight, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
@@ -146,7 +150,8 @@ namespace MouthOfGod.Village
             return texture;
         }
 
-        // 楕円の中は 1 で、縁を少し越えると 0 になります。
+        // 中心 (cu, cv)、半径 (ru, rv) の楕円の重みを返します。
+        // 中を 1、縁を少し越えた所を 0 にし、縁をぼかすための関数です。
         static float Ellipse(float u, float v, float cu, float cv, float ru, float rv)
         {
             float du = (u - cu) / ru;

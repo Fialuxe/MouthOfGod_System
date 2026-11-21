@@ -3,10 +3,14 @@ using UnityEngine;
 
 namespace MouthOfGod.Flow
 {
-    /// <summary>エンディングです。届けた数を伝え、巫女が締めくくります。セリフは仮です（#357 で確定します）。</summary>
+    /// <summary>エンディングです。届けた数を伝え、巫女が締めくくります。</summary>
+    /// <remarks>
+    /// セリフは仮です。#357 で確定します。
+    /// 結果の文字は場面が終わっても残し、やり直すときに消します。
+    /// </remarks>
     public sealed class Ending : Chapter
     {
-        [Tooltip("結果を出す文字。空なら、巫女が言うだけです")]
+        [Tooltip("結果を出す文字です。空なら、巫女が言うだけです。")]
         [SerializeField] TMP_Text resultText;
 
         [Header("声（空なら字幕だけ）")]

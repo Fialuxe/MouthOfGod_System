@@ -6,25 +6,36 @@ using UnityEngine.Events;
 namespace MouthOfGod.CameraWork
 {
     /// <summary>
-    /// 付けたオブジェクト（カメラなど）を、決めた軌道と速さで動かす。アニメのカット割りのように、直線・曲線・円弧のカットをつないで撮る。
+    /// 付けたオブジェクトを、決めた軌道と速さで動かします。
+    /// アニメのカット割りのように、直線・曲線・円弧のカットをつないで撮ります。
     /// </summary>
     /// <remarks>
-    /// 使い方:
-    /// 1. カメラ（またはカメラの親）に付ける。Shots に、カットを順に足す。
-    /// 2. 位置の目印は、シーンに空の GameObject を置き、End・Control Points・Center に入れる。目印を動かすと、軌道の線がシーンビューに出る。
-    /// 3. <see cref="Play"/> を呼ぶ（Play On Start で自動でも）。Play 中は、右クリックメニューの「Play」でも試せる。
-    ///
-    /// カットの種類:
-    /// - Line: 出発点から End へ直線。End が空なら、Direction From（空ならカメラ自身）の前向きに Distance 進む。
-    /// - Curve: Control Points に引き寄せられるベジェ曲線で、End へ。
-    /// - Orbit: Center のまわりを、Axis を軸に Angle 度まわる。360 で一周。Radius Scale・Height Change でらせんや寄り引きになる。
-    /// - Hold: その場で Seconds 待つ。向きだけ変えたいとき、間を置きたいときに使う。
-    ///
-    /// 速さ・緩急: Use Speed を入れると m / 秒で、外すと秒数で動く。Ease と Ease Strength で、出だしと着き際の緩急をつける。
-    /// 出発点は、前のカットの到着点。最初のカットは、再生を始めたときの位置。目印の位置は、そのカットが始まる瞬間に読む。
+    /// <para>使い方は次のとおりです。</para>
+    /// <list type="number">
+    /// <item><description>カメラか、カメラの親に付けます。Shots に、カットを順に足します。</description></item>
+    /// <item><description>位置の目印として、シーンに空の GameObject を置きます。それを End・Control Points・Center に入れます。このオブジェクトを選ぶと、軌道の線がシーンビューに出ます。目印を動かすと、線も変わります。</description></item>
+    /// <item><description><see cref="Play()"/> を呼びます。Play On Start で自動にもできます。Play 中は、右クリックメニューの「Play」でも試せます。</description></item>
+    /// </list>
+    /// <para>カットの種類は次のとおりです。</para>
+    /// <list type="bullet">
+    /// <item><description>Line: 出発点から End へ直線で進みます。End が空なら、Direction From の前向きに Distance 進みます。Direction From も空なら、カメラ自身の前向きです。</description></item>
+    /// <item><description>Curve: Control Points に引き寄せられるベジェ曲線で、End へ進みます。</description></item>
+    /// <item><description>Orbit: Center のまわりを、Axis を軸に Angle 度まわります。360 で一周です。Radius Scale と Height Change で、らせんや寄り引きになります。</description></item>
+    /// <item><description>Hold: その場で Seconds 待ちます。向きだけ変えたいときや、間を置きたいときに使います。</description></item>
+    /// </list>
+    /// <para>
+    /// Use Speed を入れると m / 秒で、外すと秒数で動きます。
+    /// Ease と Ease Strength で、出だしと着き際の緩急をつけます。
+    /// </para>
+    /// <para>
+    /// 出発点は、前のカットの到着点です。
+    /// 最初のカットは、再生を始めたときの位置から出ます。
+    /// 目印の位置は、そのカットが始まる瞬間に読みます。
+    /// </para>
     /// </remarks>
     public sealed class CameraCutPlayer : MonoBehaviour
     {
+        [Tooltip("撮るカット。上から順に撮る。前のカットの到着点が、次のカットの出発点になる。空の要素は飛ばす")]
         [SerializeField] CameraShot[] shots = new CameraShot[0];
 
         [Tooltip("Play を始めたときに、自動で再生する")]
@@ -36,28 +47,45 @@ namespace MouthOfGod.CameraWork
         [Tooltip("動かすのを Time.timeScale に左右されない時間にする（ポーズ中でも撮る）")]
         [SerializeField] bool unscaledTime;
 
-        [Tooltip("全カットが終わったときに呼ぶ")]
+        [Tooltip("全カットが終わったときに呼ぶ。Loop がオンのときと、Stop でやめたときは呼ばない")]
         [SerializeField] UnityEvent onFinished = new UnityEvent();
 
         Coroutine _running;
+        // 再生していないときは -1 です。
         int _index = -1;
 
-        /// <summary>再生中か。</summary>
         public bool IsPlaying => _running != null;
 
-        /// <summary>いま撮っているカットの番号。再生していなければ -1。</summary>
+        /// <summary>
+        /// いま撮っているカットの番号を返します。
+        /// </summary>
+        /// <value>0 から始まる番号です。再生していなければ -1 です。</value>
         public int CurrentIndex => IsPlaying ? _index : -1;
 
+        /// <summary>
+        /// 撮るカットの並びです。
+        /// </summary>
+        /// <remarks>
+        /// <see langword="null"/> を入れると、空の配列として扱います。
+        /// 配列への参照をそのまま保持します。
+        /// </remarks>
         public CameraShot[] Shots
         {
             get => shots;
             set => shots = value ?? new CameraShot[0];
         }
 
-        /// <summary>カットが始まった（番号）。</summary>
+        /// <summary>
+        /// カットを撮り始めたときに発火します。引数はカットの番号です。
+        /// </summary>
         public event Action<int> ShotStarted;
 
-        /// <summary>全カットが終わった（Stop でやめたときは出ない）。</summary>
+        /// <summary>
+        /// 全カットを撮り終えたときに発火します。
+        /// </summary>
+        /// <remarks>
+        /// Loop がオンのときと、<see cref="Stop"/> でやめたときは発火しません。
+        /// </remarks>
         public event Action Finished;
 
         void Start()
@@ -65,10 +93,19 @@ namespace MouthOfGod.CameraWork
             if (playOnStart) Play();
         }
 
-        /// <summary>最初のカットから撮る。再生中なら、やり直す。</summary>
+        /// <summary>
+        /// 最初のカットから撮ります。再生中なら、やり直します。
+        /// </summary>
         public void Play() => Play(0);
 
-        /// <summary>fromIndex 番のカットから撮る。いまの位置が出発点になる。</summary>
+        /// <summary>
+        /// 指定した番号のカットから撮ります。いまの位置が出発点になります。
+        /// </summary>
+        /// <remarks>
+        /// 再生中なら、止めてからやり直します。
+        /// カットが 1 つも無いときは、止めるだけです。
+        /// </remarks>
+        /// <param name="fromIndex">0 から始まるカットの番号です。範囲の外なら、端の番号に丸めます。</param>
         public void Play(int fromIndex)
         {
             Stop();
@@ -76,7 +113,9 @@ namespace MouthOfGod.CameraWork
             _running = StartCoroutine(Run(Mathf.Clamp(fromIndex, 0, shots.Length - 1)));
         }
 
-        /// <summary>その場でやめる。位置はそのまま。</summary>
+        /// <summary>
+        /// その場でやめます。位置と向きはそのまま残ります。
+        /// </summary>
         public void Stop()
         {
             if (_running != null) StopCoroutine(_running);
@@ -151,14 +190,15 @@ namespace MouthOfGod.CameraWork
                     wanted = Quaternion.LookRotation(toTarget, Vector3.up);
                     break;
                 case ShotAim.MatchEnd:
-                    // 軌道の進み具合に合わせて、出発の向きから到着の向きへ
+                    // 着いたときにちょうど End の向きになるよう、なじませずに進み具合で補間します。
                     transform.rotation = Quaternion.Slerp(startRotation, path.EndRotation, u);
                     return;
                 default:
                     return;
             }
 
-            // 向きが前のカットから急に変わらないよう、新しい向きへなじませる。なじむ間は、カットの頭の向きから出発する。
+            // 前のカットから向きが急に変わらないよう、新しい向きへなじませます。
+            // なじむ間は、カットの頭の向きから補間します。
             float k = shot.aimBlendSeconds <= 0f ? 1f : Mathf.Clamp01(blend / shot.aimBlendSeconds);
             transform.rotation = Quaternion.Slerp(startRotation, wanted, k);
         }
@@ -172,7 +212,8 @@ namespace MouthOfGod.CameraWork
         void StopFromMenu() => Stop();
 
 #if UNITY_EDITOR
-        // 選んだとき、軌道を線で見せる。目印を動かすと、線も変わる。
+        // 選んだとき、軌道を線で見せます。目印を動かすと、線も変わります。
+        // 再生中と同じく、前のカットの到着点を次の出発点にしてつなぎます。
         void OnDrawGizmosSelected()
         {
             if (shots == null) return;

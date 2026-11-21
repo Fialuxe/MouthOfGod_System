@@ -6,17 +6,27 @@ using UnityEngine;
 namespace MouthOfGod.Food
 {
     /// <summary>
-    /// デバイスで決定した食感から、食べ物を引いて生み、前へ飛ばす。
-    /// 食感が決まったとき（<see cref="IDevice.Confirmed"/>）に、食べ物の Prefab（<see cref="FoodItem"/>）から合う物を選び、<c>Spawn Point</c> の位置に生む。
+    /// デバイスで決定した食感から食べ物を引いて生み、前へ飛ばします。
     /// </summary>
     /// <remarks>
-    /// - 体験者のリグ（<see cref="PlayerRig"/>）の子に置く。デバイスと口は、親のリグから受け取る。Mock か実機かは知らない。
-    /// - 飛ばす: <c>Launch Speed</c> が 0 より大きく、生んだ食べ物に Rigidbody があれば、<c>Spawn Point</c> の前向きに初速を与える。そのあとの動きは、食べ物の Rigidbody（Mass など）と物理しだい。
-    ///   体験者は、顔を向けて狙いを定め、欲しがっている人のところへ飛ばす。どこに届いたかは、落ちた所の DeliveryZone（Village）が決める。
-    /// - <c>Food Parent</c> を入れると、生んだ食べ物をその子にする（位置と向きは Spawn Point のまま）。
-    /// - どの食べ物かは、食べ物の Prefab に付いた <see cref="FoodItem"/>（<see cref="IFoodItem"/>）が持っている。
-    /// - 「体験者の前のフィールド」は、Core の <see cref="Standing.Field"/> を読む。
-    /// - 間違えたとき（欲しい物と違う食べ物が届いたとき）の反応は、ここにはない。届いた知らせ（<see cref="IFieldRequests.Received"/>）を受ける側が足す。
+    /// <para>
+    /// 体験者のリグ（<see cref="PlayerRig"/>）の子に置きます。
+    /// デバイスと口は、親のリグから受け取ります。Mock か実機かは知りません。
+    /// </para>
+    /// <para>
+    /// <see cref="IDevice.Confirmed"/> を受けると、<c>Foods</c> の一覧から合う物を選びます。
+    /// 生む位置と向きは <c>Spawn Point</c> です。
+    /// どの食べ物がいつ生まれるかは、各 Prefab の <see cref="FoodItem"/> が持っています。
+    /// 体験者の前のフィールドは、<see cref="Standing.Field"/> から読みます。
+    /// </para>
+    /// <para>
+    /// 体験者は顔を向けて狙い、欲しがっている人のところへ飛ばします。
+    /// どこに届いたかは、落ちた所の DeliveryZone（Village）が決めます。
+    /// </para>
+    /// <para>
+    /// 欲しい物と違う食べ物が届いたときの反応は、ここでは扱いません。
+    /// <see cref="IFieldRequests.Received"/> を受ける側が足します。
+    /// </para>
     /// </remarks>
     public sealed class FoodSpawner : MonoBehaviour, IFoodSpawner
     {
@@ -32,34 +42,44 @@ namespace MouthOfGod.Food
         [Tooltip("生める食べ物の一覧（Assets/Prefabs/Food の Prefab）。食べ物を足したら、ここにも足す。生まれる条件は、各食べ物の FoodItem が持つ")]
         [SerializeField] FoodItem[] foods = new FoodItem[0];
 
-        readonly Dictionary<TextureId, FoodItem> _overrides = new Dictionary<TextureId, FoodItem>(); // 場面の間だけの対応
+        // Override で決めた、場面の間だけの対応です。一覧より先に使います。
+        readonly Dictionary<TextureId, FoodItem> _overrides = new Dictionary<TextureId, FoodItem>();
 
-        // 警告と例外の出し先。テストで差し替える。
+        // 警告と例外の出し先です。テストで差し替えられるようにしています。
         internal static Action<string> ReportWarning = Debug.LogWarning;
         internal static Action<Exception> ReportException = Debug.LogException;
 
         IDevice _device;
 
-        /// <summary>生んだ食べ物の置き場（親）。空ならシーンの直下。</summary>
+        /// <summary>生んだ食べ物を置く親です。<see langword="null"/> ならシーンの直下に置きます。</summary>
         public Transform FoodParent
         {
             get => foodParent;
             set => foodParent = value;
         }
 
-        /// <summary>食べ物を生んだ直後に、1 回出る。</summary>
+        /// <inheritdoc/>
         public event Action<Spawned> Spawned;
 
-        /// <summary>
-        /// 食感から、生まれる食べ物の Prefab を引くだけ。生まない。
-        /// チュートリアルで、噛んでいる間に、その食感で生まれる物の影を見せるときに使う。引けなければ null。
-        /// </summary>
+        /// <inheritdoc/>
+        /// <remarks>
+        /// チュートリアルで、噛んでいる間に生まれる物の影を見せるときに使います。
+        /// <see cref="Override"/> で決めた対応があれば、それを返します。
+        /// </remarks>
         public GameObject Preview(TextureId texture) => Resolve(Standing.Field, texture);
 
         /// <summary>
-        /// 食感から食べ物を引いて、1 つ生む。生んだ食べ物を返す。
-        /// 食感が空（噛む前の決定）なら、何もせず null。引けなければ、警告を出して null。
+        /// 食感から食べ物を引いて、1 つ生みます。
         /// </summary>
+        /// <param name="texture">決定したときの食感です。</param>
+        /// <returns>
+        /// 生んだ食べ物です。
+        /// 食感が空なら、噛む前の決定なので何もせず <see langword="null"/> を返します。
+        /// 合う食べ物が無ければ、警告を出して <see langword="null"/> を返します。
+        /// </returns>
+        /// <remarks>
+        /// 生んだあと、<see cref="Spawned"/> を出します。
+        /// </remarks>
         public GameObject Spawn(TextureId texture)
         {
             if (texture.IsEmpty) return null;
@@ -86,9 +106,17 @@ namespace MouthOfGod.Food
         }
 
         /// <summary>
-        /// この場面の間だけ、texture のときはどこでも food を生むようにします。チュートリアルが、生ませたい物を決めるときに使います。
-        /// 場面が終わったら <see cref="ClearOverrides"/> で戻します。
+        /// この場面の間だけ、その食感ではフィールドによらず指定の食べ物を生むようにします。
         /// </summary>
+        /// <param name="texture">対応を決め直す食感です。</param>
+        /// <param name="food">
+        /// 生ませる食べ物の Prefab です。<see cref="FoodItem"/> が付いている必要があります。
+        /// <see langword="null"/> か、<see cref="FoodItem"/> が無ければ何もしません。
+        /// </param>
+        /// <remarks>
+        /// チュートリアルが、生ませたい物を決めるときに使います。
+        /// 場面が終わったら、<see cref="ClearOverrides"/> で戻します。
+        /// </remarks>
         public void Override(TextureId texture, GameObject food)
         {
             if (food != null && food.TryGetComponent(out FoodItem item)) _overrides[texture] = item;
@@ -98,9 +126,18 @@ namespace MouthOfGod.Food
         public void ClearOverrides() => _overrides.Clear();
 
         /// <summary>
-        /// field と texture に合う食べ物を、一覧から選びます。場面の間だけの対応があれば、それを先に使います。
-        /// 次に、フィールドが合う物を選び、なければフィールドが空（どこでも）の物を選びます。合う物がなければ null です。
+        /// フィールドと食感に合う食べ物を選びます。
         /// </summary>
+        /// <param name="field">体験者の前のフィールドです。空でもかまいません。</param>
+        /// <param name="texture">食感です。空なら <see langword="null"/> を返します。</param>
+        /// <returns>
+        /// 合う食べ物の Prefab です。合う物が無ければ <see langword="null"/> です。
+        /// </returns>
+        /// <remarks>
+        /// 場面の間だけの対応があれば、それを先に使います。
+        /// 次に、フィールドが合う物を選びます。
+        /// それも無ければ、フィールドが空で、どこでも生まれる物を選びます。
+        /// </remarks>
         GameObject Resolve(FieldId field, TextureId texture)
         {
             if (texture.IsEmpty) return null;
@@ -112,7 +149,7 @@ namespace MouthOfGod.Food
             return null;
         }
 
-        // 初速（m/s）。Spawn Point の前向き × 速さ。
+        // 初速（m/s）を返します。Spawn Point の前向きです。
         internal static Vector3 LaunchVelocity(Transform origin, float speed) => origin.forward * speed;
 
         void Launch(GameObject instance, Transform origin)
@@ -120,7 +157,7 @@ namespace MouthOfGod.Food
             if (launchSpeed <= 0f) return;
             Rigidbody body;
             if (!instance.TryGetComponent<Rigidbody>(out body) || body.isKinematic) return;
-            // 質量によらず、速さそのものを与える。そのあとは物理（重さ・空気抵抗・重力）が動かす。
+            // 質量によらず、速さそのものを与えます。そのあとは、重さ・空気抵抗・重力で動きます。
             body.AddForce(LaunchVelocity(origin, launchSpeed), ForceMode.VelocityChange);
         }
 
@@ -135,7 +172,7 @@ namespace MouthOfGod.Food
         {
             Action<Spawned> handlers = Spawned;
             if (handlers == null) return;
-            // 1 つの購読先が例外を投げても、残りには届ける（例外は Console に出す）。
+            // 1 つの購読先が例外を投げても、残りには届けます。例外は Console に出します。
             foreach (Action<Spawned> handler in handlers.GetInvocationList())
             {
                 try { handler(spawned); }

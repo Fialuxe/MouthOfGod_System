@@ -6,12 +6,25 @@ using UnityEngine.InputSystem;
 namespace MouthOfGod.Device
 {
     /// <summary>
-    /// デバイスなしで動かす IDevice。Meta Quest のコントローラ（ゲームパッド・キーボードも可）で「噛む・決定する」を代わりにする。
-    /// 噛み始めで Bitten、噛んでいる間は一定間隔で TextureChanged、決定操作で Confirmed。操作の割り当ては Inspector（InputAction）で変えられる。
-    /// 体験者のリグ（PlayerRig）の子に置き、リグの Device に入れる。実機のデバイスができたら、リグの Device を差し替える。
-    /// 操作のしかたは <c>Input Mode</c> で選ぶ。Any は手とコントローラのどちらでも、Hand は両手のハンドトラッキングだけ、
-    /// RightController は右コントローラ 1 本だけ（片手で、噛む・決定する・棒を持つ）。キーボードとゲームパッドは、どのモードでも効く。
+    /// 触感デバイスが無くても動かせる <see cref="IDevice"/> です。
+    /// Quest の手やコントローラで、「噛む」「決定する」を代わりにします。
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 体験者のリグ（<see cref="PlayerRig"/>）の子に置き、リグの Device に入れます。
+    /// 実機のデバイスができたら、リグの Device を差し替えます。
+    /// </para>
+    /// <para>
+    /// 噛み始めに <see cref="Bitten"/> を出します。
+    /// 噛んでいる間は、一定間隔で食感を切り替えて <see cref="TextureChanged"/> を出します。
+    /// 決定の操作で <see cref="Confirmed"/> を出します。
+    /// </para>
+    /// <para>
+    /// 操作のしかたは <c>Input Mode</c> で選びます。
+    /// 操作の割り当ては、Inspector の InputAction で変えられます。
+    /// キーボードとゲームパッドは、どのモードでも効きます。
+    /// </para>
+    /// </remarks>
     public sealed class MockDevice : MonoBehaviour, IDevice
     {
         [Tooltip("噛んでいる間に順に切り替わる食感 ID。既定はプレースホルダー。実際の ID に差し替える。Play 中に変えても反映されない")]
@@ -29,7 +42,7 @@ namespace MouthOfGod.Device
         [Tooltip("決定操作。Inspector でバインドを変えられる。暫定: Quest 右 A ボタン / 左手のつまみ（ハンドトラッキング） / Enter / ゲームパッド Start。実機の「ハードのボタン 1 つ」の代わり")]
         [SerializeField] InputAction confirmAction = new InputAction("Confirm", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
 
-        [Tooltip("噛む・食感・決定を Console に出す（受け取る側がまだ無くても、動いているか分かるように）")]
+        [Tooltip("噛む・食感・決定を Console に出す。受け取る側がまだ無くても、動いているか分かるようにするため")]
         [SerializeField] bool logEvents = true;
 
         MockDeviceLogic _logic;
@@ -37,44 +50,56 @@ namespace MouthOfGod.Device
         [Tooltip("デバイスの内容量（0〜100 %）。先端に表示する。Inspector で動かして試せる")]
         [SerializeField, Range(0f, 100f)] float contentPercent;
 
-        /// <summary>デバイスの内容量（0〜100 %）。見た目（MockDeviceModel）が読む。</summary>
+        /// <summary>デバイスの内容量（%）です。<see cref="MockDeviceModel"/> が先端に表示します。</summary>
+        /// <value>0〜100 の値です。範囲の外を入れると、範囲内に丸めます。</value>
         public float ContentPercent
         {
             get => contentPercent;
             set => contentPercent = Mathf.Clamp(value, 0f, 100f);
         }
 
-        /// <summary>操作のしかた。見た目（MockDeviceModel）も、これに合わせて棒を持つ。</summary>
+        /// <summary>操作のしかたです。<see cref="MockDeviceModel"/> も、これに合わせて棒を持ちます。</summary>
+        /// <remarks>Play 中に変えてもかまいません。変えたときは、噛んでいる状態を終えます。</remarks>
         public MockInputMode InputMode
         {
             get => inputMode;
             set => inputMode = value;
         }
 
+        /// <inheritdoc/>
         public TextureId Current => _logic != null ? _logic.Current : TextureId.None;
 
-        /// <summary>噛んでいる間（噛む操作を押している間）。見た目（MockDeviceModel）が読む。</summary>
+        /// <summary>噛む操作を押している間 <see langword="true"/> です。<see cref="MockDeviceModel"/> が表示に使います。</summary>
         public bool IsBiting => _logic != null && _logic.IsBiting;
 
+        /// <inheritdoc/>
         public event Action<TextureId> TextureChanged;
+
+        /// <inheritdoc/>
         public event Action<TextureId> Confirmed;
+
+        /// <inheritdoc/>
         public event Action Bitten;
 
         void Reset() => AddFallbackBindings();
 
-        // Quest 以外（キーボード・ゲームパッド）でも試せるようにする。
-        // エディタでは AddComponent のときに Reset からも呼ばれるので、同じ割り当てを二重に足さない。
+        // Quest が無くても、キーボードやゲームパッドで試せるようにします。
+        // エディタでは AddComponent のときに Reset から呼ばれるので、同じ割り当てを二重に足しません。
         void AddFallbackBindings()
         {
             AddBindingOnce(biteAction, "<Keyboard>/space");
             AddBindingOnce(biteAction, "<Gamepad>/buttonSouth");
-            AddBindingOnce(biteAction, "<HandInteraction>{LeftHand}/graspValue"); // ハンドトラッキング: 左手を握っている間（右手は棒を持つのに使う）
+            AddBindingOnce(biteAction, "<HandInteraction>{LeftHand}/graspValue");  // 左手を握っている間。右手は棒を持つのに使います
             AddBindingOnce(confirmAction, "<Keyboard>/enter");
             AddBindingOnce(confirmAction, "<Gamepad>/startButton");
-            AddBindingOnce(confirmAction, "<HandInteraction>{LeftHand}/pinchValue"); // ハンドトラッキング: 左手のつまみ
+            AddBindingOnce(confirmAction, "<HandInteraction>{LeftHand}/pinchValue");  // 左手のつまみ
         }
 
-        /// <summary>同じパスの割り当てが無いときだけ足す。</summary>
+        /// <summary>
+        /// 同じパスの割り当てが無いときだけ、<paramref name="action"/> に割り当てを足します。
+        /// </summary>
+        /// <param name="action">割り当てを足す操作です。</param>
+        /// <param name="path">足す割り当てのパスです。例: <c>&lt;Keyboard&gt;/space</c></param>
         internal static void AddBindingOnce(InputAction action, string path)
         {
             foreach (var binding in action.bindings)
@@ -114,10 +139,10 @@ namespace MouthOfGod.Device
             confirmAction.performed -= OnConfirm;
             biteAction.Disable();
             confirmAction.Disable();
-            _logic.EndBite(); // 押したまま無効化されても噛み状態を残さない
+            _logic.EndBite();  // 押したまま無効になっても、噛んでいる状態を残しません
         }
 
-        // Any のときは、action の知らせで動かす（これまでと同じ）。
+        // Any のときだけ、action の知らせで動かします。ほかのモードは Update で読みます。
         void OnBiteStarted(InputAction.CallbackContext _)
         {
             if (inputMode == MockInputMode.Any) _logic.BeginBite();
@@ -138,7 +163,7 @@ namespace MouthOfGod.Device
 
         void Update()
         {
-            // モードを変えたら、噛んだままにしない。
+            // モードを変えたら、噛んだままにしません。
             if (inputMode != _lastMode)
             {
                 _lastMode = inputMode;
@@ -146,9 +171,10 @@ namespace MouthOfGod.Device
                 _logic.EndBite();
             }
 
-            // Hand・RightController のときは、モードに合う操作だけを毎フレーム読む。
-            // action の知らせ（started など）を使うと、無視した操作（手の握りなど）で action が先に始まったとき、
-            // あとから押した受け付ける操作（右トリガーなど）の知らせが来ず、噛めなくなるため。
+            // Hand と RightController のときは、モードに合う操作だけを毎フレーム読みます。
+            // action の知らせ（started など）は使いません。
+            // 無視する操作（手の握りなど）で action が先に始まると、
+            // あとから押した操作（右トリガーなど）の知らせが来ず、噛めなくなるためです。
             if (inputMode != MockInputMode.Any)
             {
                 bool bite = MockInput.AnyPressed(inputMode, biteAction);

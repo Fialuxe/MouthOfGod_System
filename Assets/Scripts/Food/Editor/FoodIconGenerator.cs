@@ -8,23 +8,38 @@ using UnityEngine.SceneManagement;
 namespace MouthOfGod.Food.Editor
 {
     /// <summary>
-    /// 食べ物の Prefab を、遠近のあるカメラで斜め前から写し、背景が透明な PNG にする。村人の吹き出しのアイコンに使う。
-    /// Assets/Prefabs/Food/ のすべての Prefab から、Assets/Art/Icons/Food/&lt;食べ物の ID&gt;.png を作る。
-    /// 1 回実行して、できた PNG をコミットする（Play 時には使わない）。
-    /// 既にある PNG は上書きしない。手で描いたアイコンを同じ名前で置けば、そちらが使われる。
-    /// 作り直すときは、Project で食べ物の Prefab を選び、右クリックの「MouthOfGod/Food/Generate Icon From Selected」を使う（上書きする）。
+    /// 食べ物の Prefab を斜め前から写し、背景が透明な PNG にします。村人の吹き出しのアイコンに使います。
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Assets/Prefabs/Food/ のすべての Prefab から、PNG を作ります。
+    /// 出力先は Assets/Art/Icons/Food/&lt;食べ物の ID&gt;.png です。
+    /// 1 回実行して、できた PNG をコミットします。Play 中には使いません。
+    /// </para>
+    /// <para>
+    /// 既にある PNG は上書きしません。
+    /// 手で描いたアイコンを同じ名前で置けば、そちらが使われます。
+    /// </para>
+    /// <para>
+    /// 作り直すときは、Project で食べ物の Prefab を選んで右クリックします。
+    /// 「MouthOfGod/Food/Generate Icon From Selected」は、上書きして作ります。
+    /// </para>
+    /// </remarks>
     public static class FoodIconGenerator
     {
         const string PrefabFolder = "Assets/Prefabs/Food/";
         const string OutputFolder = "Assets/Art/Icons/Food/";
-        const int Size = 256; // px
+        const int Size = 256;  // px
         const float FieldOfView = 30f;
-        const float Fill = 0.92f; // 物の箱が、画像の幅（高さ）のどれだけを占めるか。1 に近いほど余白が狭い
+        // 物を囲む箱が、画像の幅と高さのどれだけを占めるかです。1 に近いほど余白が狭くなります。
+        const float Fill = 0.92f;
 
-        // 写す向き（物の中心から見たカメラの方向）。斜め前・少し上から。
+        // 物の中心から見た、カメラの方向です。斜め前の少し上から写します。
         static readonly Vector3 ViewDirection = new Vector3(0.55f, 0.45f, 1f).normalized;
 
+        /// <summary>
+        /// まだ PNG が無い食べ物の Prefab だけ、アイコンを作ります。
+        /// </summary>
         [MenuItem("MouthOfGod/Food/Generate Icons")]
         public static void Generate()
         {
@@ -41,7 +56,7 @@ namespace MouthOfGod.Food.Editor
             Debug.Log($"[Food] アイコンを {created} 件作りました（既にあって飛ばした: {skipped} 件）→ {OutputFolder}");
         }
 
-        // Project で選んだ食べ物の Prefab だけ、アイコンを作り直す（上書きする）。
+        // Project で選んだ食べ物の Prefab だけ、アイコンを作り直します。既にある PNG も上書きします。
         [MenuItem("Assets/MouthOfGod/Food/Generate Icon From Selected")]
         static void GenerateSelected()
         {
@@ -60,7 +75,8 @@ namespace MouthOfGod.Food.Editor
             return prefabs;
         }
 
-        // 渡した Prefab を写して PNG にする。作った数を返す。
+        // 渡した Prefab を写して PNG にし、作った数を返します。
+        // 見た目（Renderer）が無い Prefab は飛ばし、数に入れません。
         static int Render(List<GameObject> prefabs)
         {
             if (prefabs.Count == 0) return 0;
@@ -73,7 +89,7 @@ namespace MouthOfGod.Food.Editor
             {
                 Camera camera = CreateCamera(scene, target);
                 AddLight(scene, new Vector3(50f, -30f, 0f), 1.1f);
-                AddLight(scene, new Vector3(20f, 150f, 0f), 0.5f); // 影の側を明るくする
+                AddLight(scene, new Vector3(20f, 150f, 0f), 0.5f);  // 影の側を明るくします
 
                 foreach (GameObject prefab in prefabs)
                 {
@@ -116,13 +132,13 @@ namespace MouthOfGod.Food.Editor
             camera.scene = scene;
             camera.cameraType = CameraType.Preview;
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0f, 0f, 0f, 0f); // 背景は透明
+            camera.backgroundColor = new Color(0f, 0f, 0f, 0f);  // 背景を透明にします
             camera.fieldOfView = FieldOfView;
-            camera.aspect = 1f; // 正方形の画像
+            camera.aspect = 1f;
             camera.nearClipPlane = 0.01f;
             camera.farClipPlane = 100f;
             camera.targetTexture = target;
-            camera.enabled = false; // Render() を呼んだときだけ写す
+            camera.enabled = false;  // Render() を呼んだときだけ写します
             return camera;
         }
 
@@ -136,7 +152,7 @@ namespace MouthOfGod.Food.Editor
             light.intensity = intensity;
         }
 
-        // 物全体が画面に収まる距離に、カメラを置く。見た目が無ければ false。
+        // 物全体が画面に収まる距離に、カメラを置きます。見た目が無ければ false を返します。
         static bool Frame(Camera camera, GameObject instance)
         {
             Renderer[] renderers = instance.GetComponentsInChildren<Renderer>();
@@ -144,8 +160,9 @@ namespace MouthOfGod.Food.Editor
             Bounds bounds = renderers[0].bounds;
             foreach (Renderer r in renderers) bounds.Encapsulate(r.bounds);
 
-            // まず外側を囲む球が収まる距離に置き、箱の角の写り方を見て、Fill に合うまで近づける。
-            // 遠近があるので 1 回では合わない。数回くり返す。
+            // まず、外側を囲む球が収まる距離に置きます。
+            // 次に、箱の角の写り方を見て、Fill に合うまで近づけます。
+            // 遠近があるので 1 回では合わず、数回くり返します。
             float radius = bounds.extents.magnitude;
             float distance = radius / Mathf.Sin(FieldOfView * 0.5f * Mathf.Deg2Rad);
             for (int i = 0; i < 4; i++)
@@ -153,7 +170,7 @@ namespace MouthOfGod.Food.Editor
                 Place(camera, bounds.center, distance);
                 float extent = ViewportExtent(camera, bounds);
                 if (extent <= 0f) break;
-                distance = Mathf.Max(distance * extent / Fill, radius * 1.05f); // 箱の中に入らない
+                distance = Mathf.Max(distance * extent / Fill, radius * 1.05f);  // カメラが箱の中に入らないようにします
             }
             Place(camera, bounds.center, distance);
             return true;
@@ -165,7 +182,8 @@ namespace MouthOfGod.Food.Editor
             camera.transform.LookAt(center);
         }
 
-        // 箱の 8 つの角が、画像のどこまで広がるか。画像の幅（高さ）に対する割合（1 でちょうど端）。
+        // 箱の 8 つの角が、画像のどこまで広がるかを返します。
+        // 画像の幅と高さに対する割合で、1 でちょうど端です。
         static float ViewportExtent(Camera camera, Bounds bounds)
         {
             float extent = 0f;

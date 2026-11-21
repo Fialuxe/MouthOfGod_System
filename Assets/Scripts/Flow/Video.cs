@@ -6,7 +6,9 @@ namespace MouthOfGod.Flow
     /// <summary>動画の画面への入口です。</summary>
     public static class Video
     {
-        /// <summary>screen の動画を流し、終わるまで待ちます。場面が飛ばされたら、動画も止めます。</summary>
+        /// <summary>画面の動画を流し、終わるまで待ちます。</summary>
+        /// <param name="screen">流す画面です。<see langword="null"/> か動画が無ければ、警告を出してすぐ戻ります。</param>
+        /// <remarks>場面が飛ばされたら、動画も止めます。</remarks>
         public static async Awaitable Play(VideoScreen screen)
         {
             if (screen == null || !screen.HasVideo)

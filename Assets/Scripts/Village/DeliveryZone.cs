@@ -5,35 +5,47 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// 食べ物が落ちる場所です。食べ物が入ると、そのフィールドの <see cref="IFieldRequests.Receive"/> を呼びます。
-    /// Trigger の Collider と一緒に付けます。
+    /// 食べ物が落ちる場所です。
+    /// 食べ物が入ると、そのフィールドの <see cref="IFieldRequests.Receive"/> を呼びます。
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Trigger の Collider と一緒に付けます。
     /// 欲しがっていた物かどうかは、フィールドが決めます。ここでは決めません。
-    /// 食べ物は Core の <see cref="IFoodItem"/> として読むので、Food のコードには依存しません。
-    /// 1 つの食べ物は 1 回しか届けません。届いたあとに残した物が、もう一度入っても数えません。
-    /// 入ってすぐには判定せず、<c>judgeDelaySeconds</c> だけ待ちます。その間に、体験者が何を届けたかを目で確かめられます。
-    /// 判定のあと、欲しがっていた物は消し、それ以外は煙を出して小さくしながら消します。どちらも Inspector で変えられます。
+    /// 食べ物は Core の <see cref="IFoodItem"/> として読みます。
+    /// そのため、Food のコードには依存しません。
+    /// </para>
+    /// <para>
+    /// 1 つの食べ物は 1 回しか届けません。
+    /// 届いたあとに残した物が、もう一度入っても数えません。
+    /// </para>
+    /// <para>
+    /// 入ってすぐには判定せず、<c>judgeDelaySeconds</c> だけ待ちます。
+    /// その間に、体験者は何を届けたかを目で確かめられます。
+    /// 判定のあと、欲しがっていた物は消します。
+    /// それ以外は、煙を出して小さくしながら消します。
+    /// どちらも Inspector で変えられます。
+    /// </para>
     /// </remarks>
     [RequireComponent(typeof(Collider))]
     public sealed class DeliveryZone : MonoBehaviour
     {
-        [Tooltip("届けるフィールドの ID（village など）。空なら、親にあるフィールド（FieldStages）に届ける")]
+        [Tooltip("届けるフィールドの ID です（village など）。空なら、親にあるフィールド（FieldStages）に届けます。")]
         [SerializeField] string fieldId = "";
 
-        [Tooltip("食べ物が入ってから、判定するまでの秒数。この間、食べ物は落ちたまま見えている。0 ならすぐ判定する")]
+        [Tooltip("食べ物が入ってから、判定するまでの秒数です。この間、食べ物は落ちたまま見えています。0 ならすぐ判定します。")]
         [SerializeField, Min(0f)] float judgeDelaySeconds = 1f;
 
-        [Tooltip("頼まれた物が届いたら、その食べ物を消す")]
+        [Tooltip("頼まれた物が届いたら、その食べ物を消します。")]
         [SerializeField] bool consumeRequested = true;
 
-        [Tooltip("頼まれていない物（同じ物の 2 つ目や、よその物）が届いたら、その食べ物をすぐ消す。Vanish Others より先に効く")]
+        [Tooltip("頼まれていない物が届いたら、その食べ物をすぐ消します。同じ物の 2 つ目や、よそのフィールドの物がそうです。Vanish Others より先に効きます。")]
         [SerializeField] bool consumeOthers;
 
-        [Tooltip("頼まれていない物が届いたら、煙を出して、だんだん小さくして消す（霞のように消える）。外すと、フィールドに残る")]
+        [Tooltip("頼まれていない物が届いたら、煙を出して、だんだん小さくして消します（霞のように消えます）。外すと、フィールドに残ります。")]
         [SerializeField] bool vanishOthers = true;
 
-        [Tooltip("消えるまでの秒数")]
+        [Tooltip("Vanish Others で、小さくなって消えるまでの秒数です。0 なら次のフレームで消えます。")]
         [SerializeField, Min(0f)] float vanishSeconds = 1f;
 
 
@@ -45,9 +57,18 @@ namespace MouthOfGod.Village
         void OnTriggerEnter(Collider other) => Deliver(other);
 
         /// <summary>
-        /// 入った物が食べ物なら、フィールドに届けます。判定は <c>judgeDelaySeconds</c> のあとです。
-        /// 食べ物でない・もう届けた・届け先が見つからないときは false です。
+        /// 入った物が食べ物なら、フィールドに届けます。
+        /// 判定は <c>judgeDelaySeconds</c> のあとに行います。
         /// </summary>
+        /// <param name="other">入った物の部品です。食べ物の子でもかまいません。</param>
+        /// <returns>
+        /// 届けたときは <see langword="true"/> を返します。
+        /// 食べ物でない・もう届けた・届け先が見つからないときは <see langword="false"/> を返します。
+        /// </returns>
+        /// <remarks>
+        /// Play 中でないときは、待たずにすぐ判定します。
+        /// コルーチンが動かないためです。
+        /// </remarks>
         public bool Deliver(Component other)
         {
             var item = other.GetComponentInParent<IFoodItem>();
@@ -98,6 +119,7 @@ namespace MouthOfGod.Village
             food.AddComponent<Vanishing>().Seconds = vanishSeconds;
         }
 
+        // 付けた物を Seconds 秒かけて小さくし、最後に Destroy します。
         sealed class Vanishing : MonoBehaviour
         {
             public float Seconds = 1f;
@@ -118,6 +140,7 @@ namespace MouthOfGod.Village
         IFieldRequests ResolveField()
             => string.IsNullOrEmpty(fieldId) ? GetComponentInParent<IFieldRequests>() : Fields.Find(new FieldId(fieldId));
 
+        // 届けた食べ物に付ける印です。同じ食べ物を 2 回届けないために使います。
         sealed class DeliveredMark : MonoBehaviour { }
     }
 }
