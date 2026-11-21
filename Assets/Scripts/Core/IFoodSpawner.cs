@@ -4,7 +4,7 @@ using UnityEngine;
 namespace MouthOfGod.Core
 {
     /// <summary>
-    /// 決定した食感から食べ物を生む所。実装は Food の FoodSpawner。使う側（Tutorial・UI）は <see cref="FoodSpawners.WhenReady"/> で受け取る。
+    /// 決定した食感から食べ物を生む所。実装は Food の FoodSpawner。使う側は、体験者のリグ（<see cref="PlayerRig.FoodSpawner"/>）から受け取る。
     /// </summary>
     /// <remarks>
     /// - チュートリアルは <see cref="Spawned"/> で「何が生まれたか」を待つ。影を出す UI は <see cref="Preview"/> で「いまの食感なら何が生まれるか」を引く。

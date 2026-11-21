@@ -13,7 +13,7 @@ namespace MouthOfGod.Device
     [RequireComponent(typeof(MockDevice))]
     public sealed class MockDeviceModel : MonoBehaviour
     {
-        [Tooltip("手の位置。空なら、シーン内の RightHandAnchor（OVRCameraRig）を探す")]
+        [Tooltip("手の位置。空なら、親の OVRCameraRig の RightHandAnchor。PC で試すリグでは手が無いので、持たない")]
         [SerializeField] Transform handAnchor;
 
         [Tooltip("握りの強さ（0〜1）。この値以上で握ったことにする。暫定")]
@@ -29,8 +29,8 @@ namespace MouthOfGod.Device
         [SerializeField] TextMesh label;
 
         MockDevice _device;
+        OVRCameraRig _rig;
         bool _holding;
-        float _nextHandSearch;
         string _confirmedText;
         float _confirmedUntil;
 
@@ -47,6 +47,7 @@ namespace MouthOfGod.Device
         void Awake()
         {
             _device = GetComponent<MockDevice>();
+            _rig = GetComponentInParent<OVRCameraRig>(true); // 手のアンカーは、リグの Awake で決まるので、使うときに読む
             if (label == null) BuildModel();
         }
 
@@ -118,16 +119,9 @@ namespace MouthOfGod.Device
                 return;
             }
 
-            // 手が見つかるまで、1 秒おきに探す（毎フレーム探さない）。
-            if (handAnchor == null && Time.time >= _nextHandSearch)
-            {
-                _nextHandSearch = Time.time + 1f;
-                var found = GameObject.Find("RightHandAnchor");
-                if (found != null) handAnchor = found.transform;
-            }
-
-            _holding = handAnchor != null && (_device.InputMode == MockInputMode.RightController || GraspValue() >= graspThreshold);
-            if (_holding) transform.SetPositionAndRotation(handAnchor.position, handAnchor.rotation);
+            Transform hand = handAnchor != null ? handAnchor : _rig != null ? _rig.rightHandAnchor : null;
+            _holding = hand != null && (_device.InputMode == MockInputMode.RightController || GraspValue() >= graspThreshold);
+            if (_holding) transform.SetPositionAndRotation(hand.position, hand.rotation);
 
             // 先端: 1 行目に食感（噛んでいる間は *）か決定、2 行目に内容量。
             var current = _device.Current.IsEmpty ? "-" : _device.Current.ToString();

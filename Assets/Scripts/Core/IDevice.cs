@@ -5,9 +5,8 @@ namespace MouthOfGod.Core
     /// <summary>触感デバイスの入力。実装は Device（と MockDevice）。物理量は実装の内側で TextureId に変換する。</summary>
     /// <remarks>
     /// 前提（この形に、全員のコードが乗っている）:
-    /// - 使う側（Food・Tutorial・UI など）は Devices.WhenReady で受け取り、相手が Mock か実機かを知らない。
-    /// - 実機は、IDevice を実装して Devices.Register するだけで差し替わる。実機が先に登録されていれば、MockDevice は自動で作られない。
-    ///   そのため実機は、通信がつながる前でも Awake か OnEnable で Register する（Start や接続後だと、Mock が先に登録される）。
+    /// - 使う側は、体験者のリグ（<see cref="PlayerRig.Device"/>）から受け取り、相手が Mock か実機かを知らない。
+    /// - 実機は、IDevice を実装した部品をリグの子に置き、リグの Device に入れるだけで差し替わる。
     /// - 約束: 噛み始めに Bitten、食感が変わったら TextureChanged、ボタンで Confirmed（そのときの食感）。
     ///   内容量の制御や物理量の変換は、実装の内側に閉じる（使う側に ％ やパターン番号を見せない）。
     /// - イベントはメインスレッドで出す（シリアル通信の受信スレッドから直接出さない）。

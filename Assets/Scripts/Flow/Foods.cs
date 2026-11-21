@@ -16,7 +16,7 @@ namespace MouthOfGod.Flow
         /// <summary><see cref="Override"/> で決めた対応を、すべて戻します。</summary>
         public static void ClearOverrides() => Spawner?.ClearOverrides();
 
-        static FoodSpawner Spawner => Object.FindFirstObjectByType<FoodSpawner>();
+        static FoodSpawner Spawner => PlayerRig.Current != null ? PlayerRig.Current.FoodSpawner as FoodSpawner : null;
 
         /// <summary>生まれた食べ物を、すべて消します。前の場面の食べ物が、あとから届かないようにします。</summary>
         public static void Clear()
