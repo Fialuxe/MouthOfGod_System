@@ -12,7 +12,7 @@
 3. キーボードのときは、Game ビューを一度クリックしてから押す（フォーカスが無いとキーが届かない）。
 4. 試す。
 
-操作のしかたは、`MockDevice` の **Input Mode** で選びます。Prefab（`Assets/Resources/Prefabs/Device/MockDevice.prefab`）の Inspector で変えます。Play 中に変えても効きます。キーボードとゲームパッドは、どのモードでも効きます。
+操作のしかたは、`MockDevice` の **Input Mode** で選びます。Prefab（`Assets/Prefabs/Device/MockDevice.prefab`）の Inspector で変えます。Play 中に変えても効きます。キーボードとゲームパッドは、どのモードでも効きます。
 
 | やること | Hand（両手のハンドトラッキング） | RightController（右コントローラ 1 本） | キーボード |
 |---|---|---|---|
@@ -42,7 +42,7 @@
 ## 変えたいとき
 - `MockDevice` の Inspector で、噛む・決定の操作（Input Action のバインド）、切替間隔、食感 ID を変える。
 - `MockDeviceModel` の Inspector で、握る操作、握りの強さ、手の位置（空なら `RightHandAnchor` を探す）を変える。
-- 設定を残したいときは、メニュー **MouthOfGod > Device > Create MockDevice Prefab** で Prefab（`Assets/Resources/Prefabs/Device/MockDevice.prefab`）を作り、その Inspector で変えてコミットする。Play すると、Mock はこの Prefab から作られる（既にあれば上書きしない）。
+- 設定を残したいときは、メニュー **MouthOfGod > Device > Create MockDevice Prefab** で Prefab（`Assets/Prefabs/Device/MockDevice.prefab`）を作り、その Inspector で変えてコミットする。Play すると、Mock はこの Prefab から作られる（既にあれば上書きしない）。
 - シーンに置きたいときは、Prefab を置く（置いたものが使われる。Prefab より優先）。`MockDevice` コンポーネントだけを足すと、棒の見た目（`MockDeviceModel`）が付かない。
 - 食感 ID の既定は `placeholder-a` 〜 `placeholder-f` の 6 つ。実際の ID は #31 / #54 で決まる。
 

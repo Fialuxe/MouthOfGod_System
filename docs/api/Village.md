@@ -34,10 +34,10 @@
 | クラス | [`StepProgress`](#t-stepprogress) | フィールド 1 つの、ステップ（戻り方の 1 段）の進み具合。 |
 | エディタ | [`VillageBaker`](#t-villagebaker) | 下書きの配置（VillageLayout）から、村のフィールドの Prefab（Village.prefab）を作る。 |
 | エディタ | [`VillageField`](#t-villagefield) |  |
-| エディタ | [`VillageFxGenerator`](#t-villagefxgenerator) | 村の演出（煙・喜びの粒）の Prefab を、Assets/Resources/Prefabs/Village/ に作る。 |
+| エディタ | [`VillageFxGenerator`](#t-villagefxgenerator) | 村の演出（煙・喜びの粒）の Prefab を、Assets/Prefabs/Village/ に作る。 |
 | エディタ | [`VillageItem`](#t-villageitem) | フィールドの 1 つの置き物（下書き）。 |
 | エディタ | [`VillageLayout`](#t-villagelayout) | 村の配置の下書き。 |
-| エディタ | [`VillagePrefabGenerator`](#t-villageprefabgenerator) | 村の置き物の Prefab を、素材（FBX）から Assets/Resources/Prefabs/Village/ に作る。 |
+| エディタ | [`VillagePrefabGenerator`](#t-villageprefabgenerator) | 村の置き物の Prefab を、素材（FBX）から Assets/Prefabs/Village/ に作る。 |
 | エディタ | [`VillageStep`](#t-villagestep) | 戻り方の 1 段（下書き）。 |
 
 ---
@@ -96,7 +96,7 @@ flowchart LR
 | 項目 | 型 | 既定値 | 説明 |
 |---|---|---|---|
 | **欲しい物が届いたとき** | | | |
-| Joy | `ParticleSystem` | なし | 助かった村人の頭の上に出す粒。一度だけ出して、終わると自分で消える（Stop Action を Destroy にする）。空なら Resources/Prefabs/Village/Fx_Joy |
+| Joy | `ParticleSystem` | なし | 助かった村人の頭の上に出す粒。一度だけ出して、終わると自分で消える（Stop Action を Destroy にする）。空なら Resources/Fx/Fx_Joy |
 | Done Clip | `AudioClip` | なし | ステップが済んだときの音（短い物）。空なら Resources/Sounds/Village/Done |
 | On Requested | `UnityEvent` | 空 | 欲しい物が届いたときに、ほかに呼ぶもの |
 | **違う物が届いたとき** | | | |
@@ -167,7 +167,7 @@ flowchart LR
 | Consume Others | `bool` | オフ | 頼まれていない物（同じ物の 2 つ目や、よその物）が届いたら、その食べ物をすぐ消す。Vanish Others より先に効く |
 | Vanish Others | `bool` | オン | 頼まれていない物が届いたら、煙を出して、だんだん小さくして消す（霞のように消える）。外すと、フィールドに残る |
 | Vanish Seconds | `float` | 1 | 消えるまでの秒数 |
-| Vanish Fx | `GameObject` | なし | 消えるときに出す物（煙など）。空なら Resources/Prefabs/Village/Fx_Smoke |
+| Vanish Fx | `GameObject` | なし | 消えるときに出す物（煙など）。空なら Resources/Fx/Fx_Smoke |
 
 ### メンバー（1）
 
@@ -641,7 +641,7 @@ flowchart LR
 
 `Village/Editor/VillageFxGenerator.cs`（エディタ）
 
-村の演出（煙・喜びの粒）の Prefab を、Assets/Resources/Prefabs/Village/ に作る。粒の絵は Kenney の Particle Pack（CC0）。素材の場所は Assets/ArtisticResources/ThirdParty/Kenney/。既にある Prefab は上書きしない。作り直すときは、消してから実行する。「Generate Prefabs」（VillagePrefabGenerator）からも呼ばれる。Quest で重くならないよう、粒の数を少なくし、衝突・軌跡・ライトは使わない。
+村の演出（煙・喜びの粒）の Prefab を、Assets/Prefabs/Village/ に作る。粒の絵は Kenney の Particle Pack（CC0）。素材の場所は Assets/ArtisticResources/ThirdParty/Kenney/。既にある Prefab は上書きしない。作り直すときは、消してから実行する。「Generate Prefabs」（VillagePrefabGenerator）からも呼ばれる。Quest で重くならないよう、粒の数を少なくし、衝突・軌跡・ライトは使わない。
 
 - メニュー: `MouthOfGod/Village/Generate Effects`
 
@@ -667,7 +667,7 @@ flowchart LR
 
 `Village/Editor/VillagePrefabGenerator.cs`（エディタ）
 
-村の置き物の Prefab を、素材（FBX）から Assets/Resources/Prefabs/Village/ に作る。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない。ただし村人と Villager.controller は、毎回作り直す（悩む動き・印を変えたら反映するため）。素材の置き場所は docs/quaternius-assets.md。
+村の置き物の Prefab を、素材（FBX）から Assets/Prefabs/Village/ に作る。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない。ただし村人と Villager.controller は、毎回作り直す（悩む動き・印を変えたら反映するため）。素材の置き場所は docs/quaternius-assets.md。
 
 - メニュー: `MouthOfGod/Village/Generate Prefabs`
 

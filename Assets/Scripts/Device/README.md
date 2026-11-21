@@ -37,7 +37,7 @@ Play すると、Mock は自動で用意されます。ビルドでも同じで�
 スクリプトからは、`MockDevice.GetOrCreate()` で作れます。次の順に探して使います。
 
 1. シーンに置いたもの
-2. Prefab（`Assets/Resources/Prefabs/Device/MockDevice.prefab`）
+2. Prefab（`Assets/Prefabs/Device/MockDevice.prefab`）
 3. 既定の操作割り当てで作ったもの
 
 Prefab は、メニュー **MouthOfGod > Device > Create MockDevice Prefab** で作れます（`Editor/MockDevicePrefabGenerator.cs`）。既定の設定で作ります。既にあれば上書きしません。

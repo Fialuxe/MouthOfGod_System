@@ -101,7 +101,7 @@ Village                        ← FieldStages（Field Id: village）
 2. その下に `Steps` という空のオブジェクトを作る。
 3. 戻り方の 1 段ごとに、`Steps` の下へ空のオブジェクトを作って `FieldStep` を付け、**Food**（欲しい物）・**Helped**（助かる人）・**Hide When Done**（済むと消える物）を入れる。上から順に戻る。
 4. 届くと出る物を、そのステップの子に置く（作っている間は全部見えていてよい。Play すると、まだの物は消える）。
-5. Play して `FieldStages` の右クリック（Inspector の部品の ⋮）→ **Open Next Want** → **Deliver Wanted Food** をくり返し、上から順に戻るか見る。できたら、一番上の物ごと Prefab にする（`Assets/Resources/Prefabs/<フィールド名>/`）。
+5. Play して `FieldStages` の右クリック（Inspector の部品の ⋮）→ **Open Next Want** → **Deliver Wanted Food** をくり返し、上から順に戻るか見る。できたら、一番上の物ごと Prefab にする（`Assets/Prefabs/<フィールド名>/`）。
 
 よくある迷い（村の例で）:
 - **途中に段階を足したい**（にんじんとかぶの間に「麦が実る」） → `Steps` の下に `Wheat` を作って `FieldStep` を付け、`2 Carrot` と `3 Turnip` の間にドラッグする。麦の物はその子に置く。ほかのステップは直さない（名前の数字は目印なので、そろえなくても動く）。

@@ -37,7 +37,7 @@ namespace MouthOfGod.Device
         void Reset() => AddFallbackBindings();
 
         // 手が使えない環境でも確認できるようにする。
-        internal void AddFallbackBindings()
+        void AddFallbackBindings()
         {
             // エディタでは AddComponent のときに Reset からも呼ばれるので、同じ割り当てを二重に足さない。
             MockDevice.AddBindingOnce(graspAction, "<XRController>{RightHand}/grip");

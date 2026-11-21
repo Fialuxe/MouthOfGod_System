@@ -8,7 +8,7 @@ namespace MouthOfGod.Miko
     /// </summary>
     public sealed class MikoPointer : MonoBehaviour
     {
-        // 指さしアニメーション（Miko_Point.anim）の長さに合わせる。MikoPrefabGenerator の PointWeight と同じ値。
+        // 指さしアニメーション（Miko_Point.anim）の長さに合わせる。Miko の Animator Controller と合わせます。
         const float RaiseSeconds = 0.35f;
         const float HoldUntil = 1.4f;
         const float TotalSeconds = 2f;

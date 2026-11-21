@@ -104,7 +104,7 @@
 
 素材（FBX）は、そのまま `Resources` に置けません。そこで、メニュー **MouthOfGod > Village > Generate Prefabs** を使います。
 
-- `Assets/Resources/Prefabs/Village/` に、Prefab と `Villager.controller` を作ります。
+- `Assets/Prefabs/Village/` に、Prefab と `Villager.controller` を作ります。
 - できた Prefab をコミットすれば、以後は Play するだけで動きます。
 - 既にある Prefab は飛ばします。ただし、村人 5 人（`OldClassy_Male` を含む）と `Villager.controller` は毎回作り直します。
 - Prefab が無い物は、仮の箱で置きます。そのときは警告が出ます。

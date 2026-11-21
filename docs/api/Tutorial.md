@@ -39,7 +39,7 @@
 | 選択肢（enum） | [`TutorialEvent`](#t-tutorialevent) | TutorialHistory が記録すること。 |
 | クラス | [`TutorialHistory`](#t-tutorialhistory) | チュートリアルが始まってから、体験者がしたことの記録。 |
 | クラス | [`TutorialMemory`](#t-tutorialmemory) | チュートリアルのあいだで引き継ぐ「覚えたこと」。 |
-| エディタ | [`TutorialPrefabGenerator`](#t-tutorialprefabgenerator) | プロローグとチュートリアル 1〜4 の Prefab を、Assets/Resources/Prefabs/Tutorial/ に作る。 |
+| エディタ | [`TutorialPrefabGenerator`](#t-tutorialprefabgenerator) | プロローグとチュートリアル 1〜4 の Prefab を、Assets/Prefabs/Tutorial/ に作る。 |
 | 試験用 | [`OpenAllRequestsAfterTutorial`](#t-openallrequestsaftertutorial) | チュートリアルが終わったら、すべてのフィールドに、欲しい物をいっぺんに出す仮のスクリプト。 |
 | 試験用 | [`TutorialAutoStart`](#t-tutorialautostart) | Play を始めてしばらくしたら、同じ GameObject の TutorialRunner を動かす。 |
 | 試験用 | [`VillageTutorialProbe`](#t-villagetutorialprobe) | 村だけで、チュートリアルを進める仕組みが動くか確かめる仮のスクリプト。 |
@@ -1426,7 +1426,7 @@ Play を始めてしばらくしたら、同じ GameObject の TutorialRunner �
 
 `Tutorial/Editor/TutorialPrefabGenerator.cs`（エディタ）
 
-プロローグとチュートリアル 1〜4 の Prefab を、Assets/Resources/Prefabs/Tutorial/ に作る。メニュー「MouthOfGod/Tutorial/Generate Tutorial Prefabs」。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない（担当者が直した所を消さないため）。
+プロローグとチュートリアル 1〜4 の Prefab を、Assets/Prefabs/Tutorial/ に作る。メニュー「MouthOfGod/Tutorial/Generate Tutorial Prefabs」。1 回実行して、できた Prefab をコミットする（Play 時には使わない）。既にある Prefab は上書きしない（担当者が直した所を消さないため）。
 
 - メニュー: `MouthOfGod/Tutorial/Generate Tutorial Prefabs`
 

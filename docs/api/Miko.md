@@ -28,7 +28,7 @@
 | 選択肢（enum） | [`MikoEye`](#t-mikoeye) | 目の形（Miko_Eyes.png の絵の順番）。 |
 | 選択肢（enum） | [`MikoMode`](#t-mikomode) | 巫女の居場所の決め方。 |
 | クラス | [`MikoLineQueue`](#t-mikolinequeue) | しゃべっている間に来たセリフの順番待ち。 |
-| エディタ | [`MikoPrefabGenerator`](#t-mikoprefabgenerator) | 巫女の Prefab と、身振りのアニメーション（浮いて待つ・指さす）を、Assets/Resources/Prefabs/Miko/ に作る。 |
+| エディタ | [`MikoPrefabGenerator`](#t-mikoprefabgenerator) | 巫女の Prefab と、身振りのアニメーション（浮いて待つ・指さす）を、Assets/Prefabs/Miko/ に作る。 |
 
 ---
 
@@ -570,6 +570,6 @@ flowchart LR
 
 `Miko/Editor/MikoPrefabGenerator.cs`（エディタ）
 
-巫女の Prefab と、身振りのアニメーション（浮いて待つ・指さす）を、Assets/Resources/Prefabs/Miko/ に作る。素材は Assets/ArtisticResources/ThirdParty/Miko-san.fbx（Generic）。骨の名前と、取り込んだ骨の位置から、向きと左右を調べて作る。軸の値は決め打ちしない。何度実行してもよい。Prefab とクリップは同じ場所に上書きするので、GUID は変わらない。
+巫女の Prefab と、身振りのアニメーション（浮いて待つ・指さす）を、Assets/Prefabs/Miko/ に作る。素材は Assets/ArtisticResources/ThirdParty/Miko-san.fbx（Generic）。骨の名前と、取り込んだ骨の位置から、向きと左右を調べて作る。軸の値は決め打ちしない。何度実行してもよい。Prefab とクリップは同じ場所に上書きするので、GUID は変わらない。
 
 - メニュー: `MouthOfGod/Miko/Generate Prefab`

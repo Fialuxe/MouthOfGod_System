@@ -139,11 +139,11 @@ Fields.Find(currentField)?.Receive(spawned.Food); // 戻るのは頼まれた物
 
 **素材担当**
 - モデル・テクスチャ・音は、`Assets/Resources/` の外（`Assets/ArtisticResources/` など）に置く。タグ（食感・置き場所）を素材に埋め込まない。データ側で持つ。
-- Prefab は `Assets/Resources/Prefabs/<機能>/` に置く（フォルダ名はスクリプトとそろえる）。
-- 食べ物を足すときは、Prefab を `Assets/Resources/Prefabs/Food/` に置き（ファイル名が ID）、`FoodTable` に 1 行足す。全員で触る共有のリストは作らない。
+- Prefab は `Assets/Prefabs/<機能>/` に置く（フォルダ名はスクリプトとそろえる）。
+- 食べ物を足すときは、Prefab を `Assets/Resources/Food/` に置き（ファイル名が ID）、`FoodTable` に 1 行足す。全員で触る共有のリストは作らない。
 
 **企画・シーン担当**
-- データ（ScriptableObject）は `Assets/Resources/Data/<種類>/` に、1 件 1 アセットで作る。そのチュートリアルにしかない物の Prefab は `Assets/Resources/Prefabs/Tutorial/` に置く。
+- データ（ScriptableObject）は `Assets/Resources/Data/<種類>/` に、1 件 1 アセットで作る。そのチュートリアルにしかない物の Prefab は `Assets/Prefabs/Tutorial/` に置く。
 - フィールドの定義（山・海・草原・村、足りない状態と届いた後の状態）は [docs/fields.md](../../docs/fields.md)。
 - 覚えたこと・場面の名前は、[progress-keys.md](../../docs/progress-keys.md) の一覧にあるものだけ使う。
 

@@ -12,15 +12,15 @@
 
 | 担当 | フィールドの名前 | Prefab |
 |---|---|---|
-| 海 | `sea` | `Assets/Resources/Prefabs/Sea/Sea.prefab` |
-| 山 | `mountain` | `Assets/Resources/Prefabs/Mount/MountVer2.prefab` |
-| 草原 | `grassland` | `Assets/Resources/Prefabs/Grass/Grass.prefab` |
-| 村 | `village` | `Assets/Resources/Prefabs/Village/Village.prefab` |
+| 海 | `sea` | `Assets/Prefabs/Sea/Sea.prefab` |
+| 山 | `mountain` | `Assets/Prefabs/Mount/MountVer2.prefab` |
+| 草原 | `grassland` | `Assets/Prefabs/Grass/Grass.prefab` |
+| 村 | `village` | `Assets/Prefabs/Village/Village.prefab` |
 
 手順の中の `<名前>` は、この表の「フィールドの名前」に読み替えてください。
 
 ### 見本
-村の Prefab（`Assets/Resources/Prefabs/Village/Village.prefab`）が見本です。迷ったら、村の Prefab を開いて見比べてください。村の Prefab は 1〜7 章が済んでいるので、村の担当は 8 章と 9 章だけを行います。
+村の Prefab（`Assets/Prefabs/Village/Village.prefab`）が見本です。迷ったら、村の Prefab を開いて見比べてください。村の Prefab は 1〜7 章が済んでいるので、村の担当は 8 章と 9 章だけを行います。
 
 ### 使う部品
 どの部品も、Inspector の **Add Component** で名前を入れると付けられます。
@@ -54,7 +54,7 @@ Hierarchy で、次の形になれば完成です。`< >` の所は、フィー�
 
 ### 始める前にそろえておくもの
 - PR #313 が main に入っていること。`StandArea` と `CueReaction` は、この PR で入ります。
-- 欲しい物の食べ物の Prefab が、`Assets/Resources/Prefabs/Food/` にあること。無い食べ物は、自分で先に作ります。作れなければ、Food の担当に頼みます。
+- 欲しい物の食べ物の Prefab が、`Assets/Resources/Food/` にあること。無い食べ物は、自分で先に作ります。作れなければ、Food の担当に頼みます。
 
 分からない所があれば、#313 か Slack のスレッドで聞いてください。
 
@@ -84,7 +84,7 @@ Hierarchy で、次の形になれば完成です。`< >` の所は、フィー�
    体験中、村人は上に置いたステップの物から順に欲しがります。
    - a. `Steps` を右クリックし、**Create Empty** を選びます。名前は `<番号> <食べ物>` にします（例: `1 fish`）。
    - b. `FieldStep` を付けます。
-   - c. **Food** に、食べ物の ID を入れます。ID は、`Assets/Resources/Prefabs/Food/` にある Prefab の名前と同じです（例: `fish`）。
+   - c. **Food** に、食べ物の ID を入れます。ID は、`Assets/Resources/Food/` にある Prefab の名前と同じです（例: `fish`）。
    - d. その物が届いたときに現れてほしい物を、このオブジェクトの子にドラッグします。
    - e. その物が届いたときに消えてほしい物（枯れた木など）を、**Hide When Done** にドラッグします。
 3. チュートリアル 3 と 4 では、海が魚を欲しがります。そのため、海の担当だけ、**Food** が `fish` のステップがあるかを確かめます。
