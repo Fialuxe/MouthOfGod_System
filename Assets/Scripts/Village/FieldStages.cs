@@ -6,75 +6,143 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// フィールド（山・海・草原・村）の戻り方と欲しい物。フィールドの一番上の物に 1 つ付ける。
-    /// 戻り方は、下にある <see cref="FieldStep"/> を Hierarchy の並び順に使う（番号は持たない）。
-    /// 有効になると Core の <see cref="Fields"/> に自分を登録する。本編（Game）とチュートリアル（Tutorial）は、そこから <see cref="IFieldRequests"/> として受け取り、
-    /// 欲しい物を出す（<see cref="Open()"/>）。いつ出すかは、ここでは決めない（docs/requests.md）。
+    /// フィールド（村・海・草原・山）1 つの、欲しい物と戻り方を管理します。フィールドの Prefab の一番上に付けます。
     /// </summary>
+    /// <remarks>
+    /// 戻り方の段は、子にある <see cref="FieldStep"/> を Hierarchy の並び順に使います。段に番号はありません。
+    /// 有効になると Core の <see cref="Fields"/> に登録し、ほかの部品は <see cref="IFieldRequests"/> として受け取ります。
+    /// いつ欲しい物を出すかは、呼ぶ側（Flow の場面）が決めます。このクラスは、出す・受け取る・戻すだけを行います。
+    /// </remarks>
     public sealed class FieldStages : MonoBehaviour, IFieldRequests
     {
-        [Tooltip("フィールドの ID（docs/fields.md）。village / mountain / sea / grassland のどれか。空のままだと、本編などにつながらない（Play の始めに警告）")]
+        public enum RequestOrder { InOrder, Random }
+
+        [Tooltip("フィールドの ID。village / mountain / sea / grassland のどれか。空のままだと、ほかの部品から見つけられない（Play の始めに警告）")]
         [SerializeField] string fieldId = "";
+
+        [Tooltip("体験者に来てほしいときに光らせる物。Flow の Field.Glow で出し入れする。空なら光らない")]
+        [SerializeField] GameObject glow;
 
         [Tooltip("欲しい物を出す順番。InOrder: Steps の並び順。Random: まだのステップからランダム")]
         [SerializeField] RequestOrder requestOrder = RequestOrder.InOrder;
 
-        [Tooltip("このフィールドに、同時に出せる欲しい物の数。別々の村人が、それぞれ別の物を欲しがれる。仮の値。全体で同時にいくつ出すかは、本編（Game）が決める")]
+        [Tooltip("このフィールドに、同時に出せる欲しい物の数。別々の村人が、それぞれ別の物を欲しがれる")]
         [SerializeField, Min(1)] int maxOpenRequests = 2;
-
-        public enum RequestOrder { InOrder, Random }
 
         static readonly System.Random Rng = new System.Random();
 
         FieldStep[] _steps;
         StepProgress _progress;
-        // 出ている欲しい物の番号（ステップ → 番号）。出すたびに 1 つずつ増やす。
-        readonly Dictionary<int, int> _requests = new Dictionary<int, int>();
+        readonly Dictionary<int, int> _requests = new Dictionary<int, int>(); // ステップの番号 → 欲しい物の番号
         int _lastRequest;
-        // 見た目を写し直してから Closed を出すまでの間。ここで Open されると Issued が Closed より先に出るので、出させない。
-        bool _closing;
+        bool _closing; // 見た目を写し直している間。ここで Open されると、Issued が Closed より先に出てしまいます
 
         public event Action<RequestIssued> Issued;
         public event Action<RequestClosed> Closed;
         public event Action<Delivered> Received;
 
-        /// <summary>ステップが済んだとき（済んだステップ）。Closed の後に出る。フィールドごとの独自の演出を、ここから足せる。</summary>
+        /// <summary>ステップが済んだときに出ます。Closed のあとです。</summary>
         public event Action<FieldStep> StepDone;
 
-        /// <summary>はじめ（全部まだ）に戻したとき。</summary>
-        public event Action Restarted;
-
-        /// <summary>フィールドの ID。有効な間に変えると、Fields に登録し直す（空・重なりの確かめもやり直す）。</summary>
-        public string FieldId
-        {
-            get => fieldId;
-            set
-            {
-                if (fieldId == value) return;
-                // 登録は Play 中だけ（OnEnable と同じ）。編集中・EditMode のテストでは掲示板に触らない
-                var registered = Application.isPlaying && isActiveAndEnabled;
-                if (registered) Fields.Unregister(this);
-                fieldId = value;
-                if (registered) Fields.Register(this);
-            }
-        }
         public FieldId Field => new FieldId(fieldId);
-        public IReadOnlyList<FieldStep> Steps => StepsInOrder;
-        public int DoneCount => Progress.DoneCount;
-        public bool IsFullyRecovered => Progress.IsComplete;
         public bool IsOpen => Progress.IsOpen;
         public bool CanOpen => !_closing && Progress.CanOpen;
 
-        /// <summary>出ている欲しい物のうち、一番古いもの（出ていなければ FoodId.None）。</summary>
+        /// <summary>出ている欲しい物のうち、いちばん古い物です。出ていなければ <see cref="FoodId.None"/> です。</summary>
         public FoodId Current => Progress.Current;
 
-        /// <summary>出ている欲しい物の数。</summary>
+        /// <summary>出ている欲しい物の数です。</summary>
         public int OpenCount => Progress.OpenIndices.Count;
 
-        /// <summary>同時に出せる欲しい物の数。Play の前に決める（出し始めたあとに変えても、効かない）。</summary>
-        public int MaxOpenRequests { get => maxOpenRequests; set => maxOpenRequests = Mathf.Max(1, value); }
+        /// <summary>光らせる物を出すか、消します。</summary>
+        public void SetGlow(bool on)
+        {
+            if (glow != null) glow.SetActive(on);
+        }
 
-        public bool IsDone(FieldStep step) => Progress.IsDone(Array.IndexOf(StepsInOrder, step));
+        /// <summary>次の欲しい物を出します。上限まで出ているか、出せる物が残っていなければ false です。</summary>
+        public bool Open()
+        {
+            if (_closing || !Progress.TryOpen(out var index, requestOrder == RequestOrder.Random ? Rng : null)) return false;
+            return Issue(index);
+        }
+
+        /// <summary>food を欲しがる、まだ済んでいないステップを出します。並び順は見ません。出せなければ false です。</summary>
+        public bool Open(FoodId food)
+        {
+            if (_closing || !Progress.TryOpen(food, out var index)) return false;
+            return Issue(index);
+        }
+
+        /// <summary>
+        /// 届いた物を受け取り、何だったかを返します。<see cref="Received"/> は必ず 1 回出ます。
+        /// 欲しがっていた物ならステップを済ませ、Closed → Received → StepDone の順に出します。
+        /// </summary>
+        public DeliveryKind Receive(FoodId food)
+        {
+            if (!Progress.TryResolve(food, out var index))
+            {
+                var kind = Progress.Wants(food) ? DeliveryKind.Own : DeliveryKind.Foreign;
+                Received?.Invoke(new Delivered(food, Field, kind));
+                return kind;
+            }
+
+            // 見た目を先に変えます。Closed を受けてすぐ Open しても、次のステップが出るようにするためです。
+            ApplyThenClose(new[] { Take(index) }, resolved: true, celebrate: true);
+            Received?.Invoke(new Delivered(food, Field, DeliveryKind.Requested));
+            RaiseStepDone(index);
+            return DeliveryKind.Requested;
+        }
+
+        /// <summary>出ている欲しい物を、すべて届かないまま終えます。</summary>
+        public void Expire()
+        {
+            foreach (var index in Progress.CloseAll())
+            {
+                var (food, request) = Take(index);
+                Closed?.Invoke(new RequestClosed(food, Field, resolved: false, request));
+            }
+        }
+
+        /// <summary>request の番号の欲しい物だけを、届かないまま終えます。</summary>
+        public void Expire(int request)
+        {
+            var index = -1;
+            foreach (var pair in _requests)
+                if (pair.Value == request) index = pair.Key;
+            if (index < 0 || !Progress.Close(index)) return;
+            var (food, _) = Take(index);
+            Closed?.Invoke(new RequestClosed(food, Field, resolved: false, request));
+        }
+
+        /// <summary>すべてのステップを、まだの状態に戻します。出ていた欲しい物も終えます。</summary>
+        public void Restart()
+        {
+            var closes = new List<(FoodId, int)>();
+            foreach (var index in Progress.CloseAll()) closes.Add(Take(index));
+            Progress.Reset();
+            ApplyThenClose(closes, resolved: false, celebrate: false);
+        }
+
+        void Awake()
+        {
+            // 届いたときの反応が無いフィールドでも、標準の反応を出します。
+            if (!TryGetComponent<DeliveryFx>(out _)) gameObject.AddComponent<DeliveryFx>();
+        }
+
+        void OnEnable() => Fields.Register(this);
+
+        void OnDisable()
+        {
+            Expire(); // 先に終えておくと、吹き出しが残りません
+            Fields.Unregister(this);
+        }
+
+        void Start()
+        {
+            WarnIfIncomplete();
+            Apply(celebrate: false);
+        }
 
         FieldStep[] StepsInOrder => _steps ??= GetComponentsInChildren<FieldStep>(includeInactive: true);
 
@@ -89,55 +157,6 @@ namespace MouthOfGod.Village
             }
         }
 
-        // 掲示板への登録。ID が空・重なっているときは、Fields が警告を出す。
-        // 標準の反応（DeliveryFx）が無ければ付ける。フィールドの担当が何もしなくても、届いたときに反応が出るように。
-        void Awake()
-        {
-            if (Application.isPlaying && !TryGetComponent<DeliveryFx>(out _)) gameObject.AddComponent<DeliveryFx>();
-        }
-
-        void OnEnable() => Fields.Register(this);
-
-        // 出ていた欲しい物は終えてから外す（使う側が Removed で購読を外しても、吹き出しが残らないように）。
-        void OnDisable()
-        {
-            Expire();
-            Fields.Unregister(this);
-        }
-
-        // その時点の進み具合を見た目に写す（ふつうは、全部のステップがまだの見た目）。抜けがあれば警告する（止めない）。
-        void Start()
-        {
-            WarnIfIncomplete();
-            Apply(celebrate: false);
-        }
-
-        void WarnIfIncomplete()
-        {
-            if (StepsInOrder.Length == 0) Debug.LogWarning($"[FieldStages] {name}: ステップ（FieldStep）が 1 つもありません。", this);
-            foreach (var step in StepsInOrder)
-            {
-                if (string.IsNullOrEmpty(step.Food)) Debug.LogWarning($"[FieldStages] {name}/{step.name}: 欲しい物（Food）が空です（このステップは出ません）。", step);
-                if (step.Helped.Count == 0 || step.Helped[0] == null) Debug.LogWarning($"[FieldStages] {name}/{step.name}: 助かる人（Helped）が空です（吹き出しはステップの場所に出ます）。", step);
-            }
-        }
-
-        /// <summary>次の欲しい物を出す（Issued）。上限まで出ている・出せる物が残っていないなら false。</summary>
-        public bool Open()
-        {
-            if (_closing || !Progress.TryOpen(out var index, requestOrder == RequestOrder.Random ? Rng : null)) return false;
-            return Issue(index);
-        }
-
-        public RequestOrder Order { get => requestOrder; set => requestOrder = value; }
-
-        /// <summary>その物を欲しがる、まだ済んでいないステップを出す（並び順によらない。チュートリアル用）。出せなければ false。</summary>
-        public bool Open(FoodId food)
-        {
-            if (_closing || !Progress.TryOpen(food, out var index)) return false;
-            return Issue(index);
-        }
-
         bool Issue(int index)
         {
             var food = Progress.WantOf(index);
@@ -148,7 +167,6 @@ namespace MouthOfGod.Village
             return true;
         }
 
-        // 閉じたステップの欲しい物と番号。番号は、もう使わないので外す。
         (FoodId Food, int Request) Take(int index)
         {
             _requests.TryGetValue(index, out var request);
@@ -156,61 +174,6 @@ namespace MouthOfGod.Village
             return (Progress.WantOf(index), request);
         }
 
-        /// <summary>
-        /// 物が届いた。何が届いても受け取り、何だったかを返す。Received を 1 回出す。
-        /// 欲しがっていた物（Requested）なら、ステップを済ませ（見た目が変わる）、Closed（Resolved = true）→ Received → StepDone の順に出す。
-        /// このフィールドの物（Own）・よその物（Foreign）なら、フィールドは戻らず、Received だけ出す（反応は受けた側が足す）。
-        /// 物が落ちた場所を決める所（DeliveryZone）が IFieldRequests 越しに呼ぶ。
-        /// </summary>
-        public DeliveryKind Receive(FoodId food)
-        {
-            if (!Progress.TryResolve(food, out var index))
-            {
-                var kind = Progress.Wants(food) ? DeliveryKind.Own : DeliveryKind.Foreign;
-                Received?.Invoke(new Delivered(food, Field, kind));
-                return kind;
-            }
-
-            // 見た目を先に変えてから知らせる（Closed を受けてすぐ Open しても、次のステップの欲しい物が出るように）
-            ApplyThenClose(new[] { Take(index) }, resolved: true, celebrate: true);
-            Received?.Invoke(new Delivered(food, Field, DeliveryKind.Requested));
-            RaiseStepDone(index);
-            return DeliveryKind.Requested;
-        }
-
-        /// <summary>出ている欲しい物を、すべて届かないまま終える（出した順に Closed）。</summary>
-        public void Expire()
-        {
-            foreach (var index in Progress.CloseAll())
-            {
-                var (food, request) = Take(index);
-                Closed?.Invoke(new RequestClosed(food, Field, resolved: false, request));
-            }
-        }
-
-        /// <summary>その番号の欲しい物だけを、届かないまま終える。出ていなければ何もしない。</summary>
-        public void Expire(int request)
-        {
-            var index = -1;
-            foreach (var pair in _requests)
-                if (pair.Value == request) index = pair.Key;
-            if (index < 0 || !Progress.Close(index)) return;
-            var (food, _) = Take(index);
-            Closed?.Invoke(new RequestClosed(food, Field, resolved: false, request));
-        }
-
-        /// <summary>はじめ（全部まだ）に戻す。出ていた欲しい物も終える（体験の終わりのリセット）。</summary>
-        public void Restart()
-        {
-            // 状態を先に変えてから知らせる（Closed を受けてすぐ Open しても、はじめのステップから出るように）
-            var closes = new List<(FoodId, int)>();
-            foreach (var index in Progress.CloseAll()) closes.Add(Take(index));
-            Progress.Reset();
-            ApplyThenClose(closes, resolved: false, celebrate: false);
-            Restarted?.Invoke();
-        }
-
-        // 見た目を写し直し、閉じた欲しい物の Closed を出す。その間（出し入れした物の OnEnable など）に Open されないようにする。
         void ApplyThenClose(IReadOnlyList<(FoodId Food, int Request)> closes, bool resolved, bool celebrate)
         {
             _closing = closes.Count > 0;
@@ -225,7 +188,7 @@ namespace MouthOfGod.Village
             StepDone?.Invoke(StepsInOrder[index]);
         }
 
-        // 済んだステップの子を出し、消す物を消し、村人の気持ちを合わせる。「消す」は「出す」より勝つ（芽は、実ったら消える）。
+        // 済んだステップの物を出し、消す物を消し、村人の気持ちを合わせます。消すほうが、出すより優先です。
         void Apply(bool celebrate)
         {
             var steps = StepsInOrder;
@@ -240,7 +203,7 @@ namespace MouthOfGod.Village
                     if (go != null) go.SetActive(false);
             }
 
-            // 困っている人は、自分の名前があるステップがすべて済むまで悩む（どのステップにも名前が無い人は元気）
+            // 村人は、自分の名前があるステップがすべて済むまで悩みます。
             var worried = new Dictionary<VillagerMood, bool>();
             foreach (var mood in GetComponentsInChildren<VillagerMood>(includeInactive: true)) worried[mood] = false;
             for (var i = 0; i < steps.Length; i++)
@@ -249,20 +212,24 @@ namespace MouthOfGod.Village
             foreach (var pair in worried) pair.Key.SetWorried(pair.Value, celebrate);
         }
 
-        // 開発中の確認用（右クリックのメニュー）。展示では Game・Tutorial が呼ぶ。
+        void WarnIfIncomplete()
+        {
+            if (StepsInOrder.Length == 0) Debug.LogWarning($"[FieldStages] {name}: ステップ（FieldStep）が 1 つもありません。", this);
+            foreach (var step in StepsInOrder)
+            {
+                if (string.IsNullOrEmpty(step.Food)) Debug.LogWarning($"[FieldStages] {name}/{step.name}: 欲しい物（Food）が空です（このステップは出ません）。", step);
+                if (step.Helped.Count == 0 || step.Helped[0] == null) Debug.LogWarning($"[FieldStages] {name}/{step.name}: 助かる人（Helped）が空です（吹き出しはステップの場所に出ます）。", step);
+            }
+        }
+
         [ContextMenu("Open Next Want")]
         void OpenFromMenu()
         {
-            if (!Open()) Debug.Log($"[FieldStages] {fieldId}: nothing to open (open: {OpenCount}/{maxOpenRequests}, done: {DoneCount}/{StepsInOrder.Length}).", this);
+            if (!Open()) Debug.Log($"[FieldStages] {fieldId}: nothing to open (open: {OpenCount}/{maxOpenRequests}).", this);
         }
 
-        // 出ている欲しい物のうち、一番古いものを届ける
         [ContextMenu("Deliver Wanted Food")]
         void ReceiveFromMenu() => Receive(Current);
-
-        // 頼まれていない物を投げたとき（豊作・いびつな世界の反応を作るとき）の確認用。Received だけが出て、見た目は変わらない
-        [ContextMenu("Deliver Foreign Food (test)")]
-        void ReceiveForeignFromMenu() => Debug.Log($"[FieldStages] {fieldId} received test-foreign: {Receive(new FoodId("test-foreign"))}", this);
 
         [ContextMenu("Complete Next Step")]
         void CompleteFromMenu()
@@ -270,10 +237,9 @@ namespace MouthOfGod.Village
             var index = Progress.IsOpen ? Progress.OpenIndex : Progress.NextIndex;
             if (index < 0)
                 for (var i = 0; i < StepsInOrder.Length && index < 0; i++)
-                    if (!Progress.IsDone(i)) index = i; // 欲しい物が空のステップも済ませられる
+                    if (!Progress.IsDone(i)) index = i; // 欲しい物が空のステップも済ませられます
             if (index < 0) return;
-            var wasOpen = Progress.IsOpenAt(index);
-            var closes = wasOpen ? new[] { Take(index) } : new (FoodId, int)[0];
+            var closes = Progress.IsOpenAt(index) ? new[] { Take(index) } : new (FoodId, int)[0];
             Progress.Complete(index);
             ApplyThenClose(closes, resolved: true, celebrate: true);
             RaiseStepDone(index);

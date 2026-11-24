@@ -18,17 +18,9 @@ namespace MouthOfGod.Tracking
     [DefaultExecutionOrder(-50)]
     public sealed class AprilTagDetectionService : MonoBehaviour, IAprilTagSource
     {
-        /// <summary>シーンにあればそれを、なければ作って返す。<see cref="AprilTagPlace"/> が使うので、手で置く必要はない。</summary>
-        public static AprilTagDetectionService GetOrCreate()
-        {
-            if (_instance != null) return _instance;
-
-            var existing = FindAnyObjectByType<AprilTagDetectionService>();
-            if (existing != null) return existing;
-
-            var go = new GameObject("AprilTag Detection");
-            return go.AddComponent<AprilTagDetectionService>();
-        }
+        /// <summary>シーンに置いてある検出サービスを返します。無ければ null です（Main には AprilTag Detection を置いてあります）。</summary>
+        public static AprilTagDetectionService Find()
+            => _instance != null ? _instance : FindAnyObjectByType<AprilTagDetectionService>();
 
         static AprilTagDetectionService _instance;
 
@@ -79,7 +71,6 @@ namespace MouthOfGod.Tracking
 
             _settings = AprilTagSettings.Load();
             _camera = GetComponent<PassthroughCameraAccess>();
-            if (GetComponent<AprilTagRecalibrateInput>() == null) gameObject.AddComponent<AprilTagRecalibrateInput>();
         }
 
         void OnDestroy()

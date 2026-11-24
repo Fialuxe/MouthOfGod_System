@@ -9,8 +9,8 @@ namespace MouthOfGod.DevTools.Editor
 {
     /// <summary>
     /// Play 中に押すと、場所ごとに食べ物が引けているかを調べる材料を、Console に 1 回で出す。
-    /// 出すもの: いま立っているフィールド、頭の位置、各「立つ場所」の位置・広さ・頭との距離・入っているか、登録された食べ物の表。
-    /// フィールドの前に立った状態で押す。結果を貼れば、箱に入っていないのか、表が引けないのかが分かる。
+    /// 出すもの: いま立っているフィールド、頭の位置、各「立つ場所」の位置・広さ・頭との距離・入っているか。
+    /// フィールドの前に立った状態で押す。結果を貼れば、立つ場所の箱に入っていないのかが分かる。
     /// </summary>
     public static class FieldDiagnostics
     {
@@ -56,8 +56,6 @@ namespace MouthOfGod.DevTools.Editor
                     + " / 有効: " + area.isActiveAndEnabled);
             }
 
-            sb.AppendLine(FoodTables.Describe());
-            foreach (string warning in FoodTables.Validate()) sb.AppendLine("表の食い違い: " + warning);
 
             Debug.Log(sb.ToString());
         }

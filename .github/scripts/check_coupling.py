@@ -2,7 +2,7 @@
 
 決まり（CONTRIBUTING「書き方」、docs/architecture.md「2. 機能と依存の向き」）:
 - Assets/Scripts/<Feature>/ のコードが参照してよい名前空間は、自分の MouthOfGod.<Feature> と MouthOfGod.Core だけ。
-- Bootstrap は、全機能を参照できる唯一の場所。
+- Flow（体験の流れを書く場面のスクリプト）は、全機能を呼んでよい唯一の場所。
 見つけたら、GitHub の警告（::warning）として PR に出す。終了コードは常に 0。
 """
 import pathlib
@@ -11,7 +11,7 @@ import sys
 
 SCRIPTS = pathlib.Path("Assets/Scripts")
 ALLOWED_EVERYWHERE = {"Core"}
-UNRESTRICTED = {"Bootstrap"}
+UNRESTRICTED = {"Flow"}
 NAMESPACE_USE = re.compile(r"\bMouthOfGod\.([A-Za-z0-9_]+)")
 
 

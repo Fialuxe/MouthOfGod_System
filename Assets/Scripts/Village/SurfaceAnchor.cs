@@ -3,10 +3,11 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// フィールドの Prefab の一番上に付ける。親（シーンの Village などの立方体の地面）の上面に乗せ、親の倍率を打ち消す。
-    /// シーンの台は (0.54, 0.2, 0.54) のように縦が潰れているので、その子にそのまま置くと中身がゆがむ。
-    /// これを付けると、Prefab の中は「1 = 1 m」のままになる。編集中もシーンで同じ見た目になる。
+    /// フィールドの Prefab を親の台の上面に乗せ、親の大きさの倍率を打ち消します。Prefab の一番上に付けます。
     /// </summary>
+    /// <remarks>
+    /// シーンの台は縦につぶれた立方体なので、そのまま子にすると中身がゆがみます。これを付けると、Prefab の中は 1 = 1 m のままです。
+    /// </remarks>
     [ExecuteAlways]
     public sealed class SurfaceAnchor : MonoBehaviour
     {

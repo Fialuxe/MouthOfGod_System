@@ -8,7 +8,7 @@
 |---|---|
 | トーン | **ローポリ**。素材は Quaternius を軸にする（パックどうしで色調・形がそろっている） |
 | 神様の視点 | プレイヤーは、目の前のミニチュアの村を見下ろしながら、**周りを歩いて**届け先を選ぶ（README「体験のイメージ」） |
-| 素材の調達 | **無料で再配布できる素材**（CC0・MIT）を使う。public リポジトリなので、Asset Store の素材など再配布できないものは入れない（[CONTRIBUTING 第 7 章](../CONTRIBUTING.md#7-外部素材サードパーティのアセット)） |
+| 素材の調達 | **無料で再配布できる素材**（CC0・MIT）を使う。public リポジトリなので、Asset Store の素材など再配布できないものは入れない（[CONTRIBUTING 第 7 章](../CONTRIBUTING.md#5-外部素材)） |
 | 素材の置き場所と一覧 | `Assets/ArtisticResources/ThirdParty/<提供元>/<パック名>/`。入れたものは [CREDITS.md](../CREDITS.md)、Quaternius の中身は [quaternius-assets.md](quaternius-assets.md) |
 
 ## 何にどの素材を使うか

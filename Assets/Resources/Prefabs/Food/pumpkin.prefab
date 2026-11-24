@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6876856882818078292}
   - component: {fileID: 2571427864057144294}
   - component: {fileID: 1288361431385041275}
+  - component: {fileID: 6513009975708294654}
   m_Layer: 0
   m_Name: pumpkin
   m_TagString: Untagged
@@ -82,6 +83,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &6513009975708294654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5964104816730550264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04b09649240e4297bff8955d96205a10, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  births:
+  - field: village
+    texture: placeholder-c
 --- !u!1001 &7022547749378445484
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,298 +1,94 @@
 # CONTRIBUTING
 
-MouthOfGod_System の開発手順です。Git ブランチ運用 + Unity の Scene Fusion でシーンを共同編集する前提の最低限のルールをまとめています。
-全部読む必要はないです。たぶんそれだと理解が追い付かない可能性があるため。AIのアシストをもらいながら、やりながらチェックしてください。
+MouthOfGod_System の開発の決まりです。全部を一度に読まなくてかまいません。作業しながら、必要な所を見てください。
 
-## 1. 環境セットアップ（初回のみ）
+## 1. 環境の準備
 
-> **はじめに**: GitHub への書き込み権限（Collaborator への招待）、連絡手段、Scene Fusion のアカウントは、公開リポジトリには書かず**チーム内で共有している**。持っていない場合は、チームの誰かに依頼すること。
-> 未整備の項目は Issue で管理している: Scene Fusion のセットアップ（#5）、実行用シーンとフォルダ構成（#6）、デバイスなしでの開発（#7）。
+GitHub への書き込み権限、連絡手段、Scene Fusion のアカウントは、チームの中で共有しています。持っていなければ、チームの誰かに頼んでください。
 
-### 必要なもの
-- Unity **6000.0.73f1**（`ProjectSettings/ProjectVersion.txt` と必ず同じバージョン）
-- Git（**Unity を起動する前に**インストールしておく。後から入れた場合は Unity と Unity Hub を再起動。ないとパッケージの取得に失敗する）
-- Scene Fusion 2 **クラウド版**（リポジトリに組み込み済み。下記「Scene Fusion のセットアップ」参照）
+- **Unity 6000.0.73f1**（`ProjectSettings/ProjectVersion.txt` と同じ版）
+- **Git**。Unity より先に入れます。あとから入れたら、Unity と Unity Hub を再起動します（パッケージの取得に失敗するためです）。
+- **Scene Fusion 2 クラウド版**。準備のしかたは [docs/scene-fusion.md](docs/scene-fusion.md) にあります。
 
-### Clone
 ```bash
 git clone https://github.com/Fialuxe/MouthOfGod_System.git
-cd MouthOfGod_System
-```
-Unity Hub から `Add project from disk` で開く。初回は `Library/` が生成されるため時間がかかります。
-
-### Scene Fusion のセットアップ
-Scene Fusion 2 クラウド版（v2.0.5）は Package Manager 経由でリポジトリに組み込み済みなので、clone して Unity を開けば入る（初回はパッケージ解決に時間がかかる）。**Asset Store 版（Lite / Indie）は LAN 専用なので使わない。**
-
-1. [console.kinematicsoup.com](https://console.kinematicsoup.com/) でアカウントを作る。
-   - Subscription で **Scene Fusion** を選び、**Free** で登録する（これをしないと使えない）。
-2. 作成したアカウントのメールアドレスを、**チームの連絡手段で管理者に報告する**。管理者がプロジェクトに招待する。
-   - 現在は無料枠（**2 席**）のため、招待できる人数に制限がある。席の数え方（登録人数か同時接続数か）は未確認で、Issue #5 で検証中。
-3. 招待メールを承認する。
-4. Unity で `Window > Scene Fusion` を開き、2 のアカウントでログインする。
-5. セッションのメニューで、招待されたプロジェクトを選ぶ（初回だけ）。
-
-- アカウントのメールアドレスは Unity のものと同じでも別でもよい（連携していない）。
-- Scene Fusion の設定（`Assets/KinematicSoup/SceneFusion/Editor/SceneFusionConfig.asset`）は、選んだプロジェクトや表示・ログの設定など各自のものなので、Git で共有しない（`.gitignore` 済み）。初めて開いたときに自動で作られる。セッションの設定（マテリアル・Prefab の同期）は、セッションを作った人の値が使われる。
-- 使用時のルールは第 3 章を参照。
-
-#### 席が足りない・接続できない場合（想定している対処）
-Scene Fusion が使えなくても、開発は止めない。次の順で対処する。
-
-| 状況 | 対処 |
-|---|---|
-| 3 人目以降を招待できない／参加できない（Free は 2 席） | **Scene Fusion を使う人を、シーン制作の担当 2 人に絞る**。それ以外のメンバーは `feature/` `fix/` とサンドボックスシーンで作業する（第 2 章）。それでも足りない場合は有料にするが、予算申請の都合で月額ではなく**買い切り**を買うことになる見込み。**買う前に先生に相談する** |
-| 無料枠の制約（20,000 オブジェクト、テレイン編集不可）に当たる | テレインを使わない・シーンを分割してオブジェクト数を抑える。それでも無理なら有料（買い切りの見込み）を**先生に相談する** |
-| 接続できない・同期が不安定・シーンファイルが破損する | **Scene Fusion をやめ、シーンを分割して担当者を 1 人に決める運用**にする。`scene/` ブランチは 1 人だけが編集し、シーン単位で Git に反映する（同じシーンを同時に触らない） |
-
-どの対処にするかは、Issue #5 の検証結果で決める。お金がかかる対処（有料版の購入）は、予算申請が必要なので**必ず先生に相談してから**決める。
-
-### Unity のエディタ設定（確認）
-- `Edit > Project Settings > Editor`
-  - **Version Control > Mode**: `Visible Meta Files`
-  - **Asset Serialization > Mode**: `Force Text`
-- `.meta` ファイルは必ずアセットと一緒にコミットする（`.gitignore` で除外しない）。
-- Package Manager の画面の状態（`ProjectSettings/PackageManagerSettings.asset`。選んだレジストリや開閉など）は各自のものなので、Git で共有しない（`.gitignore` 済み）。チームで共有するパッケージ（スコープ付きレジストリを含む）は `Packages/manifest.json` に書く。Unity が自動で作り直す。
-
-### Git の設定
-```bash
-git config pull.rebase true        # pull 時にマージコミットを作らない
-git config fetch.prune true        # fetch 時に、リモートで削除済みのブランチの追跡参照を自動で消す
+git config pull.rebase true
+git config fetch.prune true
 git config alias.cleanup '!git switch main && git pull && git fetch --prune && git branch -vv | grep ": gone]" | awk "{print \$1}" | xargs -r git branch -D'
 ```
 
-- 改行コードは、リポジトリの `.gitattributes` で LF にそろえている（`core.autocrlf` などの各自の設定は要らない）。
-- リモートのブランチは、PR をマージすると GitHub が自動で削除する（リポジトリ設定済み）。
-- ローカルのブランチは、マージ後に `git cleanup` を実行すると、リモートで削除済みのものがまとめて消える（Squash マージ後のブランチは `git branch --merged` で検出できないため、この方法を使う）。
+Unity Hub の `Add project from disk` で開きます。初回は `Library/` を作るので時間がかかります。
 
+- Project Settings の Editor で、Version Control を `Visible Meta Files`、Asset Serialization を `Force Text` にしておきます。
+- `.meta` は、必ずアセットと一緒にコミットします。
+- 改行コードは `.gitattributes` で LF にそろえています。
 
-## 2. ブランチ運用
+## 2. ブランチ
 
-| ブランチ | 用途 |
+運用は、Git-Flow を簡略化したものです。
+
+| ブランチ | 使うとき |
 |---|---|
-| `main` | 常に動く状態を保つ。直接 push しない |
-| `feature/<内容>` | 機能追加（例: `feature/player-move`） |
-| `fix/<内容>` | バグ修正 |
-| `scene/<シーン名>-<内容>` | シーン編集が主体の作業 |
-| `docs/<内容>` | README・CONTRIBUTING などドキュメントのみの変更 |
+| `main` | いつも動く状態を保ちます。直接 push しません |
+| `develop` | 大きな作り直しを、`main` と分けて試すとき |
+| `feature/<内容>` | 機能を作る・広げるとき（スクリプト、Prefab、設定、パッケージ） |
+| `fix/<内容>` | 不具合を直すとき |
+| `scene/<シーン名>-<内容>` | シーンの配置が中心のとき。Scene Fusion で一緒に編集するときもこれです |
+| `docs/<内容>` | 文書だけを変えるとき |
 
-- 作業は必ず `main` から切ったブランチで行い、**Pull Request 経由**で `main` にマージする。
-- ブランチは短命に保つ（1 PR = 1 目的、数日以内にマージ）。
-- マージ後はブランチを削除する。
-- `main` はブランチ保護済み: PR 経由のみ、force push・削除は禁止、履歴は直線（Squash / Rebase マージのみ）。承認数の要件は 0 で、レビューの扱いは第 5 章に従う。
+- 作業は、`main`（大きな作り直しは `develop`）から切ったブランチで行い、PR でマージします。1 つの PR は 1 つの目的にし、数日のうちにマージします。
+- 作業中に `main` が進んだら、自分だけのブランチなら `git rebase origin/main` して `git push --force-with-lease` します。何人かで使うブランチでは、`git merge origin/main` にします。
+- Unity を開いたまま `git switch` しません。切り替えると Unity が読み込み直すので、変更を保存してから切り替えます。
+- マージしたら、`git cleanup` で手元の消えたブランチを片付けます。リモートのブランチは、GitHub が自動で消します。
+- コミットメッセージは英語でも日本語でもかまいません。1 行目に、何をしたかを書きます。
 
-```bash
-git switch main && git pull
-git switch -c feature/player-move
-# ... 作業 ...
-git add <変更したファイル>
-git commit -m "Add player movement"
-git push -u origin feature/player-move   # → GitHub で PR を作成
-```
+### シーン
 
-コミットメッセージは英語/日本語どちらでもよいが、**何をしたかを 1 行目に命令形で**書く。
+- 体験を動かす共有のシーンは、`Assets/Scenes/Main.unity` の 1 つだけです。`feature/`・`fix/` では `Main` を編集しません。`Main` を触るときは `scene/` を使います。
+- 動作の確認は、自分専用のシーン `Assets/Scenes/Sandbox/<名前>_<機能>.unity` で行います。人のサンドボックスは触りません。
+- `.unity`・`.prefab` は、Git でマージしません。競合したら、どちらかを採用します。Scene Fusion を使うときの決まりは [docs/scene-fusion.md](docs/scene-fusion.md) にあります。
 
-### ブランチの使い分け
+## 3. Issue と Pull Request
 
-迷ったら「**主に何を変更するか**」で選ぶ。
+- 作業を始める前に Issue を選びます。Issue の書き方は [`.claude/skills/write-issue/`](.claude/skills/write-issue/SKILL.md) に、ラベルや担当の扱いは [docs/issue-workflow.md](docs/issue-workflow.md) にあります。
+- PR の本文には、目的、変えたこと、確かめ方を書きます。
+- この PR で終わる Issue は、本文に `Closes #番号` と書きます（1 行に 1 つ）。マージすると Issue が閉じ、ロードマップが進み、その Issue を待っていた作業が始められるようになります。迷ったら、閉じる側に倒します。一部だけ進める PR は `Refs #番号` にして、残りを本文に書きます。
+- マージは Squash か Rebase です。できるだけ 1 人に見てもらいます。見てもらえないときは、自分で動かして確かめてからマージし、確かめた内容を PR に書きます。
 
-| 接頭辞 | 使う時 | 主な変更対象 | 例 |
-|---|---|---|---|
-| `feature/` | 新しい機能・仕組みを作る／既存機能を拡張する | スクリプト、Prefab、ScriptableObject、Input 設定、パッケージ追加 | `feature/player-move`, `feature/dialogue-ui` |
-| `fix/` | 既存の挙動の不具合を直す | 該当スクリプト／Prefab の最小限の修正 | `fix/camera-jitter`, `fix/null-ref-on-start` |
-| `scene/` | シーン（`.unity`）上の配置・ライティング・レベル制作が中心の作業。**Scene Fusion で複数人編集する時はこれ** | `Assets/Scenes/*.unity` | `scene/Main-stage1-layout` |
-| `docs/` | ドキュメントだけを変更する（コード・アセットは触らない） | `README.md`, `CONTRIBUTING.md` など | `docs/update-readme` |
+コミットの前に、次を確かめます。
 
-判断のポイント:
-- 動作確認にシーンが必要な機能は、**自分専用のサンドボックスシーン**で確認する（下記）。共有シーン（`Main` など）は `feature/` / `fix/` では編集しない。
-- 共有シーンへの配置が必要になったら、機能をマージした後に `scene/` ブランチで行う。機能が未マージでも先に進めたい場合は、`scene/` ブランチを `feature/` ブランチから切ってよい（その場合、`feature/` を先にマージしてから `scene/` をマージする）。
-- 小さなバグ修正でも、他の作業と混ぜず `fix/` を分ける。
-- 命名は `接頭辞/内容`、英小文字とハイフン（シーン名のみ元の大文字小文字可）。
+- Unity の Console にエラーがない
+- 追加したアセットの `.meta` が入っている
+- `Library/`・`Temp/`・`Logs/`・`UserSettings/` が入っていない
+- うっかり動かした Transform など、要らないシーンの変更が入っていない
 
-### 動作確認用のサンドボックスシーン
+## 4. スクリプト
 
-- 場所: `Assets/Scenes/Sandbox/<自分の名前>_<機能名>.unity`（例: `Sandbox/takuma_player-move.unity`）
-- 作成者本人だけが編集する。他人のサンドボックスは触らない・Scene Fusion に入れない → 競合が原理的に起きない。
-- `feature/` / `fix/` ブランチにそのままコミットしてよい（自分専用なので PR にあっても問題ない）。不要になったら機能のマージ時か後日削除する。
-- 共有シーンに入れる前に、サンドボックスで「単体で動く」ことを確認する。
-- `Main` や `SampleScene` に直接テスト用オブジェクトを置いてコミットしない。
+設計の考え方は [docs/architecture.md](docs/architecture.md) に、フォルダごとの役割は [Assets/Scripts/README.md](Assets/Scripts/README.md) にあります。
 
-### 作業の進め方
+- スクリプトは `Assets/Scripts/<機能>/` に置きます。名前空間は `MouthOfGod.<機能>` です。
+- 体験の流れ（プロローグ → チュートリアル 1〜4 → 本編 → エンディング）は、`Flow` の場面のスクリプトに書きます。`Flow` は、各機能の部品を直接呼んでかまいません。各機能どうしは直接参照せず、`Core` の interface かイベントでつなぎます。機能が別の機能を参照すると、PR に警告が出ます（`.github/scripts/check_coupling.py`）。
+- 各機能の部品は、自分のことを自分で行います（巫女は浮いて体験者を向く、雲は並んで補充される、食べ物は自分が生まれる条件を持つ）。場面のスクリプトは、何をしてほしいかだけを呼びます。
+- 既定は `private` です。Inspector に出したいだけなら `[SerializeField] private` にします。しきい値などの値は、コードに埋め込まず Inspector で渡します。
+- 展示の会場では、キーボードも Inspector も使いません。調整ややり直しは、Quest のコントローラの操作でできるようにします。
 
-どの作業でも、始める前に Issue を選ぶ。週に 1 回、ロードマップで今週やるものを決める。
+### コードの書き方
 
-Issue の書き方は、[`.claude/skills/write-issue/`](.claude/skills/write-issue/SKILL.md) にまとめてあります。題は作業を動詞で書き、本文は短い文章とコードの場所だけにします。ブラウザで作るときは、テンプレート「作業」か「決めること」を使います。
+Unity の C# スタイルガイド（Microsoft の C# の決まりが元）に合わせます。コメントは日本語でかまいません。
 
-**Assignee は「しばらくこの Issue を持っている」という印**（[README「プロジェクト管理」](README.md#プロジェクト管理)）。厳密に守らなくてよい。
-- **付ける**: 何日かかけて進めるとき。ロードマップの「着手中」に出て、ほかの人が同じものを始めなくなる。
-- **付けなくてよい**:
-  - その日のうちか、すぐに終わる（もう取りかかっていて、すぐ PR を出す）とき
-  - 誰がやるか、チームで合意が取れているとき（話し合いや Slack で決まっている）
-- 付けないと、ロードマップの「すぐ着手できる」やふりかえりの「次の一手」に、その Issue が出たままになる。気になるなら付ける。
-- 手を離すとき（しばらく触らない・ほかの人に渡す）は、Assignee を外す。
+1. **コメントには、コードから読めない大事なことを書きます。** 理由、前提、気をつけること、呼ぶ順番の約束（例: Closed → Received → StepDone の順に出る）、Inspector で直すときの勘所などです。コードを言い直すだけのコメントは書きません。
+2. **Tooltip は、Inspector で値を変える人が迷わないように書きます。** 単位、空のときの動き、ほかの設定との関係まで書いてかまいません。
+3. **今はない仕組みや、作ったときの事情は書きません。** Issue の番号や経緯は、Issue と PR に残します。仕組みを消したら、それを指すコメントも直します。
+4. **1 つのファイルに、型は 1 つです。** ファイル名は型の名前と同じにします。Unity は、ファイル名と同じ名前の MonoBehaviour しか Inspector に出せないためです。
+5. **使われていないコードは残しません。** 呼ばれていない入口や、一度だけ使った Editor の道具は消します。
+6. **見えない所で物を作りません。** 部品はシーンか Prefab に置きます。`RuntimeInitializeOnLoadMethod` で自分を作りません（static の値を Play のたびに空に戻すのはかまいません）。
 
-**ミーティングの議事録機能は、10 月で終了しました。** 議題 Issue・録音・文字起こし・議事録の PR は、もう作られません。過去の議事録は [docs/minutes/](docs/minutes/) に残っています。決めたことは、それぞれの Issue のコメントと [docs/decisions.md](docs/decisions.md) に書きます。
+## 5. 外部素材
 
-**ほかのラベル**:
+このリポジトリは公開されているので、再配布できる素材（CC0・MIT など）だけを入れます。
 
-| ラベル | 意味 |
-|---|---|
-| `decision` | 作業ではなく、決めることが中身の Issue |
-| `enhancement`・`making/hardware`・`assets`・`test`・`submission`・`logistics` | 作業の種類（`enhancement` は新機能、`making/hardware` は実物づくり）。文書を作る Issue には `documentation` も付ける |
-| `tutorial-1-device`・`tutorial-2-chew`・`tutorial-3-texture`・`tutorial-4-deliver`・`main-game` | その `sub-goal` が関わるチュートリアル（デバイスの使い方・噛むと物が生まれる・食感と要求を知る・届ける）や本編。1 つでも複数でもよい。どれにも当たらない小ゴールには付けない |
-| `due-oct` | 10/30 の応募に必要 |
-| `optional` | やれたらやる。区切りの完了条件に含めない（ロードマップの数に入らない） |
-| `sub-goal` | 作業ではなく、区切りのゴールを分けたもの。題は「【小ゴール】〜ようにする」の形。子（Blocked by）がすべて閉じると自動で閉じる |
-| `claude-proposal` | Claude が下書きした Issue |
-| `roadmap`・`activity` | ロードマップ・活動記録の Issue（自動で更新。手で付けない） |
-| `hygiene` | 「Issue 整理（週次）」の Issue（自動で更新。手で付けない） |
-
-**担当の役割**（少人数なので、役割は 3 つだけ）:
-
-| 役割 | 内容 | Issue の Assignee |
-|---|---|---|
-| **Leading** | 進める・決める人（1 人） | 付ける |
-| **Support** | Leading を助ける人（1 人。いなくてもよい） | 付ける |
-| **Follower** | それ以外の全員。進み具合を見て、必要なら意見を言う | 付けない |
-
-担当を決めるのが一番重いので、Issue のコメントか Slack で話して決める。決まらなければ、Leading「未定」のままにする。
-
-**「決めること」の Issue の決まり**（決める系の Issue が、作業になっても残り続けないように）:
-
-- **作るとき**: テンプレート（`.github/ISSUE_TEMPLATE/decision.md`）を使い、**決めたあとの行き先**（残る作業を移す、実装の Issue）を最初に書く。行き先を書けないものは、決めることではなく、作業か、まだ早い話。
-- **方針が出て、残りが作業になったら、閉じる。** 残る作業は、行き先の Issue に「（#N から移した）」と付けてコメントで移し、閉じるコメントに、決まったことと移した先を書く。
-- **グループで決める必要がない問い**（担当が一人で決められるもの）は、決めることにしない。行き先の Issue の Leading が決める。
-
-#### A. `feature/` / `fix/`（通常の個人作業）
-1. 必要なら最新化: `git switch main && git pull`
-2. ブランチ作成: `git switch -c feature/xxx`
-3. 実装し、**小さな単位でこまめにコミット**（動く状態ごと）。Unity を開いたまま `git switch` しない（切替後に Unity が再インポートを行うため、切替は Unity 上で変更を保存した状態で行う）。
-4. `git push -u origin feature/xxx`（初回）／ 以降は `git push`
-5. GitHub で PR を作成（`main` 向け）。レビューを受けるなら受けて修正 → マージ。
-6. マージ後: `git switch main && git pull && git branch -d feature/xxx`
-7. 作業中に `main` が進んだ場合: **自分だけが使っているブランチなら** `git fetch && git rebase origin/main` し、`git push --force-with-lease` で更新する。複数人が使うブランチ（`scene/` など）では rebase せず `git merge origin/main` を使う。シーン／Prefab が競合したら第 3 章の方針で片方を採用する。
-
-#### B. `scene/`（Scene Fusion で共同編集）
-1. **事前宣言**: 「どのシーンを、誰と、いつ触るか」を共有する。（チャットで言わなくても作業する人たちがわかっていればOK）同じシーンを別ブランチで同時に触らない。
-2. **ホスト 1 人**が `main` から `scene/<シーン名>-<内容>` を作成し push する。
-3. 参加者は `git fetch && git switch scene/...` で**同じコミットの状態**にしてから Unity を開く。
-4. ホストが Scene Fusion セッションを開始し、参加者が接続する。編集中は互いの変更がリアルタイムに同期される。
-5. 区切りごとにホストがシーンを保存 → 他メンバーは Git 操作をしない → ホストがコミット・push。
-6. セッション終了後、ホストが PR を作成して `main` にマージ。参加者は `git switch main && git pull` で追従する。
-7. シーンに必要な新規スクリプト／Prefab が出てきたら、その場で作らない。Scene Fusion が同期するのはシーン上のオブジェクトで、スクリプトなどのアセットは各自のローカルにある必要があるため。先に `feature/` で作って push し、全員が取り込んでからコンポーネントを付ける。
-
-> **未検証事項**: 「ホストだけがコミットする」運用は、Scene Fusion が各自のローカルのシーンファイルをどう保存するかに依存する。最初のセッションで、(a) 参加者側のシーンファイルに差分が出るか、(b) ホストの保存だけで全員分の変更が含まれるか、を必ず確認し、結果に合わせてこの章を修正すること。
-
-#### 一人でシーンを触る場合
-Scene Fusion を使わず 1 人だけでシーンを編集する場合も、`scene/` ブランチを切って上記 B の手順（ホスト＝自分）で進める。
-
-## 3. Scene Fusion を使った作業ルール
-
-Scene Fusion はシーンを**リアルタイム同時編集**する仕組みで、Git のマージとは別物です。衝突を避けるため次を守ってください。
-
-1. **シーン / Prefab ファイルを Git でマージしない。** `.unity` `.prefab` は YAML で競合解消が困難。
-2. **同じシーンを触る人は、同じブランチ・同じ Scene Fusion セッションで作業する。**
-   - セッションのホスト 1 人が `scene/...` ブランチを用意し、他のメンバーはそれを checkout して参加する。
-   - 全員が同一コミットの状態から開始してから Scene Fusion に接続する。
-3. **コミット・push はホスト（1 人）が行う。** Scene Fusion 中の変更は全員のシーンに同期されるため、複数人が別々にシーンをコミットすると重複・競合になる。
-4. セッション終了前にホストがシーンを保存 → コミット → push。他のメンバーはセッション終了後に `git pull` して最新に追従する。
-5. 共有シーンは 1 つ（例: `Main`）にし、分けない。複数人で触るときは Scene Fusion で一緒に編集する（[docs/architecture.md](docs/architecture.md)「シーンを 1 つにするときの約束」）。機能の動作確認はサンドボックスで行う。
-6. **Prefab / Script / 設定ファイルは通常どおり feature ブランチで作業**し、Scene Fusion セッションとは分けて PR を出す。
-7. 競合が起きたら（同一シーンを別ブランチで編集してしまった場合）、どちらかを採用して捨てる。手作業でのマージはしない。作業前にチームの連絡手段で「今 `Main.unity` を触る」と宣言する。
-
-## 4. コミット前チェックリスト
-- [ ] Unity のコンソールにエラーがない
-- [ ] 追加したアセットの `.meta` も含まれている
-- [ ] `Library/` `Temp/` `Logs/` `UserSettings/` などがステージされていない（`git status` で確認）
-- [ ] 不要なシーン変更（無意識に動かした Transform など）が含まれていない（`git diff` で確認）
-
-## 5. Pull Request
-- タイトルに目的、本文に変更内容と動作確認の方法を書く。
-- 本文に、この PR で終わる Issue を `Closes #番号` と書く（複数なら 1 行に 1 つ）。Issue のない小さな修正は書かなくてよい。
-  - **書くと何がいいか**:
-    - **閉じ忘れがなくなる**: マージした瞬間に Issue が自動で閉じる。手で閉じる手間も、閉じ忘れもない。
-    - **ロードマップが正しく進む**: Issue が閉じると、ロードマップ（Issue と README の図）が作り直され、今の区切りの「完了」の数が増える。閉じ忘れた Issue は、作業が終わっていても「終わっていない」と数えられる。
-    - **次の人が着手できる**: その Issue を待っていた Issue（Blocked by）のブロックが外れ、毎日のふりかえり（Slack）の「外れたブロック」「次の一手」に、着手できるようになった Issue として出る。
-    - **あとから辿れる**: Issue のページに、閉じた PR が残る。「この決めごとは、どの変更で入ったか」を Issue からも PR からも辿れる。
-    - **レビューの基準になる**: レビュワーは、Issue の完了条件を満たしているかを見ればよい。
-    - **ふりかえりが正確になる**: ふりかえりは、PR と Issue のつながりから「どの PR で何が終わったか」を書く。`Closes` のないレビュー待ちの PR は「見落とし」として出る。
-  - **終わる Issue には、積極的に `Closes` を付ける**。PR を書く前に、Issue の「やること」「できたと言える状態（完了条件）」を読み、この PR で満たせるなら `Closes`。
-  - Issue の一部だけを進める PR は `Refs #番号` にし、残っていることを本文に書く。いくつかの PR で 1 つの Issue を終えるときは、**最後の PR に `Closes`** を付ける。
-  - Issue に未決のことが少し残るだけなら、それを docs や新しい Issue に移してから `Closes` にする（Issue を開いたままにしない）。
-  - **迷ったら、閉じる側に倒す**。Issue が閉じないと、ロードマップも次の人の着手も進まない。「この PR では閉じない」と本文に書くのは、完了条件が本当に満たせていないときだけ。仮の定義や、あとで直す前提のものでも、決めて書けたなら閉じてよい（直すことは別の Issue か、次の PR で扱う）。
-  - **PR を出す前に決める**。Issue 一覧（子 Issue を含む）を見て、この PR で満たせる Issue を全部洗い出し、最初から `Closes` に書く。指摘されてから足さない。AI に PR を書かせるときも、この手順を指示する。
-- 原則、最低 1 人のレビュー後に `main` へ **Squash merge** または Rebase merge。
-- **レビューなしでマージしてよい場合**: マージして問題がないと判断でき、かつレビュワーがレビューできない状況（レビュワーが自分しかいない、全員が多忙、など）のとき。**必ず動作確認をした上で**マージし、PR に確認内容を書く。シーンや共通設定を変更する PR は、可能な限りレビューを受ける。
-- マージ後、ローカルで `git switch main && git pull` して最新化する。
-
-## 6. スクリプト方針
-
-目標は「**どこに何があるか分かる**」ことと「**フォルダの中は自由に分割できる**」ことの両立。
-
-機能どうしのつなぎ方、**別々の作業が同じファイルを編集しない分け方**、避けること（アンチパターン）、レビューのチェック項目は [docs/architecture.md](docs/architecture.md) にまとめている。実装やレビューの前に読む。**まず、役割ごとの要点だけを [Assets/Scripts/README.md「実装する前に」](Assets/Scripts/README.md#実装する前に役割ごとに知っておくこと) で読む**（なぜそう決めたかは [docs/decisions.md](docs/decisions.md)）。
-
-### 置き場所
-- スクリプトはすべて `Assets/Scripts/` 以下に置く。ルートに直接置かない。
-- **機能ごとにフォルダを切る**: `Assets/Scripts/<Feature>/`。フォルダの中の分け方（サブフォルダ、ファイル数）は、その機能の担当者が自由に決めてよい。
-- 初期のフォルダ（必要になったら増やしてよい。増やしたら `Assets/Scripts/README.md` の一覧に 1 行足す）:
-
-| フォルダ | 役割 |
-|---|---|
-| `Core/` | 全体で共有する小さな基盤（イベント、共通インターフェース、ユーティリティ）。**他のフォルダに依存しない** |
-| `Device/` | 触感デバイス・Arduino との通信（下記） |
-| `Tracking/` | VR・位置取得 |
-| `Tutorial/` | チュートリアル 1〜4 の進行（人形劇スクリプト） |
-| `Game/` | 本編の進行、スコア、判定 |
-| `Village/` | ミニチュアの村・フィールド・村人 |
-| `UI/` | 画面表示 |
-
-- 各フォルダに短い `README.md`（目的、外に見せる API、担当者）を置くと、他の人が探しやすい。
-- **シーンは `Assets/Scenes/` に置く。実行用の共有シーンは `Assets/Scenes/Main.unity` の 1 つだけ**（村・フィールド・XR リグ・UI をすべて入れる。分けない: [決めたことの記録](docs/decisions.md)）。個人の動作確認用は `Assets/Scenes/Sandbox/` に置く。`SampleScene`（Unity の初期シーン）は使わず、`Main` を Build Settings に登録するときに削除する（#34）。
-- **Prefab はすべて `Assets/Resources/Prefabs/` 以下に置く。** スクリプトと同じく機能ごとにフォルダを切り、フォルダ名はスクリプトとそろえる（例: `Village/` のスクリプトで使う Prefab は `Assets/Resources/Prefabs/Village/`）。フォルダの中の分け方は担当者が自由に決めてよい。
-
-### 型の名前とデータの置き場所
-決めたこと（2026-10-13）。型の一覧と、機能どうしのつなぎ方は [docs/architecture.md「3. 流れはイベントの連鎖にする」](docs/architecture.md#3-流れはイベントの連鎖にする) にある。
-
-- **食べ物と生物は同じ型にする**。名前は `Food`（ID は `FoodId`。食感との対応は `FoodTable`: [Food/README.md](Assets/Scripts/Food/README.md)）。食べ物の Prefab は `Assets/Resources/Prefabs/Food/` に置き、ファイル名を ID にする。`Offering` や `Creature` の型は作らない。
-- 他の型の名前: `TextureId`（食感）、`FieldId` と `FieldDefinition`（フィールド）、`FieldStages` と `FieldStep`（フィールドの戻り方と欲しい物。データはフィールドの Prefab に持つ: [docs/requests.md](docs/requests.md)）、`TutorialScript`（チュートリアル 1 つぶんの人形劇スクリプト）。
-- **ID は文字列**（`FoodId` などは、文字列を包んだ型）。食感や食べ物を `enum` で `Core` に直書きしない（足すたびに全機能が再コンパイルされ、素材担当が触れなくなる）。重複した ID は、起動時にエラーにする。
-- **データ（ScriptableObject）の置き場所は `Assets/Resources/Data/<種類>/`**。種類は `Fields/`。起動時に、フォルダごと `Resources` から読み込む。1 件 = 1 アセットで、全部を入れた 1 つのリストは作らない。
-- 全員で触る 1 つのリストは作らない。「食感 → 食べ物」の対応は、共通の表と、フィールドごとの専用の表（`FoodTable`）に分ける（2026-10-19 の [決めたことの記録](docs/decisions.md)）。
-- **`Resources/` には、起動時に読むデータと Prefab だけを置く**。`Resources/` の中身は、使わなくてもビルドに入り、起動時間とビルドの大きさに効く。素材（モデル、テクスチャ、音）は `Assets/ArtisticResources/` など `Resources/` の外に置き、Prefab から参照する。置き場所は、上の `Data/<種類>/` と `Prefabs/<Feature>/` のどちらかにそろえる。新しいフォルダを足すときは、ここに 1 行足す。
-- **`Resources/Icons/<Feature>/`** には、起動時に読むアイコンの画像を置きます。いまあるのは `Icons/Food/` だけです。食べ物の Prefab を写した PNG で、ファイル名が食べ物の ID です。村人の吹き出しが読みます。作り方は、メニューの **MouthOfGod > Food > Generate Icons** です。
-- **`Resources/` の直下**には、機能ごとの設定のアセットを 1 つずつ置きます（`AprilTagSettings.asset`・`RequestBubbleSettings.asset`）。アセットが無ければ、コードの既定値で動きます。
-
-### 書き方
-- **既定は `private`**。他の機能から呼ばせるものだけを `public` にする。Inspector に出したいだけなら `[SerializeField] private` を使う。
-- 名前空間は `MouthOfGod.<Feature>`（例: `MouthOfGod.Device`）。
-- **疎結合**: 他の機能とのやり取りは、`event` / `interface` / ScriptableObject 経由にする。他の機能のクラスのフィールドを直接読み書きしない。`FindObjectOfType` や `GameObject.Find` で他機能を探さない。
-- 依存の向きは `Core` ← 各機能 ← `Game` / `Tutorial`。`Core` は誰にも依存しない。機能のコードが他の機能の名前空間（`MouthOfGod.<他の機能>`）を参照すると、PR に警告が出る（`.github/scripts/check_coupling.py`。止めはしない）。警告が出たら、Core の interface かイベントに直す。相手は Core の置き場（`Devices`・`Fields`）から受け取る（全機能を参照する組み立て役は置かない。[architecture.md](docs/architecture.md) §2）。
-- 機能ごとに Assembly Definition（`*.asmdef`）を置くと、依存を**コンパイルで強制**できる。必須ではないが、`Device/` と `Core/` には置くことを推奨する。
-- 定数や設定値（ポート名、しきい値など）をコードに埋め込まず、`ScriptableObject` か Inspector で渡す。
-
-### 最終的に Inspector／Editor の操作が要らないシステムにする（LLM エージェント向け）
-
-GDC では、Link で Unity を Play して動かす。**Play したあとに、人が Inspector や Editor を操作しなくても動く**システムにする。実装するときは、次を満たす。
-
-- Play するだけで動く。Play の前後に、手でつなぐ参照や、手で入れる設定値を残さない。
-- 調整ややり直し（例: AprilTag の位置の取り直し）は、自動処理か、コントローラーのボタンなどのアプリ内の操作でできるようにする。`[ContextMenu]` や Inspector のボタンは開発中の補助にとどめ、唯一の手段にしない。
-- 開発中に Inspector 操作が残るときは、手順を README か PR に書き、コードに置き換える Issue を立てる。
-
-### デバイス連携（`Device/`）の設計
-旧プロジェクト MealBeBack のシリアル通信で良くなかった点と、その直し方は [docs/architecture.md「5. デバイス連携」](docs/architecture.md#5-デバイス連携device-旧プロジェクトの反省) にまとめた。`Device/` を触る前に読む。
-
-## 7. 外部素材（サードパーティのアセット）
-
-この repo は公開されているので、**再配布できる素材だけ**を入れる。
-
-- **置き場所**: `Assets/ArtisticResources/ThirdParty/<提供元>/<パック名>/`（例: `Assets/ArtisticResources/ThirdParty/Quaternius/Ultimate Food Pack - Oct 2019/`）。パックのフォルダは、配布されたままの構成・名前で置く。
-- **入れてよいもの**: CC0・MIT など、公開 repo で再配布してよいライセンスの素材。パックに付いているライセンスの文書（`License.txt` など）は、消さずに同じフォルダに残す。MIT のように著作権表示が要るライセンスで、配布物に文書が入っていなければ、配布元から取ってきて同じフォルダに置く。
-- **`.unitypackage` から入れるとき**: 中の `.meta` の GUID が、このプロジェクトのファイルとぶつかっていないか確かめる。URP のテンプレートから作った設定（`*_RPAsset.asset`・`*_Renderer.asset` など）は、`Assets/Settings/` のものと同じ GUID のことがある（Uber Stylized Water のデモがそうだった）。ぶつかるものは、使われていなければ入れない。確かめ方: `find Assets -name "*.meta" -print0 | xargs -0 grep -h "^guid" | sort | uniq -d`（何も出なければよい）。
-- **入れてはいけないもの**: 再配布できない素材（Asset Store の有償アセットなど）。手元で使うだけなら `Assets/Local/` に置く（`.gitignore` 済み。Git に上がらない）。
-- **CREDITS.md**: 素材を入れる PR で、[CREDITS.md](CREDITS.md) に「提供元・パック名・ライセンス・URL・置き場所」を 1 行足す。
-- **容量**: 使わないファイルは入れない。同じモデルが複数の形式（FBX / OBJ / glTF / Blend）で入っているパックでは、Unity で使う形式だけにする。`.blend`（元データ）とプレビューの動画・GIF は `.gitignore` で除外している（手元に置くのは自由）。
-- **Git LFS**: 当面は使わない。素材の合計が大きくなって clone が重くなったら、導入を検討する（導入時は全員に周知）。
-- **glTF（`.gltf`）を使うには** Package Manager の `com.unity.cloud.gltfast`（`Packages/manifest.json` に入れてある）が必要。
-
-## 8. 補足
-- 大きなバイナリ（音声・動画・巨大テクスチャ）が増えてきたら Git LFS の導入を検討する（導入時は全員に周知）。
-- デフォルトブランチは `main`。
+- 置き場所は `Assets/ArtisticResources/ThirdParty/<提供元>/<パック名>/` です。配られたままの構成と名前で置き、ライセンスの文書も残します。
+- 素材を入れる PR で、[CREDITS.md](CREDITS.md) に「提供元・パック名・ライセンス・URL・置き場所」を 1 行足します。
+- 再配布できない素材（Asset Store の有償アセットなど）は、`Assets/Local/` に置きます（Git に上がりません）。
+- `.unitypackage` から入れるときは、`.meta` の GUID がほかのファイルとぶつかっていないかを確かめます: `find Assets -name "*.meta" -print0 | xargs -0 grep -h "^guid" | sort | uniq -d`（何も出なければ大丈夫です）。
+- 使わない形式のファイル（同じモデルの FBX・OBJ・glTF・Blend など）は入れません。glTF を使うには `com.unity.cloud.gltfast` が要ります（入れてあります）。

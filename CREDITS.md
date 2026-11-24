@@ -1,6 +1,6 @@
 # CREDITS
 
-この repo に入っている外部素材の一覧です。素材を入れる PR で 1 行足します（ルールは [CONTRIBUTING 第 7 章](CONTRIBUTING.md#7-外部素材サードパーティのアセット)）。
+この repo に入っている外部素材の一覧です。素材を入れる PR で 1 行足します（ルールは [CONTRIBUTING 第 7 章](CONTRIBUTING.md#5-外部素材)）。
 各パックの中身（どんなパーツがあるか）は [docs/](docs/) を参照してください。
 
 ## Quaternius

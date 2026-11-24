@@ -1,7 +1,7 @@
 # Quaternius の素材パック
 
 `Assets/ArtisticResources/ThirdParty/Quaternius/` に入っている素材の、**どのパックに何があるか**の案内です（素材探しのときに読む）。
-置き場所とライセンスのルールは [CONTRIBUTING 第 7 章](../CONTRIBUTING.md#7-外部素材サードパーティのアセット)、提供元・ライセンスの一覧は [CREDITS.md](../CREDITS.md)。すべて CC0 1.0（再配布・商用利用 OK）。
+置き場所とライセンスのルールは [CONTRIBUTING 第 7 章](../CONTRIBUTING.md#5-外部素材)、提供元・ライセンスの一覧は [CREDITS.md](../CREDITS.md)。すべて CC0 1.0（再配布・商用利用 OK）。
 
 ## 全体像
 
@@ -135,6 +135,6 @@
 
 ## パックを足すとき
 
-1. [CONTRIBUTING 第 7 章](../CONTRIBUTING.md#7-外部素材サードパーティのアセット)に従って置く。
+1. [CONTRIBUTING 第 7 章](../CONTRIBUTING.md#5-外部素材)に従って置く。
 2. [CREDITS.md](../CREDITS.md) に 1 行足す。
 3. このファイルに、パックの中身（構成・何があるか）を足す。

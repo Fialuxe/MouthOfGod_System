@@ -4,9 +4,8 @@ using MouthOfGod.Core;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// フィールド 1 つの、ステップ（戻り方の 1 段）の進み具合。Unity に依存しない（テストできる）。
-    /// ステップごとに欲しい物が 1 つあり、届くとそのステップが済む。済んだかはステップごとに持つ（番号で数えない）。
-    /// 同時に出せる欲しい物は <see cref="MaxOpen"/> まで。次に出すのは、まだ済んでおらず、出てもいない最初のステップ（<see cref="NextIndex"/>）。
+    /// フィールド 1 つの、ステップ（戻り方の 1 段）の進み具合です。
+    /// ステップごとに欲しい物が 1 つあり、その物が届くとステップが済みます。同時に出せる欲しい物は <see cref="MaxOpen"/> までです。
     /// </summary>
     public sealed class StepProgress
     {
@@ -14,7 +13,7 @@ namespace MouthOfGod.Village
         readonly bool[] _done;
         readonly List<int> _open = new List<int>(); // 出ているステップ。出した順（古い順）
 
-        /// <param name="maxOpen">同時に出せる欲しい物の数。1 より小さければ 1。</param>
+        /// <param name="maxOpen">同時に出せる欲しい物の数です。1 より小さければ 1 にします。</param>
         public StepProgress(IReadOnlyList<FoodId> wants, int maxOpen = 1)
         {
             var count = wants?.Count ?? 0;
@@ -62,7 +61,7 @@ namespace MouthOfGod.Village
         // 出せるステップ: まだ済んでおらず、出てもおらず、欲しい物があるもの。
         bool CanIssue(int index) => !_done[index] && !_open.Contains(index) && !_wants[index].IsEmpty;
 
-        /// <summary>次に出すステップ（まだ済んでおらず、出てもおらず、欲しい物があるもの）。無ければ -1。順番を変えたいときは、ここだけを変える。</summary>
+        /// <summary>次に出すステップです。まだ済んでおらず、出てもおらず、欲しい物があるステップのうち最初の物です。無ければ -1 です。</summary>
         public int NextIndex
         {
             get
@@ -160,7 +159,7 @@ namespace MouthOfGod.Village
             return closed;
         }
 
-        /// <summary>欲しい物を通さずに、ステップを済ませる（開発中の確認用）。出ていたら閉じる。</summary>
+        /// <summary>欲しい物を届けずに、ステップを済ませます。出ていたら閉じます。</summary>
         public void Complete(int index)
         {
             if (index < 0 || index >= _done.Length) return;
