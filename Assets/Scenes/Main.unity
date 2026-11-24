@@ -415,9 +415,9 @@ MonoBehaviour:
   _burstScale: 3
   _volume: 0.8
   _miniature: {fileID: 1157251903}
-  _forwardOffsetMeters: 0.75
-  _heightAboveMiniatureMeters: 0.35
-  _angularWidthDegrees: 28
+  _beyondOffsetMeters: 0.75
+  _heightAboveMiniatureMeters: 0.5
+  _angularWidthDegrees: 24
   _followDeadZoneDegrees: 30
   _followSmoothSeconds: 0.5
   _warningSeconds: 10
@@ -3834,7 +3834,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 910000001}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.35, z: 0.75}
+  m_LocalPosition: {x: 0, y: 0.5, z: 0.75}
   m_LocalScale: {x: 0.001, y: 0.001, z: 0.001}
   m_ConstrainProportionsScale: 0
   m_Children:
