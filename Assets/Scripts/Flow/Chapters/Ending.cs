@@ -30,6 +30,7 @@ namespace MouthOfGod.Flow
                 resultText.gameObject.SetActive(true);
             }
 
+            if (scoreBoard == null) scoreBoard = FindFirstObjectByType<ScoreBoard>();
             if (scoreBoard != null) scoreBoard.ShowFinalScore(MainGame.Score, answered);
 
             Miko.Follow();

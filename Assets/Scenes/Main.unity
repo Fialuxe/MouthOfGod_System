@@ -403,7 +403,7 @@ MonoBehaviour:
   _distanceMeters: 1.8
   _yawOffsetDegrees: -22
   _heightOffsetMeters: 0.25
-  _fontSize: 1.5
+  _fontSize: 2.2
   _followDeadZoneDegrees: 30
   _followSmoothSeconds: 0.5
   _warningSeconds: 10

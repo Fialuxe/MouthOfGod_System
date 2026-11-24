@@ -30,6 +30,7 @@ namespace MouthOfGod.Flow
         private const float PunchExtraScale = 0.5f;
         private const float PulseExtraScale = 0.06f;
         private const float PulseRadiansPerSecond = 8f;
+        private const float OutlineWidth = 0.3f;
 
         private static readonly Color NormalColor = Color.white;
         private static readonly Color CelebrationColor = new Color(1f, 0.85f, 0.2f);
@@ -50,8 +51,8 @@ namespace MouthOfGod.Flow
 
         [SerializeField]
         [Min(0.1f)]
-        [Tooltip("文字の大きさです。1.5 で、1.8 m 先で 1 行が 15 cm ほどです。")]
-        private float _fontSize = 1.5f;
+        [Tooltip("文字の大きさです。2.2 で、1.8 m 先で 1 行が 22 cm ほどです。")]
+        private float _fontSize = 2.2f;
 
         [SerializeField]
         [Range(5f, 90f)]
@@ -75,6 +76,8 @@ namespace MouthOfGod.Flow
         private bool _hasYaw;
         private float _punch;
         private bool _isFinalShown;
+        private bool _hasWarnedNoHead;
+        private bool _hasLoggedPlacement;
 
         private int _secondsLeft = -1;
         private int _score;
@@ -158,6 +161,12 @@ namespace MouthOfGod.Flow
             Transform head = FindHead();
             if (head == null)
             {
+                if (!_hasWarnedNoHead)
+                {
+                    _hasWarnedNoHead = true;
+                    Debug.LogWarning("[ScoreBoard] 頭（MainCamera タグのカメラか PlayerRig の Head）が見つからないので、表示を出せません。", this);
+                }
+
                 return;
             }
 
@@ -165,15 +174,21 @@ namespace MouthOfGod.Flow
             AnimateText();
         }
 
+        // 実際に映しているカメラを先に探す。リグの Head とカメラがずれても、見える所に出すため。
         private Transform FindHead()
         {
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null)
+            {
+                return mainCamera.transform;
+            }
+
             if (PlayerRig.Current != null && PlayerRig.Current.Head != null)
             {
                 return PlayerRig.Current.Head;
             }
 
-            Camera mainCamera = Camera.main;
-            return mainCamera != null ? mainCamera.transform : null;
+            return null;
         }
 
         // 顔が大きく向きを変えたときだけ、追いかける。揺れる表示は、VR では酔いのもとになるため。
@@ -205,6 +220,12 @@ namespace MouthOfGod.Flow
             textTransform.position = position;
             // TextMeshPro の文字は、+Z の向きに背を向けた側から読める。そのため、視線の向きに向ける。
             textTransform.rotation = Quaternion.LookRotation(towardViewer, Vector3.up);
+
+            if (!_hasLoggedPlacement)
+            {
+                _hasLoggedPlacement = true;
+                Debug.Log("[ScoreBoard] 頭は " + head.name + "、文字を " + position + " に置きました。", this);
+            }
         }
 
         private void AnimateText()
@@ -270,6 +291,10 @@ namespace MouthOfGod.Flow
             _text.textWrappingMode = TextWrappingModes.NoWrap;
             _text.richText = true;
             _text.color = NormalColor;
+
+            // 明るい空や草の上でも読めるよう、黒い縁を付ける。
+            _text.outlineWidth = OutlineWidth;
+            _text.outlineColor = new Color32(0, 0, 0, 255);
         }
     }
 }

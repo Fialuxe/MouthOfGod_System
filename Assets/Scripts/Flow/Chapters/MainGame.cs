@@ -26,6 +26,9 @@ namespace MouthOfGod.Flow
 
         protected override async Awaitable Run()
         {
+            if (scoreBoard == null) scoreBoard = FindFirstObjectByType<ScoreBoard>();
+            if (scoreBoard == null) Debug.LogWarning("[MainGame] ScoreBoard が見つかりません。残り時間と点数は出ません。", this);
+
             Answered = 0;
             Score = 0;
             int streak = 0;
