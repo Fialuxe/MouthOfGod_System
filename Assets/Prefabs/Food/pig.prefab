@@ -97,7 +97,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   births:
   - field: grassland
-    texture: placeholder-a
+    texture: placeholder-d
+  - field: grassland
+    texture: placeholder-e
   icon: {fileID: 2800000, guid: 130a76ae77350a6448a62e01f7d86e92, type: 3}
 --- !u!1001 &3040043150400453061
 PrefabInstance:
