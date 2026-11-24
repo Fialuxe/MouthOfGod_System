@@ -13,23 +13,29 @@ namespace MouthOfGod.Flow
     /// 見た目は、シーンの Canvas に置きます。この部品は、文字を作りません。
     /// 数字や文字を入れ替えて、跳ねる・光る・数が増えていく動きと、音を足すだけです。
     /// 見た目を変えたいときは、シーンの Canvas を直接直します。
-    /// </para>
-    /// <para>
-    /// Canvas は、体験者の斜め前の空中に置きます（World Space）。
-    /// 頭に貼りつく表示は、VR では見づらく、酔いやすいためです。
-    /// 顔を大きく向け直したときだけ、ゆっくり追いかけます。
     /// Canvas のオブジェクト（<c>Hud</c>）は、はじめは無効にしておきます。
     /// 本編が始まると、この部品が有効にします。
     /// </para>
     /// <para>
+    /// 体験者は、ミニチュアを見下ろして遊びます。そのため、表示は体験者の頭ではなく、ミニチュアの向こう側の縁に立てます。
+    /// ミニチュアを見ている視野の中に入り、頭を動かしても、世界の中で動きません。酔いにくく、没入も壊れません。
+    /// 置く向きは、体験者が顔を向けている向きです。顔を大きく向け直したときだけ、ゆっくり向こう側へ回り込みます。
+    /// 表示は、いつも体験者のほうを向きます。傾けません。
+    /// </para>
+    /// <para>
+    /// 表示の大きさは、距離に合わせて変えて、見かけの大きさ（視野に占める角度）を一定にします。
+    /// 遠くても近くても、同じ大きさに見えます。文字は、太く大きくしています。
+    /// </para>
+    /// <para>
     /// 点が入ると、数字が跳ねて金色に光り、「+300」が浮かび上がり、粒とコインの音が出ます。
     /// 点数は、すぐには変わらず、数えるように増えていきます。
-    /// 続けて届けると、音が高くなり、倍率の札が出ます。
+    /// 続けて届けると、音が高くなり、倍率の札が出て、続けるほど札が大きくなります。
+    /// 続けて届けるのが途切れると、札は赤くなって縮んで消えます。
     /// 残りが <c>Warning Seconds</c> を切ると、時間と帯が赤くなり、小さく脈打ちます。
     /// 終わると「TIME UP!」を出し、最終の点数と順位（S・A・B・C）を出します。
     /// </para>
     /// <para>
-    /// 大きさ・距離・位置は、仮の値です。Quest をかぶって、読みやすさを見て決めます。
+    /// 大きさ・位置は、仮の値です。Quest をかぶって、読みやすさを見て決めます。
     /// </para>
     /// </remarks>
     public sealed class ScoreBoard : MonoBehaviour
@@ -37,14 +43,18 @@ namespace MouthOfGod.Flow
         private const float PunchSeconds = 0.4f;
         private const float PunchExtraScale = 0.45f;
         private const float PopupSeconds = 1.1f;
-        private const float PopupRisePixels = 90f;
+        private const float PopupRisePixels = 110f;
         private const float BannerHoldSeconds = 0.9f;
         private const float BannerFadeSeconds = 0.5f;
         private const float BannerPopSeconds = 0.25f;
+        private const float BadgeBreakSeconds = 0.35f;
         private const float PulseExtraScale = 0.06f;
         private const float PulseRadiansPerSecond = 8f;
         private const float BurstLifetimeSeconds = 3f;
         private const float BurstTowardViewerMeters = 0.06f;
+        private const float MinimumViewDistanceMeters = 0.3f;
+        private const float MinimumFlatForwardLength = 0.2f;
+        private const int MaxBadgeGrowSteps = 3;
         private const int RankSScore = 3000;
         private const int RankAScore = 2000;
         private const int RankBScore = 1000;
@@ -57,10 +67,12 @@ namespace MouthOfGod.Flow
         private static readonly Color WarningColor = new Color(1f, 0.35f, 0.3f);
         private static readonly Color BarGoodColor = new Color(0.35f, 0.9f, 0.5f);
         private static readonly Color BarCautionColor = new Color(1f, 0.8f, 0.25f);
+        private static readonly Color BadgeColor = new Color(1f, 0.55f, 0.15f);
+        private static readonly Color BadgeBreakColor = new Color(0.8f, 0.15f, 0.15f);
 
         [Header("シーンの UI")]
         [SerializeField]
-        [Tooltip("Canvas のオブジェクトです。はじめは無効にしておきます。本編が始まると、この部品が有効にして、体験者の斜め前へ動かします。")]
+        [Tooltip("Canvas のオブジェクトです。はじめは無効にしておきます。本編が始まると、この部品が有効にして、ミニチュアの向こう側へ動かします。")]
         private GameObject _hud;
 
         [SerializeField]
@@ -68,7 +80,7 @@ namespace MouthOfGod.Flow
         private TMP_Text _timeText;
 
         [SerializeField]
-        [Tooltip("点数の上の小さな文字です。「SCORE」と出ます。")]
+        [Tooltip("点数の上の文字です。「SCORE」と出ます。")]
         private TMP_Text _labelText;
 
         [SerializeField]
@@ -76,7 +88,7 @@ namespace MouthOfGod.Flow
         private TMP_Text _scoreText;
 
         [SerializeField]
-        [Tooltip("続けて届けたときに出す札です。2 回続けて届けると出ます。")]
+        [Tooltip("続けて届けたときに出す札です。Image が付いている必要があります。2 回続けて届けると出ます。")]
         private GameObject _streakBadge;
 
         [SerializeField]
@@ -118,28 +130,33 @@ namespace MouthOfGod.Flow
         [Tooltip("音の大きさです（0〜1）。0 なら音を出しません。")]
         private float _volume = 0.8f;
 
-        [Header("位置")]
+        [Header("置き場所")]
         [SerializeField]
-        [Min(0.5f)]
-        [Tooltip("体験者から Canvas までの距離です（メートル）。近すぎると目が疲れるので、1.5〜2.5 が目安です。")]
-        private float _distanceMeters = 1.8f;
+        [Tooltip("ミニチュアの土台です。表示は、この中心から体験者が向いている向きへ、少し離れた所に立てます。空なら、ワールドの原点を中心にします。")]
+        private Transform _miniature;
 
         [SerializeField]
-        [Tooltip("体験者の正面から、横にずらす角度です（度）。負の値で左です。正面に置くと本編の邪魔になります。")]
-        private float _yawOffsetDegrees = -22f;
+        [Min(0f)]
+        [Tooltip("ミニチュアの中心から、表示までの水平の距離です（メートル）。土台の半分の大きさより少し大きくして、縁の向こう側に置きます。")]
+        private float _forwardOffsetMeters = 0.75f;
 
         [SerializeField]
-        [Tooltip("目の高さからの、上へのずれです（メートル）。")]
-        private float _heightOffsetMeters = 0.25f;
+        [Tooltip("ミニチュアの中心から、表示の中心までの高さです（メートル）。")]
+        private float _heightAboveMiniatureMeters = 0.35f;
+
+        [SerializeField]
+        [Range(10f, 60f)]
+        [Tooltip("表示の横幅が、体験者の視野に占める角度です（度）。距離に合わせて大きさを変えて、この角度に保ちます。大きいほど文字が大きく見えます。")]
+        private float _angularWidthDegrees = 28f;
 
         [SerializeField]
         [Range(5f, 90f)]
-        [Tooltip("顔の向きが Canvas の向きからこの角度より離れたときだけ、Canvas が追いかけます（度）。")]
+        [Tooltip("顔の向きが表示の向きからこの角度より離れたときだけ、表示が回り込みます（度）。")]
         private float _followDeadZoneDegrees = 30f;
 
         [SerializeField]
         [Min(0.05f)]
-        [Tooltip("追いかけるときの、なめらかさです（秒）。大きいほどゆっくり動きます。")]
+        [Tooltip("回り込むときの、なめらかさです（秒）。大きいほどゆっくり動きます。")]
         private float _followSmoothSeconds = 0.5f;
 
         [SerializeField]
@@ -149,13 +166,14 @@ namespace MouthOfGod.Flow
 
         private AudioClip[] _coinClips;
         private AudioClip _fanfareClip;
+        private Image _badgeImage;
         private Vector2 _popupBasePosition;
         private Vector3 _scoreBaseScale = Vector3.one;
         private Vector3 _badgeBaseScale = Vector3.one;
         private Vector3 _bannerBaseScale = Vector3.one;
 
-        private float _yaw;
-        private float _targetYaw;
+        private float _yawDegrees;
+        private float _targetYawDegrees;
         private float _yawVelocity;
         private bool _hasYaw;
 
@@ -169,6 +187,7 @@ namespace MouthOfGod.Flow
         private bool _isFinalShown;
         private float _punch;
         private float _badgePunch;
+        private float _badgeBreakRemaining;
         private float _popupAge = float.PositiveInfinity;
         private float _bannerAge = float.PositiveInfinity;
         private bool _hasWarnedNoHud;
@@ -201,12 +220,18 @@ namespace MouthOfGod.Flow
                 return;
             }
 
+            bool streakJustEnded = _streak >= 2 && streak < 2;
             _isFinalShown = false;
             _targetScore = score;
             _streak = streak;
             if (score == 0)
             {
                 _shownScore = 0f;
+            }
+
+            if (streakJustEnded)
+            {
+                _badgeBreakRemaining = BadgeBreakSeconds;
             }
 
             RefreshPlayingTexts();
@@ -241,13 +266,16 @@ namespace MouthOfGod.Flow
             _targetScore = score;
             _answered = answered;
             _streak = 0;
+            _badgeBreakRemaining = 0f;
             _punch = 1f;
 
             _labelText.text = "FINAL SCORE";
             _timeBar.SetActive(false);
             _timeText.text = "RANK " + RankOf(score);
             _timeText.color = GoldColor;
-            _streakText.text = answered + (answered == 1 ? " WISH ANSWERED" : " WISHES ANSWERED");
+            _timeText.transform.localScale = Vector3.one;
+            _streakText.text = answered + (answered == 1 ? " WISH" : " WISHES");
+            _badgeImage.color = BadgeColor;
             _streakBadge.SetActive(true);
             _badgePunch = 1f;
 
@@ -268,6 +296,7 @@ namespace MouthOfGod.Flow
             _isFinalShown = false;
             _punch = 0f;
             _badgePunch = 0f;
+            _badgeBreakRemaining = 0f;
             _popupAge = float.PositiveInfinity;
             _bannerAge = float.PositiveInfinity;
             _hasYaw = false;
@@ -300,6 +329,7 @@ namespace MouthOfGod.Flow
             if (_streakBadge != null)
             {
                 _badgeBaseScale = _streakBadge.transform.localScale;
+                _badgeImage = _streakBadge.GetComponent<Image>();
             }
 
             if (_bannerText != null)
@@ -356,14 +386,14 @@ namespace MouthOfGod.Flow
                 return;
             }
 
-            FollowHeadSlowly(head);
+            PlaceBeyondMiniature(head);
         }
 
         private bool TryShowHud()
         {
             if (_hud == null || _timeText == null || _labelText == null || _scoreText == null || _streakBadge == null
                 || _streakText == null || _popupText == null || _bannerText == null || _timeBar == null
-                || _timeBarFill == null || _timeBarFillImage == null)
+                || _timeBarFill == null || _timeBarFillImage == null || _badgeImage == null)
             {
                 if (!_hasWarnedNoHud)
                 {
@@ -394,11 +424,14 @@ namespace MouthOfGod.Flow
             }
 
             bool hasStreak = _streak >= 2;
-            _streakBadge.SetActive(hasStreak);
             if (hasStreak)
             {
+                _badgeBreakRemaining = 0f;
+                _badgeImage.color = BadgeColor;
                 _streakText.text = "COMBO x" + _streak;
             }
+
+            _streakBadge.SetActive(hasStreak || _badgeBreakRemaining > 0f);
         }
 
         private void CelebrateGainedPoints(int gainedPoints)
@@ -435,10 +468,28 @@ namespace MouthOfGod.Flow
             _scoreText.color = Color.Lerp(NormalColor, GoldColor, eased);
         }
 
+        // 続けるほど札を大きくする。途切れたときは、赤くして縮めて消す。
         private void AnimateBadge(float deltaSeconds)
         {
             _badgePunch = Mathf.Max(0f, _badgePunch - deltaSeconds / PunchSeconds);
-            _streakBadge.transform.localScale = _badgeBaseScale * (1f + 0.25f * _badgePunch * _badgePunch);
+
+            if (_badgeBreakRemaining > 0f)
+            {
+                _badgeBreakRemaining -= deltaSeconds;
+                float shrink = Mathf.Clamp01(_badgeBreakRemaining / BadgeBreakSeconds);
+                _badgeImage.color = BadgeBreakColor;
+                _streakBadge.transform.localScale = _badgeBaseScale * shrink;
+                if (_badgeBreakRemaining <= 0f && _streak < 2)
+                {
+                    _streakBadge.SetActive(false);
+                }
+
+                return;
+            }
+
+            float growSteps = Mathf.Clamp(_streak - 2, 0, MaxBadgeGrowSteps);
+            float streakScale = 1f + 0.1f * growSteps;
+            _streakBadge.transform.localScale = _badgeBaseScale * streakScale * (1f + 0.25f * _badgePunch * _badgePunch);
         }
 
         private void AnimatePopup(float deltaSeconds)
@@ -490,7 +541,8 @@ namespace MouthOfGod.Flow
                 : 1f;
             _timeText.transform.localScale = Vector3.one * pulse;
 
-            _timeBarFillImage.color = isWarning ? WarningColor : Color.Lerp(BarCautionColor, BarGoodColor, Mathf.Clamp01((remainingRatio - 0.25f) * 4f));
+            float goodness = Mathf.Clamp01((remainingRatio - 0.25f) * 4f);
+            _timeBarFillImage.color = isWarning ? WarningColor : Color.Lerp(BarCautionColor, BarGoodColor, goodness);
         }
 
         private void EmitBurst()
@@ -551,35 +603,53 @@ namespace MouthOfGod.Flow
             return null;
         }
 
-        // 顔が大きく向きを変えたときだけ追いかける。揺れる表示は、VR では酔いのもとになるため。
-        private void FollowHeadSlowly(Transform head)
+        // 顔の水平の向きを、角度で返す。真下を向いて前向きが短いときは、頭の上向きの水平の向きを使う。
+        private static float FlatYawDegreesOf(Transform head)
         {
-            float headYaw = head.eulerAngles.y;
+            Vector3 flat = Vector3.ProjectOnPlane(head.forward, Vector3.up);
+            if (flat.magnitude < MinimumFlatForwardLength)
+            {
+                flat = Vector3.ProjectOnPlane(head.up, Vector3.up);
+            }
+
+            return Mathf.Atan2(flat.x, flat.z) * Mathf.Rad2Deg;
+        }
+
+        // ミニチュアの向こう側の縁に立てる。体験者がミニチュアを見ている視野に入り、顔を動かしても世界の中で動かない。
+        private void PlaceBeyondMiniature(Transform head)
+        {
+            float headYaw = FlatYawDegreesOf(head);
             if (!_hasYaw)
             {
                 _hasYaw = true;
-                _yaw = headYaw;
-                _targetYaw = headYaw;
+                _yawDegrees = headYaw;
+                _targetYawDegrees = headYaw;
                 _yawVelocity = 0f;
             }
 
-            if (Mathf.Abs(Mathf.DeltaAngle(_yaw, headYaw)) > _followDeadZoneDegrees)
+            if (Mathf.Abs(Mathf.DeltaAngle(_yawDegrees, headYaw)) > _followDeadZoneDegrees)
             {
-                _targetYaw = headYaw;
+                _targetYawDegrees = headYaw;
             }
 
-            _yaw = Mathf.SmoothDampAngle(_yaw, _targetYaw, ref _yawVelocity, _followSmoothSeconds);
+            _yawDegrees = Mathf.SmoothDampAngle(_yawDegrees, _targetYawDegrees, ref _yawVelocity, _followSmoothSeconds);
 
-            Quaternion around = Quaternion.Euler(0f, _yaw + _yawOffsetDegrees, 0f);
-            Vector3 eye = head.position;
-            Vector3 position = eye + around * Vector3.forward * _distanceMeters + Vector3.up * _heightOffsetMeters;
-            Vector3 towardViewer = position - eye;
-            towardViewer.y = 0f;
+            Vector3 center = _miniature != null ? _miniature.position : Vector3.zero;
+            Vector3 beyond = Quaternion.Euler(0f, _yawDegrees, 0f) * Vector3.forward;
+            Vector3 position = center + beyond * _forwardOffsetMeters + Vector3.up * _heightAboveMiniatureMeters;
 
             Transform hudTransform = _hud.transform;
             hudTransform.position = position;
-            // Canvas の面は +Z の向きに背を向けた側から読める。そのため、視線の向きに向ける。
-            hudTransform.rotation = Quaternion.LookRotation(towardViewer, Vector3.up);
+
+            // 体験者は見下ろすので、上下も含めて顔のほうへ向ける。ただし、傾け（ロール）はしない。
+            Vector3 towardViewer = head.position - position;
+            float distance = Mathf.Max(MinimumViewDistanceMeters, towardViewer.magnitude);
+            hudTransform.rotation = Quaternion.LookRotation(-towardViewer, Vector3.up);
+
+            // 距離が変わっても、視野に占める角度を一定にする。
+            float canvasWidth = ((RectTransform)hudTransform).rect.width;
+            float worldWidth = 2f * distance * Mathf.Tan(_angularWidthDegrees * 0.5f * Mathf.Deg2Rad);
+            hudTransform.localScale = Vector3.one * (worldWidth / canvasWidth);
         }
 
         // 音を順に鳴らす短い音を、コードで作る。音声ファイルを増やさないため。
