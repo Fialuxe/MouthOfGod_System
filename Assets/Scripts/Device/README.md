@@ -2,7 +2,7 @@
 
 触感デバイスの入力を、ゲームが使える形（`IDevice` のイベント）にします。いまあるのは、デバイスなしで動かす `MockDevice` だけです。
 
-状態: 案。割り当てと切替間隔は暫定です。実機との通信は #47 で扱い、ここには含みません。
+状態: 案。割り当てと切替間隔は暫定です。実機との通信は、下の「実機のデバイス」にあります。
 
 担当: （未定）
 
@@ -16,6 +16,18 @@ Meta Quest のコントローラだけで、「噛む → 食感が変わる →
 | `MockDeviceLogic` | （コードの中で使います） | 入力にも Unity にも依存しない中身です。経過時間に応じた食感の切替と、決定を扱います |
 | `MockDeviceModel` | 棒の見た目 | 棒の見た目と、先端の内容量（%）を表示します。握ると手に付く動きも扱います。この動きは見た目だけです |
 | `MockInputMode` | `MockDevice` の Input Mode | 操作のしかたです。Any（手とコントローラのどちらでも）、Hand（両手のハンドトラッキング）、RightController（右コントローラ 1 本）から選びます。キーボードとゲームパッドは、どのモードでも効きます。表は [docs/device-mock.md](../../../docs/device-mock.md) にあります |
+
+## 実機のデバイス
+
+実機は、Arduino がモーターで内容量（%）を動かして、触感を作ります。噛んだことは、デバイスでは検知できません。噛む操作と、決定の操作は、これまでどおり `MockDevice` が受けます。
+
+| 部品 | 役割 |
+|---|---|
+| `DeviceActuator`（`MonoBehaviour`） | リグのデバイスの食感の知らせを受けて、食感ごとの内容量を、実機へ指令します。実機の確定ボタンは、`MockDevice.PressConfirm` で決定として届けます。Windows のエディタとアプリでは、Play すると自動で用意されます |
+| `SerialLink`（内部） | シリアルの読み書きと、ポートの自動検出・再接続です。別のスレッドで動きます。Windows の API を直接呼ぶので、.NET の設定は変えなくてかまいません |
+| `DeviceProtocol`（内部） | 通信の行の組み立てと読み取りです。通信にも Unity にも依存しません |
+
+通信の約束、配線、設定、試し方は、[docs/device-protocol.md](../../../docs/device-protocol.md) にあります。Arduino のスケッチは、[Arduino/MouthOfGodDevice/](../../../Arduino/MouthOfGodDevice/MouthOfGodDevice.ino) です。
 
 `IDevice` の中身と、使う側の受け取り方（`Devices.WhenReady`）は、[Core/README.md](../Core/README.md) にあります。
 

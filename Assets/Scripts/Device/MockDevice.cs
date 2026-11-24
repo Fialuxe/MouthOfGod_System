@@ -81,6 +81,18 @@ namespace MouthOfGod.Device
         /// <inheritdoc/>
         public event Action Bitten;
 
+        /// <summary>
+        /// 実機のハードウェアの確定ボタンが押されたことを知らせます。決定の操作と同じに扱います。
+        /// </summary>
+        /// <remarks>
+        /// <see cref="DeviceActuator"/> が、実機から確定ボタンの知らせを受けたときに呼びます。
+        /// 噛んでいるかどうかは見ません。決定の操作と同じく、いまの食感を付けて <see cref="Confirmed"/> を出します。
+        /// </remarks>
+        public void PressConfirm()
+        {
+            _logic?.Confirm();
+        }
+
         void Reset() => AddFallbackBindings();
 
         // Quest が無くても、キーボードやゲームパッドで試せるようにします。
