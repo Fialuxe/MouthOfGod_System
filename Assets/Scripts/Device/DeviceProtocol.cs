@@ -55,7 +55,8 @@ namespace MouthOfGod.Device
     /// <para>
     /// Unity から Arduino へ: <c>(f,80)</c> は「内容量を 80 % まで増やす」、<c>(s,20)</c> は「20 % まで減らす」、
     /// <c>(c,60)</c> は「モーターを回さず、いまの量を 60 % と覚え直す」、<c>(i,0)</c> は「すぐ止める」、
-    /// <c>(r,0)</c> は「押し出す側の端まで回して、100 % と決める（原点出し）」です。
+    /// <c>(r,0)</c> は「押し出す側の端まで回して、100 % と決める（原点出し）」、
+    /// <c>(t,3)</c> は「動作確認。押す・引くを、それぞれ 50 % ぶん、3 回くり返す」です。
     /// 行の終わりは <c>\n</c> です。
     /// </para>
     /// <para>
@@ -70,6 +71,9 @@ namespace MouthOfGod.Device
     {
         internal const int MinPercent = 0;
         internal const int MaxPercent = 100;
+
+        /// <summary>動作確認で、くり返せる回数の上限です。Arduino のスケッチの <c>TEST_MAX_CYCLES</c> と同じです。</summary>
+        internal const int MaxSelfTestCycles = 20;
 
         /// <summary>実機の合図の値です。MOG は Mouth Of God で、1 は約束の版です。約束を変えたら、数字を上げます。</summary>
         internal const string HelloValue = "MOG1";
@@ -108,6 +112,15 @@ namespace MouthOfGod.Device
         internal static string EncodeHome()
         {
             return "(r,0)\n";
+        }
+
+        /// <summary>動作確認の行を作ります。押す・引くを、それぞれ 50 % ぶん、指定の回数くり返させます。</summary>
+        /// <param name="cycles">押す・引くを 1 往復として、くり返す回数です。1〜20 の外は、範囲内に丸めます。</param>
+        /// <remarks>押すほうから始まります。端にいて動けない向きの動きは、飛ばされます。</remarks>
+        internal static string EncodeSelfTest(int cycles)
+        {
+            int count = cycles < 1 ? 1 : (cycles > MaxSelfTestCycles ? MaxSelfTestCycles : cycles);
+            return "(t," + count + ")\n";
         }
 
         /// <summary>すぐ止める行を作ります。</summary>

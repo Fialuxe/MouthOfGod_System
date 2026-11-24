@@ -10,6 +10,10 @@
     'c' = モーターを回さず、いまの量を <値>% と覚え直す (実物とのずれを直す用)
     'i' = すぐ止める (<値> は無視)
     'r' = 原点出し。押し出す側 (100%) の端まで回して、100% と記録する (<値> は無視)
+    't' = 動作確認。押す・引くを、それぞれ 50% ぶん、<値> 回くり返す (押すほうから始める)。
+          <値> は 1-20。範囲外は無視する。
+          端にいて動けない向きの動きは飛ばす (起動直後は 100% なので、最初の「押す」は飛ばす)。
+          途中で別の指令 (f / s / c / i / r) が届いたら、やめる。
     <値> : 0-100 の整数。範囲外の f / s / c は無視する。
 
   Arduino -> Unity : "(<動作>,<量>)\n"   (SEND_INTERVAL_MS ごと)
@@ -85,6 +89,10 @@ const int BOOT_ASSUMED_PERCENT = 0;
 // 端に届かないときは、MS_PER_PERCENT を実測し直すか、この値を少しずつ増やす。
 const unsigned long HOMING_MARGIN_MS = 100;
 
+// ==== 動作確認 ====
+const int TEST_STEP_PERCENT = 50;    // (t,N) で、押す・引くそれぞれが動かす量 (%)
+const int TEST_MAX_CYCLES = 20;      // (t,N) の N の上限
+
 // ==== 状態管理 ====
 enum MotorState { MOTOR_STOPPED, MOTOR_FILLING, MOTOR_SUCKING };
 
@@ -94,6 +102,9 @@ int currentInside = 100;             // 0-100。動作の完了時と停止時�
 int actionTargetInside = 0;          // 進行中の動作が終わったあとの currentInside
 unsigned long actionStartMillis = 0; // 進行中の動作の開始時刻
 unsigned long actionDurationMs = 0;  // 進行中の動作の駆動時間
+
+int testStepsLeft = 0;                 // 動作確認で、まだ行っていない動きの数 (押す・引くで 1 往復 = 2)
+MotorState testNextDir = MOTOR_FILLING; // 動作確認の、次の動きの向き
 
 char lineBuf[16];   // 受信行バッファ("(f,100)" が入れば十分)
 int lineLen = 0;
@@ -172,6 +183,8 @@ void handleLine(const char *line) {
 
   int value = atoi(comma + 1);        // "80)" -> 80
 
+  if (cmd != 't') testStepsLeft = 0;  // 動作確認の途中で別の指令が来たら、動作確認をやめる
+
   switch (cmd) {
     case 'i':
       settleProgress();
@@ -181,6 +194,11 @@ void handleLine(const char *line) {
 
     case 'r':
       startHoming();
+      break;
+
+    case 't':
+      if (value < 1 || value > TEST_MAX_CYCLES) return;
+      startTest(value);
       break;
 
     case 'c':
@@ -241,6 +259,40 @@ void startHoming() {
   driveMotor(MOTOR_FILLING);
 }
 
+// 動作確認。押す・引くを、それぞれ TEST_STEP_PERCENT ぶん、cycles 回くり返す。押すほうから始める。
+void startTest(int cycles) {
+  settleProgress();
+  testStepsLeft = cycles * 2;
+  testNextDir = MOTOR_FILLING;
+  startNextTestStep();
+}
+
+// 動作確認の、次の動きを始める。端にいて動けない向きの動きは飛ばす。
+// 動きが残っていなければ、止まる。
+void startNextTestStep() {
+  while (testStepsLeft > 0) {
+    MotorState dir = testNextDir;
+    int step = (dir == MOTOR_FILLING) ? TEST_STEP_PERCENT : -TEST_STEP_PERCENT;
+    int target = constrain(currentInside + step, 0, 100);
+
+    testNextDir = (dir == MOTOR_FILLING) ? MOTOR_SUCKING : MOTOR_FILLING;
+    testStepsLeft--;
+
+    int delta = target - currentInside;
+    if (delta == 0) continue;
+
+    motorState = dir;
+    actionTargetInside = target;
+    actionStartMillis = millis();
+    actionDurationMs = (unsigned long)abs(delta) * MS_PER_PERCENT;
+    driveMotor(dir);
+    return;
+  }
+
+  stopMotors();
+  motorState = MOTOR_STOPPED;
+}
+
 // 動いている途中で止める・切り替えるとき、そこまでに動いた分を currentInside に反映する。
 // 止まっているときは何もしない。
 void settleProgress() {
@@ -261,6 +313,12 @@ void updateMotion() {
 
   if (millis() - actionStartMillis >= actionDurationMs) {
     currentInside = constrain(actionTargetInside, 0, 100);
+
+    if (testStepsLeft > 0) {
+      startNextTestStep(); // 動作確認の途中。止まらずに、次の動きへ進む
+      return;
+    }
+
     stopMotors();
     motorState = MOTOR_STOPPED;
   }

@@ -98,6 +98,7 @@ namespace MouthOfGod.Device
         private bool _wasConnected;
         private int _wantedPercent = -1;
         private bool _homeRequested;
+        private int _requestedSelfTestCycles;
         private float _sentAt;
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
@@ -127,6 +128,25 @@ namespace MouthOfGod.Device
         public void RequestHome()
         {
             _homeRequested = true;
+        }
+
+        /// <summary>
+        /// 実機に、動作確認を頼みます。押す・引くを、それぞれ 50 % ぶん、指定の回数くり返します。押すほうから始まります。
+        /// </summary>
+        /// <param name="cycles">押す・引くを 1 往復として、くり返す回数です。1〜20 の外は、範囲内に丸めます。</param>
+        /// <remarks>
+        /// 内容量の記録で、端にいて動けない向きの動きは、飛ばします。起動した直後は押し切った位置なので、最初の「押す」は飛ばします。
+        /// 実機が動いているときは、止まってから送ります。つながっていないときは、つながってから送ります。
+        /// </remarks>
+        public void RequestSelfTest(int cycles)
+        {
+            _requestedSelfTestCycles = cycles;
+        }
+
+        [ContextMenu("動作確認をする（押し引き 3 回）")]
+        private void RequestSelfTestFromMenu()
+        {
+            RequestSelfTest(3);
         }
 
         private void Awake()
@@ -324,6 +344,16 @@ namespace MouthOfGod.Device
             {
                 _homeRequested = false;
                 _link.Send(DeviceProtocol.EncodeHome());
+                _phase = Phase.WaitingForStart;
+                _sentAt = Time.unscaledTime;
+                return;
+            }
+
+            if (_requestedSelfTestCycles > 0)
+            {
+                int cycles = _requestedSelfTestCycles;
+                _requestedSelfTestCycles = 0;
+                _link.Send(DeviceProtocol.EncodeSelfTest(cycles));
                 _phase = Phase.WaitingForStart;
                 _sentAt = Time.unscaledTime;
                 return;
