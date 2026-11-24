@@ -12,7 +12,7 @@ namespace MouthOfGod.Village
     {
         const float Duration = 0.7f;
         const float Overshoot = 1.9f; // 1 を超えた分だけ、一度大きくなりすぎます
-        const string AppearFx = "Prefabs/Village/Fx_Joy";
+        const string AppearFx = "Fx/Fx_Joy";
         const float AppearFxScale = 2.5f; // 村人の頭の上の粒より目立たせます
 
         Vector3 _scale;

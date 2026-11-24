@@ -6,7 +6,7 @@ namespace MouthOfGod.Food
 {
     /// <summary>
     /// 食べ物の Prefab に付けます。どのフィールドで、どの食感のときに生まれるかを、食べ物が自分で持ちます。
-    /// FoodSpawner は、Resources/Prefabs/Food にある食べ物から、今のフィールドと食感に合う物を選んで生みます。
+    /// FoodSpawner は、Resources/Food にある食べ物から、今のフィールドと食感に合う物を選んで生みます。
     /// </summary>
     public sealed class FoodItem : MonoBehaviour, IFoodItem
     {

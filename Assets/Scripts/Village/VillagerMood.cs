@@ -8,7 +8,7 @@ namespace MouthOfGod.Village
     /// <remarks>
     /// 悩んでいる間は Worried で、ときどきうなだれます（Slump）。間隔は人ごとにばらつかせ、全員が同時に動かないようにします。
     /// 元気なときは Idle で、ステップが済むと Victory を 1 回やって喜びます。
-    /// Animator Controller は Villager.controller で、VillagePrefabGenerator が作ります。動きを直すときは、そちらを直します。
+    /// Animator Controller は Assets/Prefabs/Village/Villager.controller です。動きを直すときは、そちらを直します。
     /// </remarks>
     public sealed class VillagerMood : MonoBehaviour
     {

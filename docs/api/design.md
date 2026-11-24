@@ -205,7 +205,7 @@ Device・Fork・Food・Village・UI・Miko・Tutorial・Game は、互いのク�
 
 **決めたこと**
 
-プロローグとチュートリアル 1〜4 は、1 本ずつ Prefab（`Resources/Prefabs/Tutorial/`）にします。共有シーンには、その Prefab を [`TutorialRunner`](Tutorial.md#t-tutorialrunner) の子として置くだけです。そのチュートリアルのセリフは、その Prefab に付けた [`MikoLineBook`](Miko.md#t-mikolinebook) に書きます。
+プロローグとチュートリアル 1〜4 は、1 本ずつ Prefab（`Prefabs/Tutorial/`）にします。共有シーンには、その Prefab を [`TutorialRunner`](Tutorial.md#t-tutorialrunner) の子として置くだけです。そのチュートリアルのセリフは、その Prefab に付けた [`MikoLineBook`](Miko.md#t-mikolinebook) に書きます。
 
 **なぜ**
 

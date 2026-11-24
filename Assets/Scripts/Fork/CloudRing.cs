@@ -4,7 +4,7 @@ namespace MouthOfGod.Fork
 {
     /// <summary>
     /// 体験者の前に、雲（<see cref="Cloud"/>）を半円状に浮かべる。体験者が歩くと、ついて来る。
-    /// シーンのどこか 1 か所に置く。雲の Prefab は Resources/Prefabs/Fork/Cloud（メニュー「MouthOfGod/Fork/Generate Cloud Prefab」で作る）。
+    /// シーンのどこか 1 か所に置く。雲の Prefab は Prefabs/Fork/Cloud（メニュー「MouthOfGod/Fork/Generate Cloud Prefab」で作る）。
     /// </summary>
     /// <remarks>
     /// - どこに、いくつ浮かべるかは、まだ決まっていない（シナリオブックの未決事項）。数・半径・高さは仮の値で、Inspector で変えられる。
@@ -12,9 +12,9 @@ namespace MouthOfGod.Fork
     /// </remarks>
     public sealed class CloudRing : MonoBehaviour
     {
-        internal const string PrefabResourcePath = "Prefabs/Fork/Cloud";
+        internal const string PrefabResourcePath = "Fork/Cloud";
 
-        [Tooltip("雲の Prefab。空なら Resources/Prefabs/Fork/Cloud を使う")]
+        [Tooltip("雲の Prefab。空なら Prefabs/Fork/Cloud を使う")]
         [SerializeField] Cloud cloudPrefab;
 
         [Tooltip("浮かべる雲の数。仮の値")]

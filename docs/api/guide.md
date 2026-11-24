@@ -67,7 +67,7 @@ flowchart BT
 
 | 自動で置かれるもの | 条件 | 置く所 |
 |---|---|---|
-| [`MockDevice`](Device.md#t-mockdevice)（と [`MockDeviceModel`](Device.md#t-mockdevicemodel)） | シーン読み込みのあと、実機のデバイスが先に [`Devices`](Core.md#t-devices) へ登録していなければ | `MockDevice.GetOrCreate`。Prefab `Resources/Prefabs/Device/MockDevice` があればそれ、なければコードで作る。`DontDestroyOnLoad` |
+| [`MockDevice`](Device.md#t-mockdevice)（と [`MockDeviceModel`](Device.md#t-mockdevicemodel)） | シーン読み込みのあと、実機のデバイスが先に [`Devices`](Core.md#t-devices) へ登録していなければ | `MockDevice.GetOrCreate`。Prefab `Prefabs/Device/MockDevice` があればそれ、なければコードで作る。`DontDestroyOnLoad` |
 | [`RequestBubbles`](UI.md#t-requestbubbles) | シーン読み込みのあと | 自分で GameObject を作って付く（村人の頭の上の吹き出し） |
 | [`AprilTagDetectionService`](Tracking.md#t-apriltagdetectionservice) | [`AprilTagPlace`](Tracking.md#t-apriltagplace) が必要なとき | `AprilTagDetectionService.GetOrCreate` |
 | [`AprilTagRecalibrateInput`](Tracking.md#t-apriltagrecalibrateinput) | [`AprilTagDetectionService`](Tracking.md#t-apriltagdetectionservice) が起動したとき | 同じ GameObject に自動で付く |
@@ -231,24 +231,24 @@ Prefab として置かれている物と、その中のコンポーネントで�
 
 | Prefab の置き場 | 中身 |
 |---|---|
-| `Resources/Prefabs/Miko/Miko` | `Body` に [`MikoFloat`](Miko.md#t-mikofloat)・[`MikoMover`](Miko.md#t-mikomover)・[`MikoPointer`](Miko.md#t-mikopointer)・[`MikoCueReceiver`](Miko.md#t-mikocuereceiver)・[`MikoFace`](Miko.md#t-mikoface)・[`MikoSpeech`](Miko.md#t-mikospeech)。子の `LineBook` に [`MikoLineBook`](Miko.md#t-mikolinebook) |
-| `Resources/Prefabs/Misc/FoodSpawner` | [`FoodSpawner`](Food.md#t-foodspawner)、[`FoodTable`](Food.md#t-foodtable)（共通の表） |
-| `Resources/Prefabs/Misc/FoodShadow` | [`FoodShadow`](UI.md#t-foodshadow) |
-| `Resources/Prefabs/Misc/TutorialRunner` | [`TutorialRunner`](Tutorial.md#t-tutorialrunner)。Main では、子に `Prologue`・[`T1Fork`](Tutorial.md#t-t1fork)・[`T2Spawn`](Tutorial.md#t-t2spawn)・[`T3Recognize`](Tutorial.md#t-t3recognize)・[`T4Deliver`](Tutorial.md#t-t4deliver) の Prefab が並ぶ（この順がチュートリアルの順） |
-| `Resources/Prefabs/Tutorial/<名前>` | [`PrologueVideo`](Tutorial.md#t-prologuevideo)（子に [`VideoScreen`](Tutorial.md#t-videoscreen)）、[`T1Fork`](Tutorial.md#t-t1fork)、[`T2Spawn`](Tutorial.md#t-t2spawn)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)。どれにも [`MikoLineBook`](Miko.md#t-mikolinebook) が付く |
+| `Prefabs/Miko/Miko` | `Body` に [`MikoFloat`](Miko.md#t-mikofloat)・[`MikoMover`](Miko.md#t-mikomover)・[`MikoPointer`](Miko.md#t-mikopointer)・[`MikoCueReceiver`](Miko.md#t-mikocuereceiver)・[`MikoFace`](Miko.md#t-mikoface)・[`MikoSpeech`](Miko.md#t-mikospeech)。子の `LineBook` に [`MikoLineBook`](Miko.md#t-mikolinebook) |
+| `Prefabs/Misc/FoodSpawner` | [`FoodSpawner`](Food.md#t-foodspawner)、[`FoodTable`](Food.md#t-foodtable)（共通の表） |
+| `Prefabs/Misc/FoodShadow` | [`FoodShadow`](UI.md#t-foodshadow) |
+| `Prefabs/Misc/TutorialRunner` | [`TutorialRunner`](Tutorial.md#t-tutorialrunner)。Main では、子に `Prologue`・[`T1Fork`](Tutorial.md#t-t1fork)・[`T2Spawn`](Tutorial.md#t-t2spawn)・[`T3Recognize`](Tutorial.md#t-t3recognize)・[`T4Deliver`](Tutorial.md#t-t4deliver) の Prefab が並ぶ（この順がチュートリアルの順） |
+| `Prefabs/Tutorial/<名前>` | [`PrologueVideo`](Tutorial.md#t-prologuevideo)（子に [`VideoScreen`](Tutorial.md#t-videoscreen)）、[`T1Fork`](Tutorial.md#t-t1fork)、[`T2Spawn`](Tutorial.md#t-t2spawn)、[`T3Recognize`](Tutorial.md#t-t3recognize)、[`T4Deliver`](Tutorial.md#t-t4deliver)。どれにも [`MikoLineBook`](Miko.md#t-mikolinebook) が付く |
 | `[BuildingBlock] Camera Rig with MouthAnchor` | Meta XR のカメラ装置 |
 
-フィールドの Prefab です。Main では、`Resources/Prefabs/Misc/` の Variant（`Village`、`Grass Variant`、`MountVer2 Variant`）と、`Resources/Prefabs/Sea/Sea_work` を使います。Variant は、元の Prefab に、Main 用の部品（[`StandArea`](Village.md#t-standarea)、[`DeliveryZone`](Village.md#t-deliveryzone) など）を足した物です。
+フィールドの Prefab です。Main では、`Prefabs/Misc/` の Variant（`Village`、`Grass Variant`、`MountVer2 Variant`）と、`Prefabs/Sea/Sea_work` を使います。Variant は、元の Prefab に、Main 用の部品（[`StandArea`](Village.md#t-standarea)、[`DeliveryZone`](Village.md#t-deliveryzone) など）を足した物です。
 
 | フィールド | 元の Prefab | ルートのコンポーネント | ステップ（[`FieldStep`](Village.md#t-fieldstep)、順に欲しい物） |
 |---|---|---|---|
-| 村 `village` | `Resources/Prefabs/Village/Village` | [`FieldStages`](Village.md#t-fieldstages)、[`SurfaceAnchor`](Village.md#t-surfaceanchor)、[`DeliveryFx`](Village.md#t-deliveryfx)、[`DeliveryZone`](Village.md#t-deliveryzone)、[`FoodTable`](Food.md#t-foodtable) | pumpkin、carrot、turnip、tomato |
-| 海 `sea` | `Resources/Prefabs/Sea/Sea_work` | [`SurfaceAnchor`](Village.md#t-surfaceanchor)、[`FieldStages`](Village.md#t-fieldstages)、[`FoodTable`](Food.md#t-foodtable)、[`DeliveryZone`](Village.md#t-deliveryzone)、[`DeliveryFx`](Village.md#t-deliveryfx)、[`CueReaction`](UI.md#t-cuereaction) | fish、shell、shrimp |
-| 草原 `grassland` | `Resources/Prefabs/Grass/Grass` | [`FieldStages`](Village.md#t-fieldstages)、[`FoodTable`](Food.md#t-foodtable) | chicken、pig、sheep、cow |
-| 山 `mountain` | `Resources/Prefabs/Mount/MountVer2` | [`FoodTable`](Food.md#t-foodtable)、[`FieldStages`](Village.md#t-fieldstages)、[`DeliveryZone`](Village.md#t-deliveryzone)、[`DeliveryFx`](Village.md#t-deliveryfx) | mushroom、apple、chestnut |
+| 村 `village` | `Prefabs/Village/Village` | [`FieldStages`](Village.md#t-fieldstages)、[`SurfaceAnchor`](Village.md#t-surfaceanchor)、[`DeliveryFx`](Village.md#t-deliveryfx)、[`DeliveryZone`](Village.md#t-deliveryzone)、[`FoodTable`](Food.md#t-foodtable) | pumpkin、carrot、turnip、tomato |
+| 海 `sea` | `Prefabs/Sea/Sea_work` | [`SurfaceAnchor`](Village.md#t-surfaceanchor)、[`FieldStages`](Village.md#t-fieldstages)、[`FoodTable`](Food.md#t-foodtable)、[`DeliveryZone`](Village.md#t-deliveryzone)、[`DeliveryFx`](Village.md#t-deliveryfx)、[`CueReaction`](UI.md#t-cuereaction) | fish、shell、shrimp |
+| 草原 `grassland` | `Prefabs/Grass/Grass` | [`FieldStages`](Village.md#t-fieldstages)、[`FoodTable`](Food.md#t-foodtable) | chicken、pig、sheep、cow |
+| 山 `mountain` | `Prefabs/Mount/MountVer2` | [`FoodTable`](Food.md#t-foodtable)、[`FieldStages`](Village.md#t-fieldstages)、[`DeliveryZone`](Village.md#t-deliveryzone)、[`DeliveryFx`](Village.md#t-deliveryfx) | mushroom、apple、chestnut |
 
 - 村人は、各フィールドの子に [`VillagerMood`](Village.md#t-villagermood) として置かれます。[`FieldStep`](Village.md#t-fieldstep) の Helped に入れた村人が、そのステップが済むまで悩みます。
-- 食べ物の Prefab は、`Resources/Prefabs/Food/` にあります（apple、carrot、chestnut、chicken、cow、fish、mushroom、pig、pumpkin、sheep、shell、shrimp、tomato、turnip）。ファイル名が食べ物の ID です。
+- 食べ物の Prefab は、`Resources/Food/` にあります（apple、carrot、chestnut、chicken、cow、fish、mushroom、pig、pumpkin、sheep、shell、shrimp、tomato、turnip）。ファイル名が食べ物の ID です。
 
 ### 3.3 Main の本編の設定
 
@@ -309,13 +309,13 @@ Prefab として置かれている物と、その中のコンポーネントで�
 
 | パス | 読む所 | 中身 |
 |---|---|---|
-| `Resources/Prefabs/Device/MockDevice` | `MockDevice.GetOrCreate` | MockDevice の Prefab |
-| `Resources/Prefabs/Fork/Cloud` | [`CloudRing`](Fork.md#t-cloudring) | 雲の Prefab |
-| `Resources/Prefabs/Food/<食べ物の ID>` | [`FoodTable`](Food.md#t-foodtable)（Prefab の参照）、`FoodTables.IdOf` | 食べ物の Prefab。ファイル名が食べ物の ID |
+| `Prefabs/Device/MockDevice` | `MockDevice.GetOrCreate` | MockDevice の Prefab |
+| `Prefabs/Fork/Cloud` | [`CloudRing`](Fork.md#t-cloudring) | 雲の Prefab |
+| `Resources/Food/<食べ物の ID>` | [`FoodTable`](Food.md#t-foodtable)（Prefab の参照）、`FoodTables.IdOf` | 食べ物の Prefab。ファイル名が食べ物の ID |
 | `Resources/Icons/Food/<食べ物の ID>` | `RequestBubbleText.IconPath` | 吹き出しのアイコン |
-| `Resources/Prefabs/Village/Fx_Joy`・`Fx_Smoke` | [`DeliveryFx`](Village.md#t-deliveryfx)、[`DeliveryZone`](Village.md#t-deliveryzone)、`PopInEffect` | 喜びの粒・煙 |
+| `Resources/Fx/Fx_Joy`・`Fx_Smoke` | [`DeliveryFx`](Village.md#t-deliveryfx)、[`DeliveryZone`](Village.md#t-deliveryzone)、`PopInEffect` | 喜びの粒・煙 |
 | `Resources/Sounds/Village/Done`・`Missed` | [`DeliveryFx`](Village.md#t-deliveryfx) | 欲しい物が届いた音・違う物が届いた音 |
-| `Resources/Prefabs/Miko/Miko` | シーンの Miko | 巫女の Prefab |
-| `Resources/Prefabs/Tutorial/<名前>` | [`TutorialRunner`](Tutorial.md#t-tutorialrunner) の子 | プロローグと T1〜T4 の Prefab |
+| `Prefabs/Miko/Miko` | シーンの Miko | 巫女の Prefab |
+| `Prefabs/Tutorial/<名前>` | [`TutorialRunner`](Tutorial.md#t-tutorialrunner) の子 | プロローグと T1〜T4 の Prefab |
 | `Resources/AprilTagSettings` | `AprilTagSettings.Load` | AprilTag の設定（無ければコードの既定値） |
 | `Resources/RequestBubbleSettings` | `RequestBubbleSettings.Load` | 吹き出しの設定（無ければコードの既定値） |

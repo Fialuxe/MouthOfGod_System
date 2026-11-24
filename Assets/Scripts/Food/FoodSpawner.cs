@@ -90,13 +90,13 @@ namespace MouthOfGod.Food
         static FoodItem[] _catalog;
 
         /// <summary>
-        /// 食べ物の Prefab（Resources/Prefabs/Food）から、field と texture に合う物を選びます。
+        /// 食べ物の Prefab（Resources/Food）から、field と texture に合う物を選びます。
         /// フィールドが合う物を先に選び、なければフィールドが空（どこでも）の物を選びます。合う物がなければ null です。
         /// </summary>
         internal static GameObject Resolve(FieldId field, TextureId texture)
         {
             if (texture.IsEmpty) return null;
-            if (_catalog == null || _catalog.Length == 0) _catalog = Resources.LoadAll<FoodItem>("Prefabs/Food");
+            if (_catalog == null || _catalog.Length == 0) _catalog = Resources.LoadAll<FoodItem>("Food");
             foreach (FoodItem item in _catalog)
                 if (item != null && item.IsBornFrom(field, texture, anyField: false)) return item.gameObject;
             foreach (FoodItem item in _catalog)

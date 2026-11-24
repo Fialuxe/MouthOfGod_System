@@ -26,7 +26,7 @@
 ## 使い方
 
 1. シーンの空のオブジェクトに、`FoodSpawner` と `FoodTable` を付けます。`FoodTable` の Field Id は空のままにします。
-2. 食べ物の Prefab を `Assets/Resources/Prefabs/Food/` に置きます。**ファイル名が、食べ物の ID（`FoodId`）になります**。`FieldStep` の欲しい物（Food）と同じ文字にします。
+2. 食べ物の Prefab を `Assets/Resources/Food/` に置きます。**ファイル名が、食べ物の ID（`FoodId`）になります**。`FieldStep` の欲しい物（Food）と同じ文字にします。
 3. `FoodTable` の Rows に、1 行ずつ足します。Texture に食感の ID を入れ、Food に Prefab をドラッグします。デバイスなしで試すときの食感は、`MockDevice` の `placeholder-a` `placeholder-b` `placeholder-c` です。
 4. フィールドごとに変えたいときだけ、そのフィールドの Prefab に `FoodTable` を付けます。Field Id にフィールドの ID を入れ、変えたい食感の行だけ足します。ほかの食感は、共通の表が使われます。
 5. **共通の表はなくてもよいです**。なければ、専用の表にない食感では何も生まれません。
