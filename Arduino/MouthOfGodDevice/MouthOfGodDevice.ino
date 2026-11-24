@@ -15,6 +15,9 @@
     <動作> : 1 = 駆動中 / 0 = 停止中
     <量>   : いまの内容量 0-100 (駆動中は、動き出す前の値のまま)
   Arduino -> Unity : "(k,1)\n"          (確定ボタンを押した瞬間に 1 回)
+  Arduino -> Unity : "(h,MOG1)\n"       (「ここに実機がいる」という合図。起動時と HELLO_INTERVAL_MS ごと)
+    Unity は COM ポートを順に開いて、この合図が届いたポートを実機として使う。
+    MOG = Mouth Of God、1 = 約束の版。約束を変えたら、Unity の DeviceProtocol.HelloValue と一緒に上げる。
 
   知らない行・壊れた行は、読み捨てる (Unity 側も同じ)。
 
@@ -56,6 +59,7 @@ const unsigned long BUTTON_DEBOUNCE_MS = 30;
 // ==== 通信設定 ====
 const long BAUD_RATE = 9600;               // Unity の DeviceActuator の Baud Rate と同じにする
 const unsigned long SEND_INTERVAL_MS = 50; // 状態送信の周期
+const unsigned long HELLO_INTERVAL_MS = 1000; // 実機の合図の周期
 
 // ==== 1%あたりの駆動時間(実測して調整する) ====
 const unsigned long MS_PER_PERCENT = 10;
@@ -73,6 +77,7 @@ unsigned long actionDurationMs = 0;  // 進行中の動作の駆動時間
 char lineBuf[16];   // 受信行バッファ("(f,100)" が入れば十分)
 int lineLen = 0;
 unsigned long lastSendAt = 0;
+unsigned long lastHelloAt = 0;
 
 // 確定ボタン
 int buttonStableState = HIGH;        // デバウンス済みの状態 (HIGH = 離している)
@@ -91,6 +96,7 @@ void setup() {
   digitalWrite(MODE, LOW);
 
   stopMotors();
+  sendHello(); // 起動したことを、すぐ知らせる
 }
 
 void loop() {
@@ -101,6 +107,10 @@ void loop() {
   if (millis() - lastSendAt >= SEND_INTERVAL_MS) {
     lastSendAt = millis();
     sendStatus();
+  }
+
+  if (millis() - lastHelloAt >= HELLO_INTERVAL_MS) {
+    sendHello();
   }
 }
 
@@ -252,6 +262,12 @@ void updateConfirmButton() {
       Serial.print("(k,1)\n");
     }
   }
+}
+
+// 「ここに実機がいる」という合図。Unity が、実機の COM ポートを見つけるために使う。
+void sendHello() {
+  lastHelloAt = millis();
+  Serial.print("(h,MOG1)\n");
 }
 
 void sendStatus() {

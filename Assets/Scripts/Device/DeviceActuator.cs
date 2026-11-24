@@ -21,6 +21,7 @@ namespace MouthOfGod.Device
     /// </para>
     /// <para>
     /// Windows のエディタとアプリでは、Play すると自動で用意されます。シーンに置いておけば、その設定を使います。
+    /// COM ポートは、決めません。実機が出す合図（<c>(h,MOG1)</c>）が届いたポートを、自動で見つけます。
     /// 通信の約束は <c>docs/device-protocol.md</c> に書いてあります。
     /// </para>
     /// <para>
@@ -45,10 +46,6 @@ namespace MouthOfGod.Device
         [SerializeField]
         [Tooltip("実機とつなぐ。外すと、通信せず、Mock だけで動く。")]
         private bool _useRealDevice = true;
-
-        [SerializeField]
-        [Tooltip("実機のポート名（例: COM3）。空なら、COM ポートを順に開いて、実機を自動で探す。")]
-        private string _portName = "";
 
         [SerializeField]
         [Tooltip("通信の速さ。Arduino のスケッチ（BAUD_RATE）と同じにする。")]
@@ -129,7 +126,7 @@ namespace MouthOfGod.Device
         {
             if (_useRealDevice)
             {
-                _link = new SerialLink(_portName, _baudRate);
+                _link = new SerialLink(_baudRate);
             }
         }
 
@@ -206,6 +203,11 @@ namespace MouthOfGod.Device
 
         private void HandleMessage(DeviceMessage message)
         {
+            if (message.Kind == DeviceMessageKind.Hello)
+            {
+                return;
+            }
+
             if (message.Kind == DeviceMessageKind.ConfirmPressed)
             {
                 if (_logEvents)

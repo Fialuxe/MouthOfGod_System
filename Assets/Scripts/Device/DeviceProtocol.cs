@@ -24,6 +24,9 @@ namespace MouthOfGod.Device
 
         /// <summary>ハードウェアの確定ボタンが押されました。</summary>
         ConfirmPressed,
+
+        /// <summary>「ここに実機がいる」という合図です。実機を見つけるために、起動時と 1 秒ごとに届きます。</summary>
+        Hello,
     }
 
     /// <summary>実機から届いた 1 行を読んだ結果です。</summary>
@@ -57,6 +60,8 @@ namespace MouthOfGod.Device
     /// <para>
     /// Arduino から Unity へ: <c>(0,100)</c> は「止まっていて、内容量は 100 %」です（先頭は、動いていれば 1）。
     /// これを、50 ミリ秒ごとに送ります。<c>(k,1)</c> は「確定ボタンが押された」です。
+    /// <c>(h,MOG1)</c> は、実機が自分を知らせる合図です。起動時と 1 秒ごとに送ります。
+    /// Unity は、この合図が届いた COM ポートを、実機のポートとして使います。
     /// 読めない行と、知らない種類の行は、読み捨てます。
     /// </para>
     /// </remarks>
@@ -64,6 +69,9 @@ namespace MouthOfGod.Device
     {
         internal const int MinPercent = 0;
         internal const int MaxPercent = 100;
+
+        /// <summary>実機の合図の値です。MOG は Mouth Of God で、1 は約束の版です。約束を変えたら、数字を上げます。</summary>
+        internal const string HelloValue = "MOG1";
 
         /// <summary>内容量を目標まで動かす指令の行を作ります。</summary>
         /// <param name="currentPercent">いまの内容量です。Arduino が最後に知らせた値を渡します。</param>
@@ -126,6 +134,17 @@ namespace MouthOfGod.Device
 
             string kind = parts[0].Trim();
             string value = parts[1].Trim();
+
+            if (kind == "h")
+            {
+                if (value != HelloValue)
+                {
+                    return false;
+                }
+
+                message = new DeviceMessage(DeviceMessageKind.Hello, default);
+                return true;
+            }
 
             if (kind == "k")
             {

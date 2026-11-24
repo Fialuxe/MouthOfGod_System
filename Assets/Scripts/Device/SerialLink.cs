@@ -18,8 +18,9 @@ namespace MouthOfGod.Device
     /// 届いた行は、<see cref="TryDequeueLine"/> でメインスレッドから取り出します。
     /// </para>
     /// <para>
-    /// ポート名を指定しないと、COM ポートを順に開いて、実機の状態の行（<see cref="DeviceProtocol"/>）が
-    /// 届くポートを探します。抜けたり、行が途切れたりしたら、閉じて、探し直します。
+    /// COM ポートの名前は、決めません。COM ポートを順に開いて、実機の合図（<see cref="DeviceProtocol"/> の
+    /// <c>(h,MOG1)</c>）が届くポートを、実機のポートとして使います。
+    /// 抜けたり、行が途切れたりしたら、閉じて、探し直します。
     /// Arduino は、ポートを開くと再起動するため、1 つのポートで数秒待ちます。
     /// </para>
     /// <para>
@@ -36,7 +37,6 @@ namespace MouthOfGod.Device
         private const int FlushMilliseconds = 300;
         private const int MaxLineLength = 64;
 
-        private readonly string _configuredPort;
         private readonly int _baudRate;
         private readonly ConcurrentQueue<string> _incoming = new ConcurrentQueue<string>();
         private readonly ConcurrentQueue<string> _outgoing = new ConcurrentQueue<string>();
@@ -46,13 +46,9 @@ namespace MouthOfGod.Device
         private volatile string _portName = "";
         private string _lastGoodPort = "";
 
-        /// <param name="portName">
-        /// 使うポートの名前です（例: <c>COM3</c>）。空か <see langword="null"/> なら、自動で探します。
-        /// </param>
         /// <param name="baudRate">通信の速さです。Arduino のスケッチと同じ値にします。</param>
-        internal SerialLink(string portName, int baudRate)
+        internal SerialLink(int baudRate)
         {
-            _configuredPort = (portName ?? "").Trim();
             _baudRate = baudRate;
             _thread = new Thread(Run) { IsBackground = true, Name = "MouthOfGod.SerialLink" };
             _thread.Start();
@@ -111,7 +107,7 @@ namespace MouthOfGod.Device
                 int lastHeardAt = Environment.TickCount;
                 while (!_stopRequested)
                 {
-                    if (!ReadAvailable(handle, lineBuilder, out bool heardLine) || !WriteAll(handle))
+                    if (!ReadAvailable(handle, lineBuilder, out bool heardLine, out _) || !WriteAll(handle))
                     {
                         break;
                     }
@@ -134,7 +130,7 @@ namespace MouthOfGod.Device
             }
         }
 
-        // 設定したポート、前につながったポート、残りのポートの順に、状態の行が届くポートを探す。
+        // 前につながったポート、残りのポートの順に、実機の合図が届くポートを探す。
         private IntPtr ConnectToDevice()
         {
             foreach (string candidate in CandidatePorts())
@@ -150,7 +146,7 @@ namespace MouthOfGod.Device
                     continue;
                 }
 
-                if (WaitForStatusLine(handle))
+                if (WaitForHello(handle))
                 {
                     _portName = candidate;
                     _lastGoodPort = candidate;
@@ -166,11 +162,6 @@ namespace MouthOfGod.Device
 
         private IEnumerable<string> CandidatePorts()
         {
-            if (_configuredPort.Length > 0)
-            {
-                return new[] { _configuredPort };
-            }
-
             var ports = new List<string>(ListPorts());
             if (_lastGoodPort.Length > 0 && ports.Remove(_lastGoodPort))
             {
@@ -180,19 +171,19 @@ namespace MouthOfGod.Device
             return ports;
         }
 
-        // Arduino は、ポートを開くと再起動し、数秒たってから状態を送り始める。それまで待つ。
-        private bool WaitForStatusLine(IntPtr handle)
+        // Arduino は、ポートを開くと再起動し、数秒たってから合図を送り始める。それまで待つ。
+        private bool WaitForHello(IntPtr handle)
         {
             var lineBuilder = new StringBuilder();
             int startedAt = Environment.TickCount;
             while (!_stopRequested && Environment.TickCount - startedAt < ProbeMilliseconds)
             {
-                if (!ReadAvailable(handle, lineBuilder, out bool heardLine))
+                if (!ReadAvailable(handle, lineBuilder, out _, out bool heardHello))
                 {
                     return false;
                 }
 
-                if (heardLine)
+                if (heardHello)
                 {
                     return true;
                 }
@@ -203,10 +194,11 @@ namespace MouthOfGod.Device
             return false;
         }
 
-        // 届いている分を読み、行に分けて預ける。読み取れる行が 1 つでもあれば、heardLine を true にする。
-        private bool ReadAvailable(IntPtr handle, StringBuilder lineBuilder, out bool heardLine)
+        // 届いている分を読み、行に分けて預ける。読み取れる行が 1 つでもあれば heardLine を、実機の合図があれば heardHello を true にする。
+        private bool ReadAvailable(IntPtr handle, StringBuilder lineBuilder, out bool heardLine, out bool heardHello)
         {
             heardLine = false;
+            heardHello = false;
             var buffer = new byte[256];
             if (!NativeReadFile(handle, buffer, (uint)buffer.Length, out uint read, IntPtr.Zero))
             {
@@ -220,9 +212,10 @@ namespace MouthOfGod.Device
                 {
                     string line = lineBuilder.ToString();
                     lineBuilder.Length = 0;
-                    if (DeviceProtocol.TryParse(line, out _))
+                    if (DeviceProtocol.TryParse(line, out DeviceMessage message))
                     {
                         heardLine = true;
+                        heardHello |= message.Kind == DeviceMessageKind.Hello;
                         _incoming.Enqueue(line);
                     }
                 }
