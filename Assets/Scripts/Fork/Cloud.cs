@@ -3,12 +3,17 @@ using UnityEngine;
 namespace MouthOfGod.Fork
 {
     /// <summary>
-    /// フォークで刺せる雲。当たり判定（Collider）と一緒に、雲の見た目に付ける。
-    /// 刺されると、見た目と当たり判定を隠し、<c>Respawn Seconds</c> たったら戻る。
+    /// フォークで刺せる雲です。刺されると隠れ、しばらくすると戻ります。
     /// </summary>
     /// <remarks>
-    /// 光らせる・近くへ寄せるなどの見せ方は、ここには書かない。合図（Cues）を受ける側が足す。
-    /// 当たり判定は、起動時にトリガーにする。体験者が口から飛ばした物が、手前の雲に当たって跳ね返らないようにするため。
+    /// <para>
+    /// 雲の見た目に、当たり判定（Collider）と一緒に付けます。
+    /// 隠れている間は、見た目と当たり判定の両方を切ります。
+    /// </para>
+    /// <para>
+    /// 光らせる・近くへ寄せるなどの見せ方は、ここでは扱いません。
+    /// 合図（Cues）を受ける側が足します。
+    /// </para>
     /// </remarks>
     public sealed class Cloud : MonoBehaviour
     {
@@ -18,16 +23,22 @@ namespace MouthOfGod.Fork
         float _hiddenUntil = float.NegativeInfinity;
         bool _hidden;
 
-        // 雲は、口から飛ばした物を止めない（すり抜ける）。フォークの先は、トリガーどうしでも刺せる（先に Rigidbody があるため）。
+        // 当たり判定をトリガーにします。口から飛ばした物が、手前の雲で跳ね返らないようにするためです。
+        // フォークの先には Rigidbody があるので、トリガーどうしでも刺せます。
         void Awake()
         {
             foreach (Collider c in GetComponentsInChildren<Collider>(true)) c.isTrigger = true;
         }
 
-        /// <summary>いま刺せる（隠れていない）。</summary>
+        /// <summary>隠れておらず、いま刺せるときに <see langword="true"/> です。</summary>
         public bool IsAvailable => !_hidden;
 
-        /// <summary>刺された。隠して、時間がたったら戻す。</summary>
+        /// <summary>
+        /// 刺されたことにして雲を隠します。<c>Respawn Seconds</c> たつと戻ります。
+        /// </summary>
+        /// <remarks>
+        /// 隠れている間に呼ぶと、戻る時刻をそこから数え直します。
+        /// </remarks>
         public void Take()
         {
             _hiddenUntil = Time.time + respawnSeconds;

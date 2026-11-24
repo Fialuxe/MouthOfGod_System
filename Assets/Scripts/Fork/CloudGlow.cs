@@ -4,14 +4,20 @@ using UnityEngine;
 namespace MouthOfGod.Fork
 {
     /// <summary>
-    /// 雲を光らせ、体験者に寄せる。<see cref="CloudRing"/> と同じオブジェクトに付ける（その子の雲を使う）。
+    /// 雲を 1 つ選んで光らせ、体験者の頭のほうへ寄せます。
     /// </summary>
     /// <remarks>
-    /// - <see cref="Glow"/>: 体験者の正面にいちばん近い雲を 1 つ選び、色と大きさを脈打たせて光らせる。
-    /// - <see cref="Approach"/>: 光らせた雲を、体験者の頭のほうへ寄せる。光らせた雲がなければ、先に 1 つ選ぶ。
-    /// - <see cref="Calm"/>: 光を消し、寄せた雲を元の位置へ戻す。
-    /// - 光らせた雲が刺されて隠れたら、光と寄せをやめる（戻ってきたときは、ふつうの雲）。
-    /// - 雲の位置は CloudRing が毎フレーム決める。寄せる分は、そのあと（LateUpdate）で足す。
+    /// <para>
+    /// <see cref="CloudRing"/> と同じオブジェクトに付けます。その子の雲を使います。
+    /// </para>
+    /// <para>
+    /// 光らせた雲が刺されて隠れたら、光と寄せをやめます。
+    /// 雲が戻ってきたときは、ふつうの雲です。
+    /// </para>
+    /// <para>
+    /// 雲の位置は、<see cref="CloudRing"/> が毎フレーム決めます。
+    /// 寄せる分は、そのあとの LateUpdate で足します。
+    /// </para>
     /// </remarks>
     public sealed class CloudGlow : MonoBehaviour
     {
@@ -28,17 +34,17 @@ namespace MouthOfGod.Fork
         [Tooltip("大きさの脈の幅。0.15 なら、元の 1〜1.15 倍のあいだで脈打つ")]
         [SerializeField, Min(0f)] float pulseScale = 0.15f;
 
-        [Tooltip("1 秒に脈打つ回数")]
+        [Tooltip("1 秒に脈打つ回数。大きいほど、せわしなく光る")]
         [SerializeField, Min(0f)] float pulsePerSecond = 1.2f;
 
         [Header("寄せ方")]
-        [Tooltip("頭のほうへ寄せる距離（m）")]
+        [Tooltip("頭のほうへ寄せる距離（m）。頭に近すぎるときは、Min Head Distance で止まる")]
         [SerializeField, Min(0f)] float approachMeters = 0.2f;
 
         [Tooltip("寄せても、頭からこの距離（m）より近くにはしない")]
         [SerializeField, Min(0f)] float minHeadDistance = 0.25f;
 
-        [Tooltip("寄せきるまでの秒数")]
+        [Tooltip("寄せきるまでの秒数。途中はなめらかに加速・減速する")]
         [SerializeField, Min(0.01f)] float approachSeconds = 1.5f;
 
         [Tooltip("元の位置へ戻りきるまでの秒数")]
@@ -48,14 +54,19 @@ namespace MouthOfGod.Fork
         readonly List<Color> _baseColors = new List<Color>();
         MaterialPropertyBlock _block;
 
-        Cloud _target;          // 光らせている（または戻している途中の）雲
+        // 光らせている雲か、元の位置へ戻している途中の雲です。
+        Cloud _target;
         bool _glowing;
-        bool _glowPending;      // 雲がまだ無いときに glow が来た。雲ができたら光らせる
+        // 雲がまだ無いときに Glow が呼ばれたら立てます。雲ができたら光らせます。
+        bool _glowPending;
         Vector3 _baseScale;
-        float _approach;        // 0 = 元の位置、1 = 寄せきった
+        // 0 は元の位置、1 は寄せきった位置を表します。
+        float _approach;
         float _approachGoal;
-        Vector3 _applied;       // いま足している寄せの分
-        Vector3 _lastPosition;  // 寄せを足したあとの位置。CloudRing が動かしていないかを見る
+        // いま足している寄せの分です。
+        Vector3 _applied;
+        // 寄せを足したあとの位置です。CloudRing が動かしたかどうかを、これと比べて見ます。
+        Vector3 _lastPosition;
 
         void OnDisable()
         {
@@ -63,12 +74,19 @@ namespace MouthOfGod.Fork
             _glowPending = false;
         }
 
+        /// <summary>
+        /// 体験者の正面にいちばん近い雲を 1 つ選び、光らせます。
+        /// </summary>
+        /// <remarks>
+        /// 色と大きさを脈打たせて光らせます。
+        /// 刺せる雲がまだ無いときは、雲ができてから光らせます。
+        /// </remarks>
         public void Glow()
         {
             Cloud cloud = PickFrontmost();
             if (cloud == null)
             {
-                _glowPending = true; // CloudRing の Start より先に来たとき
+                _glowPending = true;  // CloudRing の Start より先に呼ばれたとき
                 return;
             }
             _glowPending = false;
@@ -78,6 +96,9 @@ namespace MouthOfGod.Fork
             _glowing = true;
         }
 
+        /// <summary>
+        /// 光らせた雲を、体験者の頭のほうへ寄せます。光らせた雲がなければ、先に 1 つ選びます。
+        /// </summary>
         public void Approach()
         {
             if (_target == null || !_glowing) Glow();
@@ -85,12 +106,18 @@ namespace MouthOfGod.Fork
             _approachGoal = 1f;
         }
 
+        /// <summary>
+        /// 光を消し、寄せた雲を元の位置へ戻します。
+        /// </summary>
+        /// <remarks>
+        /// 戻りきったら、LateUpdate で雲を手放します。
+        /// </remarks>
         public void Calm()
         {
             _glowPending = false;
             if (_target == null) return;
             StopGlow();
-            _approachGoal = 0f; // 戻りきったら、LateUpdate で手放す
+            _approachGoal = 0f;
         }
 
         void LateUpdate()
@@ -98,7 +125,6 @@ namespace MouthOfGod.Fork
             if (_glowPending) Glow();
             if (_target == null) return;
 
-            // 刺されて隠れたら、光も寄せもやめる。
             if (!_target.IsAvailable)
             {
                 Release();
@@ -107,7 +133,8 @@ namespace MouthOfGod.Fork
 
             Transform t = _target.transform;
 
-            // CloudRing が位置を決め直していなければ、前に足した分を引いてから足し直す。
+            // CloudRing が位置を決め直していなければ、前に足した分を引いてから足し直します。
+            // 引かずに足すと、寄せの分がフレームごとに積み重なるためです。
             Vector3 basePosition = t.position == _lastPosition ? t.position - _applied : t.position;
 
             float seconds = _approachGoal > _approach ? approachSeconds : returnSeconds;
@@ -132,7 +159,7 @@ namespace MouthOfGod.Fork
             }
         }
 
-        // 光らせる雲を持つ。元の大きさと色を覚える。
+        // 光らせる雲を持ち、元の大きさと色を覚えます。
         void Hold(Cloud cloud)
         {
             _target = cloud;
@@ -151,7 +178,8 @@ namespace MouthOfGod.Fork
             }
         }
 
-        // 光をやめ、大きさと色を戻す。位置はそのまま（寄せは LateUpdate で戻す）。
+        // 光をやめ、大きさと色を戻します。位置は動かしません。
+        // 寄せた分は、LateUpdate で少しずつ戻します。
         void StopGlow()
         {
             if (!_glowing || _target == null) return;
@@ -163,7 +191,7 @@ namespace MouthOfGod.Fork
                 if (r != null) r.SetPropertyBlock(_block);
         }
 
-        // 雲を手放す。光をやめ、寄せた分を引く。
+        // 雲を手放します。光をやめ、寄せた分をすぐ引きます。
         void Release()
         {
             if (_target == null) return;
@@ -200,7 +228,7 @@ namespace MouthOfGod.Fork
             return Color.white;
         }
 
-        // 刺せる雲のうち、体験者の正面にいちばん近いもの。無ければ null。
+        // 刺せる雲のうち、体験者の正面にいちばん近いものを返します。無ければ null です。
         Cloud PickFrontmost()
         {
             Transform root = cloudRoot != null ? cloudRoot : transform;
@@ -210,7 +238,7 @@ namespace MouthOfGod.Fork
             if (clouds.Count == 0) return null;
 
             Transform head = Camera.main != null ? Camera.main.transform : null;
-            if (head == null) return clouds[clouds.Count / 2]; // 頭が無ければ、並びのまん中（CloudRing では正面）
+            if (head == null) return clouds[clouds.Count / 2];  // 頭が無ければ並びのまん中。CloudRing では正面です
 
             var positions = new Vector3[clouds.Count];
             for (int i = 0; i < clouds.Count; i++) positions[i] = clouds[i].transform.position;
@@ -219,9 +247,15 @@ namespace MouthOfGod.Fork
         }
 
         /// <summary>
-        /// 頭から見て、正面（水平の向き）にいちばん近い位置の番号。positions が空なら -1。
-        /// 正面の向きが真上・真下で決まらないときは、最初の位置を選ぶ。
+        /// 頭から見て、水平の正面にいちばん近い位置の番号を返します。
         /// </summary>
+        /// <param name="head">頭の位置です。</param>
+        /// <param name="forward">頭の向きです。上下の成分は無視します。</param>
+        /// <param name="positions">候補の位置です。<see langword="null"/> でもかまいません。</param>
+        /// <returns>
+        /// <paramref name="positions"/> の番号です。空か <see langword="null"/> なら -1 です。
+        /// 向きが真上・真下で正面が決まらないときは 0 です。
+        /// </returns>
         internal static int Frontmost(Vector3 head, Vector3 forward, IList<Vector3> positions)
         {
             if (positions == null || positions.Count == 0) return -1;
@@ -246,9 +280,16 @@ namespace MouthOfGod.Fork
         }
 
         /// <summary>
-        /// 雲を頭のほうへ寄せる分。amount（0〜1）は寄せの進み具合で、なめらかに加速・減速する。
-        /// 寄せる距離は meters まで。頭から minDistance より近くにはしない。
+        /// 雲を頭のほうへ寄せる分を返します。
         /// </summary>
+        /// <param name="cloud">寄せる前の雲の位置です。</param>
+        /// <param name="head">頭の位置です。</param>
+        /// <param name="meters">寄せる距離の上限（m）です。</param>
+        /// <param name="minDistance">寄せても、頭からこの距離（m）より近くにはしません。</param>
+        /// <param name="amount">
+        /// 寄せの進み具合です。0〜1 に丸めます。途中はなめらかに加速・減速します。
+        /// </param>
+        /// <returns>雲の位置に足す分です。雲と頭が重なるときは 0 です。</returns>
         internal static Vector3 ApproachOffset(Vector3 cloud, Vector3 head, float meters, float minDistance, float amount)
         {
             Vector3 to = head - cloud;
@@ -258,7 +299,12 @@ namespace MouthOfGod.Fork
             return to / distance * reach * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(amount));
         }
 
-        /// <summary>脈の強さ（0〜1）。perSecond 回／秒で、0 から 1 へなめらかに行き来する。</summary>
+        /// <summary>
+        /// 脈の強さを返します。0 から 1 のあいだを、なめらかに行き来します。
+        /// </summary>
+        /// <param name="time">時刻（秒）です。0 のとき 0 を返します。</param>
+        /// <param name="perSecond">1 秒に脈打つ回数です。</param>
+        /// <returns>0〜1 の値です。</returns>
         internal static float Pulse(float time, float perSecond)
             => 0.5f - 0.5f * Mathf.Cos(time * perSecond * 2f * Mathf.PI);
     }

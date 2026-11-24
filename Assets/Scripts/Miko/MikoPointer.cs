@@ -3,12 +3,23 @@ using UnityEngine;
 namespace MouthOfGod.Miko
 {
     /// <summary>
-    /// 指さしの腕を、指さし先の方へ向ける。アニメーションの腕は「前やや上」に決まっているので、
-    /// Animator のあとで、右腕を指さし先へ回す。体の向きは MikoFloat が合わせる。
+    /// 指さしの右腕を、指さす先の方へ向けます。
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// アニメーションの腕は、前のやや上を指す形に決まっています。
+    /// そこで Animator が動かしたあとの LateUpdate で、右腕を指さす先へ回します。
+    /// 体の向きは <see cref="MikoFloat"/> が合わせます。
+    /// </para>
+    /// <para>
+    /// 骨は名前（UpperArm.R と Fist.R）で子から探します。
+    /// 見つからなければ、腕は回しません。
+    /// </para>
+    /// </remarks>
     public sealed class MikoPointer : MonoBehaviour
     {
-        // 指さしアニメーション（Miko_Point.anim）の長さに合わせる。Miko の Animator Controller と合わせます。
+        // 指さしアニメーション（Miko_Point.anim）の時間に合わせた値です。
+        // アニメーションの長さを変えたら、ここも合わせて直します。
         const float RaiseSeconds = 0.35f;
         const float HoldUntil = 1.4f;
         const float TotalSeconds = 2f;
@@ -18,7 +29,14 @@ namespace MouthOfGod.Miko
         Transform _target;
         float _startedAt;
 
-        /// <summary>target へ向けて指さす。アニメーションを始める合図と同時に呼ぶ。</summary>
+        /// <summary>
+        /// 右腕を、指さす先へ向け始めます。Animator に指さしの合図を送るのと同時に呼びます。
+        /// </summary>
+        /// <param name="target">指さす先です。<see langword="null"/> なら腕を回しません。</param>
+        /// <remarks>
+        /// 呼んでから <see cref="TotalSeconds"/> 秒かけて、腕を上げて保ち、元に戻します。
+        /// 途中で呼ぶと、最初からやり直します。
+        /// </remarks>
         public void Begin(Transform target)
         {
             _target = target;

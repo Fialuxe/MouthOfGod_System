@@ -5,11 +5,12 @@ namespace MouthOfGod.Flow
     /// <summary>チュートリアル 4「届ける」（シナリオブック S6）です。海の前まで歩き、魚を海に届けてもらいます。</summary>
     public sealed class Tutorial4Deliver : Chapter
     {
+        [Tooltip("食べ物を届ける先のフィールドの ID です（village / mountain / sea / grassland）。チュートリアル 3 の Field と同じにします。")]
         [SerializeField] string field = "sea";
-        [Tooltip("届けてほしい食べ物（食べ物の Prefab）")]
+        [Tooltip("届けてほしい食べ物です。食べ物の Prefab を入れます。")]
         [SerializeField] GameObject wantedFood;
 
-        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感")]
+        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感の ID です。placeholder- で始まる値は仮の ID です。")]
         [SerializeField] string wantedTexture = "placeholder-e";
 
         [Header("声（空なら字幕だけ）")]
@@ -51,12 +52,12 @@ namespace MouthOfGod.Flow
                     Miko.SayNow("Now, create it here.", hereVoice);
                 }
 
-                Delivery? got = await Player.Delivered(1f); // 1 秒ごとに、着いたかどうかも見直します
+                Delivery? got = await Player.Delivered(1f); // 1 秒ごとに、着いたかどうかも見直します。
                 if (got == null) continue;
                 if (got.Value.Field == field && got.Value.Food == wantedFood) { delivered = true; break; }
-                if (got.Value.Field == field) { target.Want(wantedFood); continue; } // 違う物が届いた。また欲しがらせます
+                if (got.Value.Field == field) { target.Want(wantedFood); continue; } // 違う物が届いたので、また欲しがらせます。
 
-                // よその場所に届いた。足あとをもう一度出します。
+                // よその場所に届いたので、足あとをもう一度出します。
                 Miko.SayNow("Not here — go to the place that glows.", notHereVoice);
                 target.Footprint(true);
                 arrived = false;

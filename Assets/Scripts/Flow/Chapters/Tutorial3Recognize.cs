@@ -5,11 +5,12 @@ namespace MouthOfGod.Flow
     /// <summary>チュートリアル 3「食感で変わる・欲しい物」（シナリオブック S5）です。海の人が欲しがる魚を、食感で選んで生んでもらいます。</summary>
     public sealed class Tutorial3Recognize : Chapter
     {
+        [Tooltip("食べ物を欲しがるフィールドの ID です（village / mountain / sea / grassland）。")]
         [SerializeField] string field = "sea";
-        [Tooltip("届けてほしい食べ物（食べ物の Prefab）")]
+        [Tooltip("届けてほしい食べ物です。食べ物の Prefab を入れます。")]
         [SerializeField] GameObject wantedFood;
 
-        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感")]
+        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感の ID です。placeholder- で始まる値は仮の ID です。")]
         [SerializeField] string wantedTexture = "placeholder-e";
 
         [Header("声（空なら字幕だけ）")]
@@ -19,7 +20,8 @@ namespace MouthOfGod.Flow
         [SerializeField] AudioClip fishHereVoice;
         [SerializeField] AudioClip alreadyDeliveredVoice;
 
-        /// <summary>この場面で、魚がたまたま海に届いたときに、<see cref="Chapter.Memory"/> に入れる印です。チュートリアル 4 は、これがあると歩く所を飛ばします。</summary>
+        /// <summary>この場面で魚がたまたま海に届いたときに、<see cref="Chapter.Memory"/> に入れる印です。</summary>
+        /// <remarks>チュートリアル 4 は、これがあると歩く所を飛ばします。</remarks>
         internal const string DeliveredEarly = "fish-delivered-early";
 
         protected override async Awaitable Run()
@@ -31,7 +33,7 @@ namespace MouthOfGod.Flow
             target.Glow(true);
             await Miko.Say("Oh, the people by the sea are troubled. They want fish.", troubledVoice);
 
-            // 2. 魚が生まれるまで待ちます。違う物なら、もう一度。
+            // 2. 魚が生まれるまで待ちます。違う物が生まれたら、もう一度頼みます。
             Clouds.Glow();
             Miko.SayNow("Pierce a new cloud. Which feel was the fish?", whichFeelVoice);
             while (!GaveUp)
@@ -51,7 +53,8 @@ namespace MouthOfGod.Flow
                 return;
             }
 
-            // 恵みは立っている場所に落ちる、と教えます。魚の欲しい物は出したまま、チュートリアル 4 で海に届けます。
+            // 恵みは立っている場所に落ちる、と教えます。
+            // 魚の欲しい物は出したままにして、チュートリアル 4 で海に届けてもらいます。
             await Miko.Say("That's the fish — but blessings fall where you stand. Fish belong in the sea.", fishHereVoice);
         }
 

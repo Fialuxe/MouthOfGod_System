@@ -4,15 +4,28 @@ using UnityEngine;
 namespace MouthOfGod.CameraWork.Editor
 {
     /// <summary>
-    /// 草原から村へ引いていく「村の一連」のカットを、開いているシーンに組む。
-    /// 草原（<c>MinitureBase/Content/Grass/Tree1</c>）と村（<c>.../Village/Village/Plaza</c>）の位置から、目印とカメラを置く。
-    /// 動きの確認は tools/camera_preview/village_tour.py（同じ位置・同じカット）。
+    /// 草原から村へ引いていくカットを、開いているシーンに組みます。
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 草原と村の位置をもとに、目印とカメラを置きます。
+    /// 草原は <c>MinitureBase/Content/Grass/Tree1</c> です。
+    /// 村は <c>.../Village/Village/Plaza</c> です。
+    /// どちらかが無いシーンでは、警告を出して何もしません。
+    /// </para>
+    /// <para>
+    /// Unity を開かずに動きを確かめるときは、<c>tools/camera_preview/village_tour.py</c> を使います。
+    /// 同じ位置と同じカットで描きます。
+    /// ここの値を変えたら、そちらも合わせます。
+    /// </para>
+    /// </remarks>
     public static class VillageTourBuilder
     {
         const string GrassPath = "MinitureBase/Content/Grass/Tree1";
         const string VillagePath = "MinitureBase/Content/Village/Village/Plaza";
 
+        // 草原を見てから、曲線で引きながら見る点を村へ移し、村を回り込むカットを組みます。
+        // python 側の pullback に当たります。
         [MenuItem("MouthOfGod/CameraWork/Add Village Tour")]
         static void Build()
         {
@@ -39,7 +52,8 @@ namespace MouthOfGod.CameraWork.Editor
             camera.AddComponent<Camera>().nearClipPlane = 0.01f;
             Vector3 start = g + new Vector3(0.20f, 0.12f, 0.17f);
             camera.transform.SetPositionAndRotation(start, Quaternion.LookRotation(grassLook.position - start));
-            camera.SetActive(false); // 撮るときに有効にする（VR の Main Camera とは別の、カット用のカメラ）
+            // VR の Main Camera とは別の、カット用のカメラです。撮るときだけ有効にします。
+            camera.SetActive(false);
 
             var player = camera.AddComponent<CameraCutPlayer>();
             player.Shots = new[]
@@ -64,6 +78,8 @@ namespace MouthOfGod.CameraWork.Editor
             Debug.Log("[VillageTour] VillageTour を置きました。TourCamera を有効にして、CameraCutPlayer の Play で撮れます。目印を動かすと、軌道が変わります。");
         }
 
+        // 草原に寄った絵から、一直線に引きながら画角を広げるカットを組みます。
+        // python 側の zoomout に当たります。
         [MenuItem("MouthOfGod/CameraWork/Add Village Zoom-Out")]
         static void BuildZoomOut()
         {
@@ -92,11 +108,13 @@ namespace MouthOfGod.CameraWork.Editor
             camera.transform.SetParent(root.transform, false);
             var cam = camera.AddComponent<Camera>();
             cam.nearClipPlane = 0.01f;
-            cam.fieldOfView = 24f; // 草原にズームした状態から始める
+            cam.fieldOfView = 24f;  // 草原にズームした状態から始めます。
             camera.transform.SetPositionAndRotation(start, Quaternion.LookRotation(grassLook.position - start));
             camera.SetActive(false);
 
-            // 村側から草原へ寄った絵 → 真後ろへ一直線に引きながら画角を広げ、見る点を村の中心へ移す（回らない）
+            // 村の側から、草原へ寄った絵で始めます。
+            // そこから真後ろへ一直線に引きながら、画角を広げます。
+            // 見る点は村の中心へ移しますが、カメラは回り込みません。
             camera.AddComponent<CameraCutPlayer>().Shots = new[]
             {
                 new CameraShot { name = "草原にズーム", kind = ShotKind.Hold, seconds = 1.2f, aim = ShotAim.LookAtTarget, aimTarget = grassLook },

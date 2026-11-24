@@ -5,13 +5,13 @@ namespace MouthOfGod.Flow
     /// <summary>チュートリアル 2「物が生まれる」（シナリオブック S4）です。お供え物のりんごを、口から生んでもらいます。</summary>
     public sealed class Tutorial2Spawn : Chapter
     {
-        [Tooltip("村人が供えたお供え物。この場面の間だけ出します")]
+        [Tooltip("村人が供えたお供え物です。この場面の間だけ出します。空なら何も出しません。")]
         [SerializeField] GameObject offering;
 
-        [Tooltip("生んでほしい食べ物（食べ物の Prefab）")]
+        [Tooltip("生んでほしい食べ物です。食べ物の Prefab を入れます。")]
         [SerializeField] GameObject wantedFood;
 
-        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感")]
+        [Tooltip("この場面の間、どこに立っていても Wanted Food を生む食感の ID です。placeholder- で始まる値は仮の ID です。")]
         [SerializeField] string wantedTexture = "placeholder-b";
 
         [Header("声（空なら字幕だけ）")]
@@ -37,7 +37,7 @@ namespace MouthOfGod.Flow
             while (!GaveUp && !await Player.Pierced(15f)) Miko.SayNow("Pierce a cloud with your fork.", hintPierceVoice);
             while (!GaveUp && !await Player.InMouth(15f)) Miko.SayNow("Bring it to your mouth.", hintMouthVoice);
 
-            // 2. りんごが生まれるまで待ちます。違う物なら、もう一度。
+            // 2. りんごが生まれるまで待ちます。違う物が生まれたら、もう一度頼みます。
             Miko.SayNow("As the feel changes, so does the blessing. Wait for the apple.", waitAppleVoice);
             bool born = false;
             while (!GaveUp)

@@ -6,9 +6,10 @@ namespace MouthOfGod.Flow
     /// <summary>本編です。制限時間の間、どのフィールドにも欲しい物を出し、届けた数を数えます。</summary>
     public sealed class MainGame : Chapter
     {
+        [Tooltip("本編の制限時間です。単位は秒です。")]
         [SerializeField, Min(1f)] float seconds = 120f;
 
-        [Tooltip("残り時間を出す文字。空なら出しません")]
+        [Tooltip("残り時間を出す文字です。空なら出しません。")]
         [SerializeField] TMP_Text timeText;
 
         /// <summary>直前の本編で、欲しがられていた物を届けた数です。エンディングが読みます。</summary>
@@ -24,10 +25,12 @@ namespace MouthOfGod.Flow
             {
                 if (timeText != null) timeText.text = Mathf.CeilToInt(end - Time.time).ToString();
 
+                // 残り時間の表示を更新するため、待つのは長くても 1 秒にします。
+                // 0 を渡すと無制限に待つので、短くても 0.01 秒にします。
                 Delivery? got = await Player.Delivered(Mathf.Clamp(end - Time.time, 0.01f, 1f));
                 if (got?.WasWanted != true) continue;
                 Answered++;
-                Field.Get(got.Value.Field).WantAll(); // 届けたフィールドに、次の欲しい物を出します
+                Field.Get(got.Value.Field).WantAll(); // 届けたフィールドに、次の欲しい物を出します。
             }
         }
 

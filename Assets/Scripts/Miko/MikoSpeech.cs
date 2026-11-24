@@ -6,17 +6,30 @@ using UnityEngine.UI;
 namespace MouthOfGod.Miko
 {
     /// <summary>
-    /// 巫女にしゃべらせる。渡したセリフ（MikoLine）の字幕を出し、音声を鳴らし、表情と指さしをつける。
-    /// 字幕は、見ている人の視線の少し下に出す。頭を回す・見下ろすと、ゆっくり追う。台のミニチュアより手前に置き、ほかの物に隠れないように描く。
+    /// 巫女にしゃべらせます。渡したセリフの字幕を出し、音声を鳴らします。
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// 表情と指さしは、ここでは扱いません。<see cref="MikoController"/> が一緒に動かします。
+    /// </para>
+    /// <para>
+    /// 字幕は、見ている人の視線の少し下に出します。
+    /// 頭を回したり見下ろしたりすると、ゆっくり追います。
+    /// 台のミニチュアより手前に置き、ほかの物に隠れないように描きます。
+    /// </para>
+    /// <para>
+    /// しゃべっている最中に次のセリフが来たら、いまのセリフを少し見せてから切り上げます。
+    /// 待つのは、いちばん新しい 1 つだけです。
+    /// </para>
+    /// </remarks>
     public sealed class MikoSpeech : MonoBehaviour
     {
         [SerializeField] AudioSource voiceSource;
         const float MinHeight = 140f;
         const float TextPaddingY = 10f;
-        const float CanvasWidth = 900f; // 字幕の Canvas の幅（px）。文字の大きさ（48px）は、この幅に対して決まる
+        const float CanvasWidth = 900f;  // 字幕の Canvas の幅（px）。文字の大きさ（48px）は、この幅に対して決まります
 
-        [SerializeField] Font font; // 空なら、Unity 組み込みのフォント（英語向け）。日本語を出すときは指定する
+        [SerializeField] Font font;  // 空なら、Unity 組み込みの英語向けフォント。日本語を出すときは指定します
         [Tooltip("見ている人から字幕までの距離（m）。台のミニチュア（およそ 0.9 m 先）より手前にする")]
         [SerializeField] float subtitleDistanceMeters = 0.7f;
         [Tooltip("字幕の長さ（秒）= 文字数 × この値 + 余白。Seconds が 0 で、音声もないときに使う。英語を読む速さの目安")]
@@ -33,7 +46,7 @@ namespace MouthOfGod.Miko
         [SerializeField] Vector2 pitchRange = new Vector2(-55f, 10f);
         [Tooltip("字幕の幅（m）。文字の大きさも、幅に合わせて変わる")]
         [SerializeField] float subtitleWidthMeters = 0.55f;
-        [Tooltip("頭を回したとき、字幕が追いかける速さ")]
+        [Tooltip("頭を回したとき、字幕が追いかける速さ（1/秒の目安）。大きいほど早く追いつき、小さいほどゆったり遅れて追う")]
         [SerializeField] float followSpeed = 3f;
         [Tooltip("入れると、字幕をほかの物より前に描く（村や雲に埋もれない）")]
         [SerializeField] bool alwaysOnTop = true;
@@ -41,32 +54,40 @@ namespace MouthOfGod.Miko
         GameObject _subtitle;
         Text _text;
         float _hideAt;
-        Vector3 _flatForward = Vector3.forward; // 字幕を置く向き（水平）。頭に、ゆっくり追わせる
-        float _pitch; // 字幕を置く上下の角度（度。下が負）。頭に、ゆっくり追わせる
+        // 字幕を置く水平の向きです。頭の向きを、ゆっくり追わせます。
+        Vector3 _flatForward = Vector3.forward;
+        // 字幕を置く上下の角度（度）です。下が負です。頭の向きを、ゆっくり追わせます。
+        float _pitch;
         Material _onTopMaterial;
-        readonly MikoLineQueue _queue = new MikoLineQueue(); // しゃべっている間に来たセリフ。新しい 1 つだけ残す
-        float _shownAt; // いまのセリフを出しはじめた時刻
+        readonly MikoLineQueue _queue = new MikoLineQueue();
+        float _shownAt;
 
-        // しゃべっている、または着くのを待っている。
         bool Busy => IsSpeaking;
 
+        /// <summary>字幕を出している間 <see langword="true"/> です。</summary>
         public bool IsSpeaking => _subtitle != null && _subtitle.activeSelf;
 
-        /// <summary>渡したセリフをしゃべる。line が null なら false。</summary>
+        /// <summary>渡したセリフをしゃべります。</summary>
+        /// <param name="line">しゃべるセリフです。</param>
+        /// <returns>
+        /// 受け付けたら <see langword="true"/> です。<paramref name="line"/> が <see langword="null"/> なら <see langword="false"/> です。
+        /// </returns>
+        /// <remarks>
+        /// しゃべっている最中なら、いまのセリフを少し見せてから、このセリフに移ります。
+        /// </remarks>
         public bool Say(MikoLine line)
         {
             if (line == null) return false;
             if (!Busy) Speak(line);
             else if (IsSpeaking)
             {
-                // 言っている最中に来たセリフは、いまのセリフを少し見せたら切り上げて言う。待ちが増えても、新しい 1 つだけ残す。
                 _queue.Enqueue(line);
                 _hideAt = MikoLineQueue.CutAt(_hideAt, _shownAt, minShowSeconds, Time.time);
             }
             return true;
         }
 
-        /// <summary>しゃべるのをやめて、字幕を消す。順番待ちのセリフも捨てる。</summary>
+        /// <summary>しゃべるのをやめて、字幕を消します。待っているセリフも捨てます。</summary>
         public void Hush()
         {
             _queue.Clear();
@@ -120,10 +141,11 @@ namespace MouthOfGod.Miko
             PlaceSubtitle(followSpeed * Time.deltaTime);
         }
 
-        // 出しはじめは、いま見ている向きにすぐ置く。
+        // 出しはじめは、いま見ている向きにすぐ置きます。
         void SnapSubtitle() => PlaceSubtitle(1f);
 
-        // 見ている人の視線の少し下に置く。頭を回す・見下ろすと、ゆっくり追う。
+        // 字幕を、見ている人の視線の少し下に置きます。
+        // follow は追う割合で、1 ならすぐその向きに置きます。
         void PlaceSubtitle(float follow)
         {
             var camera = Camera.main;
@@ -137,18 +159,19 @@ namespace MouthOfGod.Miko
             _pitch = Mathf.Lerp(_pitch, pitch, Mathf.Clamp01(follow));
             var position = camera.transform.position + SubtitleDirection(_flatForward, _pitch - subtitleBelowGaze) * subtitleDistanceMeters;
             _subtitle.transform.position = position;
-            // 字幕の表は、-Z 側から読める。見ている人から字幕へ向かう向きに合わせる。
+            // 字幕の表は -Z 側から読めます。そのため、見ている人から字幕へ向かう向きに合わせます。
             _subtitle.transform.rotation = Quaternion.LookRotation(position - camera.transform.position, Vector3.up);
         }
 
-        // 水平の向き flatForward から、pitch 度（下が負）だけ上下に傾けた向き。
+        // 水平の向き flatForward を、pitch 度だけ上下に傾けた向きを返します。pitch は下が負です。
         internal static Vector3 SubtitleDirection(Vector3 flatForward, float pitch)
         {
             var radians = pitch * Mathf.Deg2Rad;
             return (flatForward.normalized * Mathf.Cos(radians) + Vector3.up * Mathf.Sin(radians)).normalized;
         }
 
-        // 字幕の高さを、文字がすべて入る高さにそろえる。
+        // 字幕の高さを、文字がすべて入る高さにそろえます。
+        // preferredHeight を正しく読むため、先に Canvas を更新します。
         void FitSubtitle()
         {
             Canvas.ForceUpdateCanvases();
@@ -164,7 +187,7 @@ namespace MouthOfGod.Miko
             const float Height = MinHeight;
             var width = CanvasWidth;
 
-            // 巫女の子にはしない。巫女の大きさを変えても、字幕の大きさが変わらないようにする。
+            // 巫女の子にはしません。巫女の大きさを変えても、字幕の大きさが変わらないようにするためです。
             _subtitle = new GameObject("MikoSubtitle", typeof(Canvas));
             var canvas = _subtitle.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
@@ -174,7 +197,7 @@ namespace MouthOfGod.Miko
             canvas.sortingOrder = 100;
             if (alwaysOnTop)
             {
-                // UI のマテリアルの深度テストを切り、ほかの物の後ろでも見えるようにする。
+                // UI のマテリアルの深度テストを切り、ほかの物の後ろでも見えるようにします。
                 _onTopMaterial = new Material(Canvas.GetDefaultCanvasMaterial());
                 _onTopMaterial.SetInt("unity_GUIZTestMode", (int)CompareFunction.Always);
                 _onTopMaterial.renderQueue = (int)RenderQueue.Overlay;

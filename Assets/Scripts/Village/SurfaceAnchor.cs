@@ -3,15 +3,23 @@ using UnityEngine;
 namespace MouthOfGod.Village
 {
     /// <summary>
-    /// フィールドの Prefab を親の台の上面に乗せ、親の大きさの倍率を打ち消します。Prefab の一番上に付けます。
+    /// フィールドの Prefab を親の台の上面に乗せ、親の大きさの倍率を打ち消します。
     /// </summary>
     /// <remarks>
-    /// シーンの台は縦につぶれた立方体なので、そのまま子にすると中身がゆがみます。これを付けると、Prefab の中は 1 = 1 m のままです。
+    /// <para>
+    /// Prefab の一番上に付けます。
+    /// シーンの台は縦につぶれた立方体なので、そのまま子にすると中身がゆがみます。
+    /// これを付けると、Prefab の中は 1 = 1 m のままです。
+    /// </para>
+    /// <para>
+    /// 編集中も効くように、<see cref="ExecuteAlways"/> にしています。
+    /// 親の倍率に 0 があるときは、何もしません。
+    /// </para>
     /// </remarks>
     [ExecuteAlways]
     public sealed class SurfaceAnchor : MonoBehaviour
     {
-        [Tooltip("親のローカルで、乗せる面の高さ。Cube の上面は 0.5")]
+        [Tooltip("乗せる面の高さです（親のローカル座標）。Unity の Cube の上面は 0.5 です。")]
         [SerializeField] float surfaceLocalY = 0.5f;
 
         void OnEnable() => Apply();
