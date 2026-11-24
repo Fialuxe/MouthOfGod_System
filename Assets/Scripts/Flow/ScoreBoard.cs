@@ -148,7 +148,7 @@ namespace MouthOfGod.Flow
         [SerializeField]
         [Range(10f, 60f)]
         [Tooltip("表示の横幅が、体験者の視野に占める角度です（度）。距離に合わせて大きさを変えて、この角度に保ちます。大きいほど文字が大きく見えます。")]
-        private float _angularWidthDegrees = 24f;
+        private float _angularWidthDegrees = 26f;
 
         [SerializeField]
         [Range(5f, 90f)]
