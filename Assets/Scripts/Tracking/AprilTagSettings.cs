@@ -3,13 +3,12 @@ using UnityEngine;
 namespace MouthOfGod.Tracking
 {
     /// <summary>
-    /// AprilTag 検出の設定。<c>Assets/Resources/AprilTagSettings.asset</c> があれば、それを使う。なければコードの既定値で動く。
+    /// AprilTag 検出の設定。<c>Assets/Data/AprilTagSettings.asset</c> があれば、それを使う。なければコードの既定値で動く。
     /// シーンやオブジェクトに値を入れる必要はなく、変更は、このアセット（ファイル）の差分として残る。
     /// </summary>
-    [CreateAssetMenu(fileName = ResourceName, menuName = "MouthOfGod/Tracking/AprilTag Settings")]
+    [CreateAssetMenu(fileName = "AprilTagSettings", menuName = "MouthOfGod/Tracking/AprilTag Settings")]
     public sealed class AprilTagSettings : ScriptableObject
     {
-        public const string ResourceName = "AprilTagSettings";
 
         [Tooltip("タグの一辺の長さ（メートル）。tagStandard41h12 では、黒い枠の**内側の縁**で囲まれた正方形（5 マス分）の一辺。1 マスの一辺 × 5。")]
         [SerializeField, Min(0.001f)] float _tagSizeMeters = 0.075f;
@@ -31,11 +30,5 @@ namespace MouthOfGod.Tracking
         public bool LogStats => _logStats;
         public float StatsIntervalSeconds => _statsIntervalSeconds;
 
-        /// <summary>アセットがあればそれを、なければ既定値のインスタンスを返す。</summary>
-        public static AprilTagSettings Load()
-        {
-            var asset = Resources.Load<AprilTagSettings>(ResourceName);
-            return asset != null ? asset : CreateInstance<AprilTagSettings>();
-        }
     }
 }

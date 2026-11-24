@@ -226,8 +226,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fieldId: 
+  judgeDelaySeconds: 1
   consumeRequested: 1
   consumeOthers: 0
   vanishOthers: 1
   vanishSeconds: 1
-  vanishFx: {fileID: 0}

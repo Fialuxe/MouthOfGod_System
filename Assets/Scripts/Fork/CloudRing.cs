@@ -12,7 +12,6 @@ namespace MouthOfGod.Fork
     /// </remarks>
     public sealed class CloudRing : MonoBehaviour
     {
-        internal const string PrefabResourcePath = "Fork/Cloud";
 
         [Tooltip("雲の Prefab。空なら Prefabs/Fork/Cloud を使う")]
         [SerializeField] Cloud cloudPrefab;
@@ -41,7 +40,8 @@ namespace MouthOfGod.Fork
 
         void Start()
         {
-            Cloud prefab = cloudPrefab != null ? cloudPrefab : Resources.Load<Cloud>(PrefabResourcePath);
+            Cloud prefab = cloudPrefab;
+            if (prefab == null) Debug.LogError("[CloudRing] 雲の Prefab（Cloud Prefab）が空です。", this);
             if (prefab == null)
             {
                 Debug.LogWarning("[CloudRing] 雲の Prefab がありません。メニュー「MouthOfGod/Fork/Generate Cloud Prefab」で作ってください。");

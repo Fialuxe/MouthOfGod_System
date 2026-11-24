@@ -104,12 +104,6 @@ namespace MouthOfGod.Village
             ApplyThenClose(closes, resolved: false, celebrate: false);
         }
 
-        void Awake()
-        {
-            // 届いたときの反応が無いフィールドでも、標準の反応を出します。
-            if (!TryGetComponent<DeliveryFx>(out _)) gameObject.AddComponent<DeliveryFx>();
-        }
-
         void OnEnable() => Fields.Register(this);
 
         void OnDisable()
@@ -120,6 +114,7 @@ namespace MouthOfGod.Village
 
         void Start()
         {
+            if (!TryGetComponent<DeliveryFx>(out _)) Debug.LogWarning($"[FieldStages] {name}: 届いたときの反応（DeliveryFx）がありません。", this);
             WarnIfIncomplete();
             Apply(celebrate: false);
         }

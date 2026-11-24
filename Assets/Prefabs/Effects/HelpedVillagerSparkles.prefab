@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4205001690606194231}
   - component: {fileID: 4073624904624528128}
   m_Layer: 0
-  m_Name: Fx_Joy
+  m_Name: HelpedVillagerSparkles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

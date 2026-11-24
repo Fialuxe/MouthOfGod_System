@@ -36,8 +36,6 @@ namespace MouthOfGod.Village
         [Tooltip("消えるまでの秒数")]
         [SerializeField, Min(0f)] float vanishSeconds = 1f;
 
-        [Tooltip("消えるときに出す物（煙など）。空なら Resources/Fx/Fx_Smoke")]
-        [SerializeField] GameObject vanishFx;
 
         void Reset()
         {
@@ -94,8 +92,9 @@ namespace MouthOfGod.Village
 
         void Vanish(GameObject food)
         {
-            var fx = vanishFx != null ? vanishFx : Resources.Load<GameObject>("Fx/Fx_Smoke");
-            if (fx != null) Instantiate(fx, food.transform.position, Quaternion.identity, DeliveryFx.FxParentOf(this));
+            var fx = DeliveryFx.Of(this);
+            var smoke = fx != null && fx.Reactions != null ? fx.Reactions.WrongFoodSmoke : null;
+            if (smoke != null) Instantiate(smoke, food.transform.position, Quaternion.identity, fx.FxParent);
             food.AddComponent<Vanishing>().Seconds = vanishSeconds;
         }
 

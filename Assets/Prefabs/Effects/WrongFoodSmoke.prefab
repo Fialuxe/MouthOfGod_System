@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4793612352271173617}
   - component: {fileID: 5984468337644963010}
   m_Layer: 0
-  m_Name: Fx_Smoke
+  m_Name: WrongFoodSmoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
