@@ -25,6 +25,10 @@ namespace MouthOfGod.Device
     /// 通信の約束は <c>docs/device-protocol.md</c> に書いてあります。
     /// </para>
     /// <para>
+    /// 実機は、起動した直後に、自分で原点出しをします（押し出す側の端まで回して、100 % と決める）。
+    /// 動いている間は、指令を送りません。ずれを直したいときは、<see cref="RequestHome"/> で原点出しを頼めます。
+    /// </para>
+    /// <para>
     /// 指令は、実機が止まっているときにだけ送ります。動いている間に重ねると、内容量の記録がずれるためです。
     /// 動いている間に食感が変わったら、最後の 1 つだけを覚えておき、止まってから送ります。
     /// </para>
@@ -93,6 +97,7 @@ namespace MouthOfGod.Device
         private bool _hasStatus;
         private bool _wasConnected;
         private int _wantedPercent = -1;
+        private bool _homeRequested;
         private float _sentAt;
 
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
@@ -110,6 +115,19 @@ namespace MouthOfGod.Device
             DontDestroyOnLoad(holder);
         }
 #endif
+
+        /// <summary>
+        /// 実機に、原点出しを頼みます。押し出す側の端まで回して、そこを 100 % と決めさせます。
+        /// </summary>
+        /// <remarks>
+        /// 端にぶつけたまま回すので、歯車に負担がかかります。体験者が噛んでいない間に、ずれを直したいときだけ使います。
+        /// 実機が動いているときは、止まってから送ります。つながっていないときは、つながってから送ります。
+        /// </remarks>
+        [ContextMenu("原点出しをする")]
+        public void RequestHome()
+        {
+            _homeRequested = true;
+        }
 
         private void Awake()
         {
@@ -296,7 +314,22 @@ namespace MouthOfGod.Device
                 _phase = Phase.Idle;
             }
 
-            if (_phase != Phase.Idle || _wantedPercent < 0)
+            // 実機が自分で動いている間（起動直後の原点出しなど）は、送らない。
+            if (_phase != Phase.Idle || _status.IsDriving)
+            {
+                return;
+            }
+
+            if (_homeRequested)
+            {
+                _homeRequested = false;
+                _link.Send(DeviceProtocol.EncodeHome());
+                _phase = Phase.WaitingForStart;
+                _sentAt = Time.unscaledTime;
+                return;
+            }
+
+            if (_wantedPercent < 0)
             {
                 return;
             }

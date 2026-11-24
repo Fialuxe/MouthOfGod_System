@@ -9,6 +9,7 @@
     's' = 中の量を <値>% まで「減らす」 (既に <値> 以下なら何もしない)
     'c' = モーターを回さず、いまの量を <値>% と覚え直す (実物とのずれを直す用)
     'i' = すぐ止める (<値> は無視)
+    'r' = 原点出し。押し出す側 (100%) の端まで回して、100% と記録する (<値> は無視)
     <値> : 0-100 の整数。範囲外の f / s / c は無視する。
 
   Arduino -> Unity : "(<動作>,<量>)\n"   (SEND_INTERVAL_MS ごと)
@@ -21,8 +22,13 @@
 
   知らない行・壊れた行は、読み捨てる (Unity 側も同じ)。
 
-  起動直後は「デバイスは 100% 充填済み」と覚えている (currentInside = 100)。
-  実物の量が違うときは、Unity から "(c,<実量>)" を送って合わせる。
+  センサーが無いので、内容量は、モーターを回した時間から数えた記録。
+  起動した直後に、原点出しをして、100% と決める (HOME_ON_BOOT)。
+  原点出しは、押し出す側の端にぶつかるまで回す。歯車への負担を減らすため、
+    ・記録から、端までの時間を計算して、その分だけ回す
+    ・端にぶつけたまま回す時間は、HOMING_MARGIN_MS だけにする
+  起動した直後は位置が分からないので、BOOT_ASSUMED_PERCENT から端までの時間と、余分に回す時間を回す。
+  実物の量が違うときは、Unity から "(c,<実量>)" で記録を直すか、"(r,0)" で原点出しをする。
 
   Aチャンネル(AIN1/AIN2) = fillモーター(押す)
   Bチャンネル(BIN1/BIN2) = suckモーター(引く)
@@ -64,6 +70,21 @@ const unsigned long HELLO_INTERVAL_MS = 1000; // 実機の合図の周期
 // ==== 1%あたりの駆動時間(実測して調整する) ====
 const unsigned long MS_PER_PERCENT = 10;
 
+// ==== 原点出し ====
+// 1 = 起動した直後に、原点出しをする (起動直後の位置は分からないので、全行程ぶん回す)。
+#define HOME_ON_BOOT 1
+
+// 起動した直後に、内容量がこの値だと見て、端までの時間を決める。
+// 0 = いちばん遠い所にいると見て、全行程ぶん回す (確実。ただし、すでに端にいると、端にぶつけたまま全行程ぶん回す)。
+// 普段、実機を置く位置が決まっているなら、その値(例: 80)にすると、回す時間が短くなる。
+// 実物が、この値より遠い所にいると、端に届かない。
+const int BOOT_ASSUMED_PERCENT = 0;
+
+// 記録から計算した時間に足す、余分に回す時間(ms)。端にぶつけたまま回す時間になる。
+// 短いほど歯車への負担が小さい。ただし、MS_PER_PERCENT の誤差より短いと、端に届かない。
+// 端に届かないときは、MS_PER_PERCENT を実測し直すか、この値を少しずつ増やす。
+const unsigned long HOMING_MARGIN_MS = 100;
+
 // ==== 状態管理 ====
 enum MotorState { MOTOR_STOPPED, MOTOR_FILLING, MOTOR_SUCKING };
 
@@ -97,6 +118,11 @@ void setup() {
 
   stopMotors();
   sendHello(); // 起動したことを、すぐ知らせる
+
+#if HOME_ON_BOOT
+  currentInside = BOOT_ASSUMED_PERCENT;
+  startHoming();
+#endif
 }
 
 void loop() {
@@ -153,6 +179,10 @@ void handleLine(const char *line) {
       motorState = MOTOR_STOPPED;
       break;
 
+    case 'r':
+      startHoming();
+      break;
+
     case 'c':
       if (value < 0 || value > 100) return;
       stopMotors();
@@ -194,6 +224,21 @@ void moveToward(MotorState dir, int target) {
   actionDurationMs = (unsigned long)abs(delta) * MS_PER_PERCENT;
 
   driveMotor(dir);
+}
+
+// 原点出し。押し出す側の端まで回して、終わったら 100% と記録する。
+// 記録から端までの時間を計算し、HOMING_MARGIN_MS を足した分だけ回す。
+void startHoming() {
+  settleProgress();
+
+  unsigned long distanceMs = (unsigned long)(100 - currentInside) * MS_PER_PERCENT;
+
+  motorState = MOTOR_FILLING;
+  actionTargetInside = 100;
+  actionStartMillis = millis();
+  actionDurationMs = distanceMs + HOMING_MARGIN_MS;
+
+  driveMotor(MOTOR_FILLING);
 }
 
 // 動いている途中で止める・切り替えるとき、そこまでに動いた分を currentInside に反映する。

@@ -54,7 +54,8 @@ namespace MouthOfGod.Device
     /// </para>
     /// <para>
     /// Unity から Arduino へ: <c>(f,80)</c> は「内容量を 80 % まで増やす」、<c>(s,20)</c> は「20 % まで減らす」、
-    /// <c>(c,60)</c> は「モーターを回さず、いまの量を 60 % と覚え直す」、<c>(i,0)</c> は「すぐ止める」です。
+    /// <c>(c,60)</c> は「モーターを回さず、いまの量を 60 % と覚え直す」、<c>(i,0)</c> は「すぐ止める」、
+    /// <c>(r,0)</c> は「押し出す側の端まで回して、100 % と決める（原点出し）」です。
     /// 行の終わりは <c>\n</c> です。
     /// </para>
     /// <para>
@@ -100,6 +101,13 @@ namespace MouthOfGod.Device
         internal static string EncodeSetCurrent(int percent)
         {
             return "(c," + Clamp(percent) + ")\n";
+        }
+
+        /// <summary>原点出しの行を作ります。押し出す側（100 %）の端まで回して、そこを 100 % と決めさせます。</summary>
+        /// <remarks>端にぶつけたまま回すので、歯車に負担がかかります。起動した直後と、ずれを直したいときだけ使います。</remarks>
+        internal static string EncodeHome()
+        {
+            return "(r,0)\n";
         }
 
         /// <summary>すぐ止める行を作ります。</summary>
