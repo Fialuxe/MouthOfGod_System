@@ -17,9 +17,10 @@ namespace MouthOfGod.Flow
     /// 本編が始まると、この部品が有効にします。
     /// </para>
     /// <para>
-    /// 体験者は、ミニチュアを見下ろして遊びます。そのため、表示は体験者の頭ではなく、ミニチュアの向こう側の縁に立てます。
+    /// 体験者は、ミニチュアの横に立って、ミニチュアを見ながら遊びます。
+    /// そのため、表示は体験者の頭ではなく、ミニチュアを挟んで体験者と反対側の縁に立てます。
     /// ミニチュアを見ている視野の中に入り、頭を動かしても、世界の中で動きません。酔いにくく、没入も壊れません。
-    /// 置く向きは、体験者が顔を向けている向きです。顔を大きく向け直したときだけ、ゆっくり向こう側へ回り込みます。
+    /// 体験者がミニチュアの周りを歩いて、反対側との角度が大きくずれたときだけ、ゆっくり反対側へ回り込みます。
     /// 表示は、いつも体験者のほうを向きます。傾けません。
     /// </para>
     /// <para>
@@ -53,7 +54,7 @@ namespace MouthOfGod.Flow
         private const float BurstLifetimeSeconds = 3f;
         private const float BurstTowardViewerMeters = 0.06f;
         private const float MinimumViewDistanceMeters = 0.3f;
-        private const float MinimumFlatForwardLength = 0.2f;
+        private const float MinimumFlatDistanceMeters = 0.15f;
         private const int MaxBadgeGrowSteps = 3;
         private const int RankSScore = 3000;
         private const int RankAScore = 2000;
@@ -132,26 +133,26 @@ namespace MouthOfGod.Flow
 
         [Header("置き場所")]
         [SerializeField]
-        [Tooltip("ミニチュアの土台です。表示は、この中心から体験者が向いている向きへ、少し離れた所に立てます。空なら、ワールドの原点を中心にします。")]
+        [Tooltip("ミニチュアの土台です。表示は、この中心から見て、体験者と反対の向きへ、少し離れた所に立てます。空なら、ワールドの原点を中心にします。")]
         private Transform _miniature;
 
         [SerializeField]
         [Min(0f)]
         [Tooltip("ミニチュアの中心から、表示までの水平の距離です（メートル）。土台の半分の大きさより少し大きくして、縁の向こう側に置きます。")]
-        private float _forwardOffsetMeters = 0.75f;
+        private float _beyondOffsetMeters = 0.75f;
 
         [SerializeField]
-        [Tooltip("ミニチュアの中心から、表示の中心までの高さです（メートル）。")]
-        private float _heightAboveMiniatureMeters = 0.35f;
+        [Tooltip("ミニチュアの中心から、表示の中心までの高さです（メートル）。表示の下の端が、ミニチュアの高さより上になるようにします。手前から見て、ミニチュアの奥を隠さないためです。")]
+        private float _heightAboveMiniatureMeters = 0.5f;
 
         [SerializeField]
         [Range(10f, 60f)]
         [Tooltip("表示の横幅が、体験者の視野に占める角度です（度）。距離に合わせて大きさを変えて、この角度に保ちます。大きいほど文字が大きく見えます。")]
-        private float _angularWidthDegrees = 28f;
+        private float _angularWidthDegrees = 24f;
 
         [SerializeField]
         [Range(5f, 90f)]
-        [Tooltip("顔の向きが表示の向きからこの角度より離れたときだけ、表示が回り込みます（度）。")]
+        [Tooltip("体験者から見たミニチュアの向きが、表示の置いてある向きからこの角度より離れたときだけ、表示が反対側へ回り込みます（度）。")]
         private float _followDeadZoneDegrees = 30f;
 
         [SerializeField]
@@ -603,40 +604,44 @@ namespace MouthOfGod.Flow
             return null;
         }
 
-        // 顔の水平の向きを、角度で返す。真下を向いて前向きが短いときは、頭の上向きの水平の向きを使う。
-        private static float FlatYawDegreesOf(Transform head)
+        // 体験者から見たミニチュアの水平の向きを、角度で返す。真上に近いときは、顔の向きを使う。
+        private static float DirectionToMiniatureYawDegrees(Transform head, Vector3 center)
         {
-            Vector3 flat = Vector3.ProjectOnPlane(head.forward, Vector3.up);
-            if (flat.magnitude < MinimumFlatForwardLength)
+            Vector3 flat = Vector3.ProjectOnPlane(center - head.position, Vector3.up);
+            if (flat.magnitude < MinimumFlatDistanceMeters)
             {
-                flat = Vector3.ProjectOnPlane(head.up, Vector3.up);
+                flat = Vector3.ProjectOnPlane(head.forward, Vector3.up);
+                if (flat.sqrMagnitude < MinimumFlatDistanceMeters * MinimumFlatDistanceMeters)
+                {
+                    flat = Vector3.ProjectOnPlane(head.up, Vector3.up);
+                }
             }
 
             return Mathf.Atan2(flat.x, flat.z) * Mathf.Rad2Deg;
         }
 
-        // ミニチュアの向こう側の縁に立てる。体験者がミニチュアを見ている視野に入り、顔を動かしても世界の中で動かない。
+        // ミニチュアを挟んで、体験者と反対側の縁に立てる。体験者がミニチュアを見ている視野に入り、顔を動かしても世界の中で動かない。
         private void PlaceBeyondMiniature(Transform head)
         {
-            float headYaw = FlatYawDegreesOf(head);
+            Vector3 center = _miniature != null ? _miniature.position : Vector3.zero;
+            float awayYaw = DirectionToMiniatureYawDegrees(head, center);
             if (!_hasYaw)
             {
                 _hasYaw = true;
-                _yawDegrees = headYaw;
-                _targetYawDegrees = headYaw;
+                _yawDegrees = awayYaw;
+                _targetYawDegrees = awayYaw;
                 _yawVelocity = 0f;
             }
 
-            if (Mathf.Abs(Mathf.DeltaAngle(_yawDegrees, headYaw)) > _followDeadZoneDegrees)
+            if (Mathf.Abs(Mathf.DeltaAngle(_yawDegrees, awayYaw)) > _followDeadZoneDegrees)
             {
-                _targetYawDegrees = headYaw;
+                _targetYawDegrees = awayYaw;
             }
 
             _yawDegrees = Mathf.SmoothDampAngle(_yawDegrees, _targetYawDegrees, ref _yawVelocity, _followSmoothSeconds);
 
-            Vector3 center = _miniature != null ? _miniature.position : Vector3.zero;
             Vector3 beyond = Quaternion.Euler(0f, _yawDegrees, 0f) * Vector3.forward;
-            Vector3 position = center + beyond * _forwardOffsetMeters + Vector3.up * _heightAboveMiniatureMeters;
+            Vector3 position = center + beyond * _beyondOffsetMeters + Vector3.up * _heightAboveMiniatureMeters;
 
             Transform hudTransform = _hud.transform;
             hudTransform.position = position;
