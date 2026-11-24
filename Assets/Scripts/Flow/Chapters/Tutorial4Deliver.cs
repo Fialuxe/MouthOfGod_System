@@ -21,6 +21,14 @@ namespace MouthOfGod.Flow
 
         protected override async Awaitable Run()
         {
+            // チュートリアル 3 で魚がもう海に届いていたら、歩く所を飛ばして締めくくります。
+            if (Memory.Contains(Tutorial3Recognize.DeliveredEarly))
+            {
+                Foods.Clear();
+                await Miko.Say("Find what each place needs, go there, and create it. Now you are a true god.", trueGodVoice);
+                return;
+            }
+
             // 1. 前の場面の食べ物を片付け、海を光らせ、足あとを出して、巫女がついてきます。
             Foods.Clear();
             Field target = Field.Get(field);
