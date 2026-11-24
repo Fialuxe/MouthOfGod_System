@@ -350,6 +350,7 @@ GameObject:
   m_Component:
   - component: {fileID: 203156755}
   - component: {fileID: 203156756}
+  - component: {fileID: 203156799}
   m_Layer: 0
   m_Name: MainGame
   m_TagString: Untagged
@@ -386,7 +387,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   giveUpSeconds: 0
   seconds: 120
-  timeText: {fileID: 0}
+  scoreBoard: {fileID: 203156799}
+--- !u!114 &203156799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 203156754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1769ae59217943ca8b7f773c309c9df7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _distanceMeters: 1.8
+  _yawOffsetDegrees: -22
+  _heightOffsetMeters: 0.25
+  _fontSize: 1.5
+  _followDeadZoneDegrees: 30
+  _followSmoothSeconds: 0.5
+  _warningSeconds: 10
 --- !u!1 &215040879
 GameObject:
   m_ObjectHideFlags: 0
@@ -433,6 +453,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   giveUpSeconds: 90
   resultText: {fileID: 0}
+  scoreBoard: {fileID: 203156799}
   thanksVoice: {fileID: 8300000, guid: b61acf1520a047058c11c5413937913c, type: 3}
   byeVoice: {fileID: 8300000, guid: a3077b09784d4f4caf61c9c2598d58d4, type: 3}
 --- !u!1 &243415659
