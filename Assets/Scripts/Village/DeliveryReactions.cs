@@ -29,8 +29,8 @@ namespace MouthOfGod.Village
         [Tooltip("頼まれていない物が、小さくなって消えるときに出す煙です。食べ物の位置に一度だけ出します。空なら煙を出しません。")]
         [SerializeField] GameObject wrongFoodSmoke;
 
-        [Tooltip("頼まれていない物が届いたときに鳴らす、がっかりした音です。空なら鳴らしません。")]
-        [SerializeField] AudioClip wrongFoodSound;
+        [Tooltip("頼まれていない物が届いたときに鳴らす、がっかりした音です。届くたびに、この中から 1 つを選びます。空なら鳴らしません。")]
+        [SerializeField] AudioClip[] wrongFoodSounds;
 
         [Header("ステップが済んで、物が出てくるとき")]
         [Tooltip("新しく出てきた物の場所に、一度だけ出す粒です。空なら粒を出しません。")]
@@ -46,9 +46,23 @@ namespace MouthOfGod.Village
         public ParticleSystem HelpedVillagerSparkles => helpedVillagerSparkles;
         public AudioClip RequestFulfilledSound => requestFulfilledSound;
         public GameObject WrongFoodSmoke => wrongFoodSmoke;
-        public AudioClip WrongFoodSound => wrongFoodSound;
+
+        int _lastWrongFoodSoundIndex = -1;
         public GameObject StepItemSparkles => stepItemSparkles;
         public float StepItemSparklesScale => stepItemSparklesScale;
         public float Volume => volume;
+
+        /// <summary>間違った物が届いたときの音を 1 つ選びます。</summary>
+        /// <remarks>2 つ以上あるときは、直前と同じ音を続けて選びません。</remarks>
+        /// <returns>選んだ音です。1 つも入れていなければ <see langword="null"/> です。</returns>
+        public AudioClip PickWrongFoodSound()
+        {
+            if (wrongFoodSounds == null || wrongFoodSounds.Length == 0) return null;
+            int index = Random.Range(0, wrongFoodSounds.Length);
+            if (wrongFoodSounds.Length > 1 && index == _lastWrongFoodSoundIndex)
+                index = (index + 1 + Random.Range(0, wrongFoodSounds.Length - 1)) % wrongFoodSounds.Length;
+            _lastWrongFoodSoundIndex = index;
+            return wrongFoodSounds[index];
+        }
     }
 }
