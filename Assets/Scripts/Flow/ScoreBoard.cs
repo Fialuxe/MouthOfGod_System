@@ -30,7 +30,10 @@ namespace MouthOfGod.Flow
         private const float PunchExtraScale = 0.5f;
         private const float PulseExtraScale = 0.06f;
         private const float PulseRadiansPerSecond = 8f;
-        private const float OutlineWidth = 0.3f;
+
+        // 明るい空や草の上でも読めるよう、文字の後ろに半透明の黒い帯を敷く。
+        private const string BackingOpen = "<mark=#000000A0>";
+        private const string BackingClose = "</mark>";
 
         private static readonly Color NormalColor = Color.white;
         private static readonly Color CelebrationColor = new Color(1f, 0.85f, 0.2f);
@@ -91,7 +94,7 @@ namespace MouthOfGod.Flow
         {
             _isFinalShown = false;
             _secondsLeft = Mathf.Max(0, secondsLeft);
-            RefreshText();
+            RefreshTextSafely();
         }
 
         /// <summary>点数を更新します。表示が無ければ出します。</summary>
@@ -111,7 +114,7 @@ namespace MouthOfGod.Flow
                 _punch = 1f;
             }
 
-            RefreshText();
+            RefreshTextSafely();
         }
 
         /// <summary>本編が終わったあとの、最終の点数を出します。</summary>
@@ -123,7 +126,7 @@ namespace MouthOfGod.Flow
             _score = score;
             _answered = answered;
             _punch = 1f;
-            RefreshText();
+            RefreshTextSafely();
         }
 
         /// <summary>表示を消し、数を 0 に戻します。やり直すときに呼びます。</summary>
@@ -246,6 +249,19 @@ namespace MouthOfGod.Flow
             _text.color = Color.Lerp(baseColor, CelebrationColor, easedPunch);
         }
 
+        // 表示は付け足しなので、失敗しても本編を止めない。例外は Console に出す。
+        private void RefreshTextSafely()
+        {
+            try
+            {
+                RefreshText();
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception, this);
+            }
+        }
+
         private void RefreshText()
         {
             EnsureTextCreated();
@@ -262,13 +278,22 @@ namespace MouthOfGod.Flow
         private string BuildPlayingContent()
         {
             string time = _secondsLeft >= 0 ? FormatClock(_secondsLeft) : "";
-            string streakLine = _streak >= 2 ? "\n<size=45%><color=#FFD633>STREAK x" + _streak + "</color></size>" : "";
-            return "<size=45%>" + time + "</size>\n" + _score + streakLine;
+            string streakLine = _streak >= 2
+                ? "\n" + WithBacking("<size=45%><color=#FFD633>STREAK x" + _streak + "</color></size>")
+                : "";
+            return WithBacking("<size=45%>" + time + "</size>") + "\n" + WithBacking(_score.ToString()) + streakLine;
         }
 
         private string BuildFinalContent()
         {
-            return "<size=45%>FINAL SCORE</size>\n" + _score + "\n<size=45%>" + _answered + " WISHES ANSWERED</size>";
+            return WithBacking("<size=45%>FINAL SCORE</size>") + "\n"
+                   + WithBacking(_score.ToString()) + "\n"
+                   + WithBacking("<size=45%>" + _answered + " WISHES ANSWERED</size>");
+        }
+
+        private static string WithBacking(string line)
+        {
+            return BackingOpen + " " + line + " " + BackingClose;
         }
 
         private static string FormatClock(int totalSeconds)
@@ -291,10 +316,6 @@ namespace MouthOfGod.Flow
             _text.textWrappingMode = TextWrappingModes.NoWrap;
             _text.richText = true;
             _text.color = NormalColor;
-
-            // 明るい空や草の上でも読めるよう、黒い縁を付ける。
-            _text.outlineWidth = OutlineWidth;
-            _text.outlineColor = new Color32(0, 0, 0, 255);
         }
     }
 }
