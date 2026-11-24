@@ -17,15 +17,15 @@ namespace MouthOfGod.Flow
         public static string Field => Standing.Field.IsEmpty ? "" : Standing.Field.ToString();
 
         /// <summary>いまの食感です。まだ噛んでいなければ空です。</summary>
-        public static string Texture => Devices.Current == null || Devices.Current.Current.IsEmpty ? "" : Devices.Current.Current.ToString();
+        public static string Texture => Rig?.Device == null || Rig.Device.Current.IsEmpty ? "" : Rig.Device.Current.ToString();
 
         /// <summary>雲を刺すまで待ちます。もう刺してあれば、すぐ true を返します。</summary>
         public static Awaitable<bool> Pierced(float timeout = 0f)
-            => Wait.Until(() => Forks.Current != null && Forks.Current.IsLoaded, timeout);
+            => Wait.Until(() => Rig?.Fork != null && Rig.Fork.IsLoaded, timeout);
 
         /// <summary>フォークの先を口に入れるまで待ちます。もう入っていれば、すぐ true を返します。</summary>
         public static Awaitable<bool> InMouth(float timeout = 0f)
-            => Wait.Until(() => Forks.Current != null && Forks.Current.InMouth, timeout);
+            => Wait.Until(() => Rig?.Fork != null && Rig.Fork.InMouth, timeout);
 
         /// <summary>field の前に立つまで待ちます。もう立っていれば、すぐ true を返します。</summary>
         public static Awaitable<bool> StandAt(string field, float timeout = 0f)
@@ -56,8 +56,8 @@ namespace MouthOfGod.Flow
         /// <summary>食べ物が生まれるまで待ち、生まれた食べ物の元の Prefab を返します。時間切れなら null です。</summary>
         public static async Awaitable<GameObject> Spawned(float timeout = 0f)
         {
-            await Wait.Until(() => FoodSpawners.Current != null);
-            IFoodSpawner spawner = FoodSpawners.Current;
+            await Wait.Until(() => Rig?.FoodSpawner != null);
+            IFoodSpawner spawner = Rig.FoodSpawner;
             GameObject food = null;
             Action<SpawnedFood> onSpawned = s => { if (food == null) food = s.Food; };
             spawner.Spawned += onSpawned;
@@ -79,10 +79,12 @@ namespace MouthOfGod.Flow
             finally { foreach (IFieldRequests field in Fields.All) field.Received -= onReceived; }
         }
 
+        static PlayerRig Rig => PlayerRig.Current;
+
         static async Awaitable<IDevice> Device()
         {
-            await Wait.Until(() => Devices.Current != null);
-            return Devices.Current;
+            await Wait.Until(() => Rig?.Device != null);
+            return Rig.Device;
         }
     }
 

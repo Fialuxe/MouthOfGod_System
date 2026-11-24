@@ -8,7 +8,7 @@ namespace MouthOfGod.Device
     /// <summary>
     /// デバイスなしで動かす IDevice。Meta Quest のコントローラ（ゲームパッド・キーボードも可）で「噛む・決定する」を代わりにする。
     /// 噛み始めで Bitten、噛んでいる間は一定間隔で TextureChanged、決定操作で Confirmed。操作の割り当ては Inspector（InputAction）で変えられる。
-    /// シーンに置いて使う（Main には Prefab の MockDevice を置いてある）。実機のデバイスとつなぐときは、置き換える。
+    /// 体験者のリグ（PlayerRig）の子に置き、リグの Device に入れる。実機のデバイスができたら、リグの Device を差し替える。
     /// 操作のしかたは <c>Input Mode</c> で選ぶ。Any は手とコントローラのどちらでも、Hand は両手のハンドトラッキングだけ、
     /// RightController は右コントローラ 1 本だけ（片手で、噛む・決定する・棒を持つ）。キーボードとゲームパッドは、どのモードでも効く。
     /// </summary>
@@ -100,14 +100,6 @@ namespace MouthOfGod.Device
 
         void OnEnable()
         {
-            // 使う側は Devices から受け取る。別のデバイスがすでに登録されていれば、この Mock は使わない。
-            if (!Devices.Register(this))
-            {
-                Debug.LogWarning("[MockDevice] 別のデバイスが登録済みなので、この MockDevice は使いません。", this);
-                enabled = false;
-                return;
-            }
-
             biteAction.started += OnBiteStarted;
             biteAction.canceled += OnBiteCanceled;
             confirmAction.performed += OnConfirm;
@@ -117,7 +109,6 @@ namespace MouthOfGod.Device
 
         void OnDisable()
         {
-            Devices.Unregister(this);
             biteAction.started -= OnBiteStarted;
             biteAction.canceled -= OnBiteCanceled;
             confirmAction.performed -= OnConfirm;

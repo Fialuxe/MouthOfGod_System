@@ -10,18 +10,17 @@ namespace MouthOfGod.Food
     /// 食感が決まったとき（<see cref="IDevice.Confirmed"/>）に、食べ物の Prefab（<see cref="FoodItem"/>）から合う物を選び、<c>Spawn Point</c> の位置に生む。
     /// </summary>
     /// <remarks>
-    /// - デバイスは Core の <see cref="Devices.WhenReady"/> で受け取る。Mock か実機かは知らない。
+    /// - 体験者のリグ（<see cref="PlayerRig"/>）の子に置く。デバイスと口は、親のリグから受け取る。Mock か実機かは知らない。
     /// - 飛ばす: <c>Launch Speed</c> が 0 より大きく、生んだ食べ物に Rigidbody があれば、<c>Spawn Point</c> の前向きに初速を与える。そのあとの動きは、食べ物の Rigidbody（Mass など）と物理しだい。
     ///   体験者は、顔を向けて狙いを定め、欲しがっている人のところへ飛ばす。どこに届いたかは、落ちた所の DeliveryZone（Village）が決める。
     /// - <c>Food Parent</c> を入れると、生んだ食べ物をその子にする（位置と向きは Spawn Point のまま）。
     /// - どの食べ物かは、食べ物の Prefab に付いた <see cref="FoodItem"/>（<see cref="IFoodItem"/>）が持っている。
-    /// - 「体験者の前のフィールド」は、Core の <see cref="Standing.Field"/> を読む。<see cref="CurrentField"/> に関数を入れたときは、そちらを使う（テストや、別の決め方を試すとき）。
-    /// - 有効になると、自分で Core の <see cref="FoodSpawners"/> に登録する。チュートリアルや影の UI は、そこから受け取る。
+    /// - 「体験者の前のフィールド」は、Core の <see cref="Standing.Field"/> を読む。
     /// - 間違えたとき（欲しい物と違う食べ物が届いたとき）の反応は、ここにはない。届いた知らせ（<see cref="IFieldRequests.Received"/>）を受ける側が足す。
     /// </remarks>
     public sealed class FoodSpawner : MonoBehaviour, IFoodSpawner
     {
-        [Tooltip("食べ物が生まれる位置と向き（口の位置。MouthAnchor を置いたら、ここに入れる）。空なら、このオブジェクトの位置と向き")]
+        [Tooltip("食べ物が生まれる位置と向き。空なら、親のリグの口（Mouth）。リグの外なら、このオブジェクトの位置と向き")]
         [SerializeField] Transform spawnPoint;
 
         [Tooltip("生んだ食べ物を、この子として置く（Hierarchy が散らからない・まとめて消せる）。位置と向きは Spawn Point のまま。空なら、シーンの直下。動く物や、拡大縮小した物（ミニチュアの台など）の子にすると、飛んでいる食べ物も一緒に動き・大きさが変わるので、動かない・倍率 1 の空の GameObject を入れる")]
@@ -41,12 +40,6 @@ namespace MouthOfGod.Food
 
         IDevice _device;
 
-        /// <summary>
-        /// 体験者の前のフィールドを返す関数。入れたときだけ、<see cref="Standing.Field"/> の代わりに使う。
-        /// 空のままなら、Core の <see cref="Standing.Field"/>（立っている場所。どこにも立っていなければ、フィールドが空の条件だけ）。
-        /// </summary>
-        public Func<FieldId> CurrentField { get; set; }
-
         /// <summary>生んだ食べ物の置き場（親）。空ならシーンの直下。</summary>
         public Transform FoodParent
         {
@@ -61,7 +54,7 @@ namespace MouthOfGod.Food
         /// 食感から、生まれる食べ物の Prefab を引くだけ。生まない。
         /// チュートリアルで、噛んでいる間に、その食感で生まれる物の影を見せるときに使う。引けなければ null。
         /// </summary>
-        public GameObject Preview(TextureId texture) => Resolve(ResolveField(), texture);
+        public GameObject Preview(TextureId texture) => Resolve(Standing.Field, texture);
 
         /// <summary>
         /// 食感から食べ物を引いて、1 つ生む。生んだ食べ物を返す。
@@ -71,7 +64,7 @@ namespace MouthOfGod.Food
         {
             if (texture.IsEmpty) return null;
 
-            FieldId field = ResolveField();
+            FieldId field = Standing.Field;
             GameObject prefab = Resolve(field, texture);
             if (prefab == null)
             {
@@ -82,7 +75,7 @@ namespace MouthOfGod.Food
 
             Debug.Log("[FoodSpawner] " + (field.IsEmpty ? "フィールドなし" : field.Value) + " / " + texture + " → " + prefab.name);
 
-            Transform origin = spawnPoint != null ? spawnPoint : transform;
+            Transform origin = Origin();
             GameObject instance = Instantiate(prefab, origin.position, origin.rotation, foodParent);
             instance.name = prefab.name;
             if (instance.TryGetComponent(out FoodItem item)) item.SetSource(prefab);
@@ -131,10 +124,11 @@ namespace MouthOfGod.Food
             body.AddForce(LaunchVelocity(origin, launchSpeed), ForceMode.VelocityChange);
         }
 
-        FieldId ResolveField()
+        Transform Origin()
         {
-            Func<FieldId> provider = CurrentField;
-            return provider != null ? provider() : Standing.Field;
+            if (spawnPoint != null) return spawnPoint;
+            PlayerRig rig = PlayerRig.Of(this);
+            return rig != null && rig.Mouth != null ? rig.Mouth : transform;
         }
 
         void RaiseSpawned(Spawned spawned)
@@ -149,29 +143,6 @@ namespace MouthOfGod.Food
             }
         }
 
-        // デバイスの決定を受け取る。OnEnable で頼み、OnDisable で外す。テストからも呼ぶ。
-        internal void Attach() => Devices.WhenReady(Bind);
-
-        internal void Detach()
-        {
-            Devices.CancelWhenReady(Bind);
-            Unbind();
-        }
-
-        void Bind(IDevice device)
-        {
-            Unbind();
-            _device = device;
-            _device.Confirmed += OnConfirmed;
-        }
-
-        void Unbind()
-        {
-            if (_device == null) return;
-            _device.Confirmed -= OnConfirmed;
-            _device = null;
-        }
-
         void OnConfirmed(TextureId texture) => Spawn(texture);
 
         void Awake()
@@ -181,14 +152,20 @@ namespace MouthOfGod.Food
 
         void OnEnable()
         {
-            Attach();
-            FoodSpawners.Register(this);
+            PlayerRig rig = PlayerRig.Of(this);
+            _device = rig != null ? rig.Device : null;
+            if (_device == null)
+            {
+                Debug.LogError("[FoodSpawner] 親のリグ（PlayerRig）にデバイスがないので、食べ物を生めません。", this);
+                return;
+            }
+            _device.Confirmed += OnConfirmed;
         }
 
         void OnDisable()
         {
-            Detach();
-            FoodSpawners.Unregister(this);
+            if (_device != null) _device.Confirmed -= OnConfirmed;
+            _device = null;
         }
     }
 }
