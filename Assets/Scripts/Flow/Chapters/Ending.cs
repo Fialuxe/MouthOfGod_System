@@ -13,6 +13,9 @@ namespace MouthOfGod.Flow
         [Tooltip("結果を出す文字です。空なら、巫女が言うだけです。")]
         [SerializeField] TMP_Text resultText;
 
+        [Tooltip("最終の点数を出す表示です。本編と同じ物を入れます。空なら出しません。")]
+        [SerializeField] ScoreBoard scoreBoard;
+
         [Header("声（空なら字幕だけ）")]
         [SerializeField] AudioClip thanksVoice;
         [SerializeField] AudioClip byeVoice;
@@ -27,6 +30,8 @@ namespace MouthOfGod.Flow
                 resultText.gameObject.SetActive(true);
             }
 
+            if (scoreBoard != null) scoreBoard.ShowFinalScore(MainGame.Score, answered);
+
             Miko.Follow();
             await Miko.Say(result);
             await Miko.Say("Thank you, our god. The villagers will remember this day.", thanksVoice);
@@ -36,6 +41,7 @@ namespace MouthOfGod.Flow
         protected internal override void OnRestart()
         {
             if (resultText != null) resultText.gameObject.SetActive(false);
+            if (scoreBoard != null) scoreBoard.HideAndClear();
         }
     }
 }
