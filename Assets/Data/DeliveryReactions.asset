@@ -13,9 +13,11 @@ MonoBehaviour:
   m_Name: DeliveryReactions
   m_EditorClassIdentifier: 
   helpedVillagerSparkles: {fileID: 4205001690606194231, guid: 1c69f29e0c297bf4ebdaebcff211bc15, type: 3}
-  requestFulfilledSound: {fileID: 8300000, guid: da9ae167cebe4224eba43567c4571478, type: 3}
+  requestFulfilledSound: {fileID: 8300000, guid: 0bcc453625d2402cb5c033ed93376889, type: 3}
   wrongFoodSmoke: {fileID: 6233896487566191122, guid: 6b970a0df6c0ec944badb25a95c1f71c, type: 3}
-  wrongFoodSound: {fileID: 8300000, guid: 15871b4f444d00c4e89ab318254a6bf1, type: 3}
+  wrongFoodSounds:
+  - {fileID: 8300000, guid: e6b17e44fadc4f2685229e48536f897f, type: 3}
+  - {fileID: 8300000, guid: de0c996ce9f44d13964a39c9c9688418, type: 3}
   stepItemSparkles: {fileID: 772552648908948963, guid: 1c69f29e0c297bf4ebdaebcff211bc15, type: 3}
   stepItemSparklesScale: 2.5
   volume: 0.6

@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SkyboxMaterial: {fileID: 2100000, guid: e54f0bee216166c41a77ba61a0a8543b, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -433,8 +433,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   giveUpSeconds: 90
   resultText: {fileID: 0}
-  thanksVoice: {fileID: 0}
-  byeVoice: {fileID: 0}
+  thanksVoice: {fileID: 8300000, guid: b61acf1520a047058c11c5413937913c, type: 3}
+  byeVoice: {fileID: 8300000, guid: a3077b09784d4f4caf61c9c2598d58d4, type: 3}
 --- !u!1 &243415659
 GameObject:
   m_ObjectHideFlags: 0
@@ -933,7 +933,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   giveUpSeconds: 90
   screen: {fileID: 8987292626593525737}
-  standUpVoice: {fileID: 0}
+  standUpVoice: {fileID: 8300000, guid: 95978c1891fa4522ab547a580aff3762, type: 3}
 --- !u!21 &528229252
 Material:
   serializedVersion: 8
@@ -1100,12 +1100,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   giveUpSeconds: 90
-  pierceVoice: {fileID: 0}
-  mouthVoice: {fileID: 0}
-  mouthAgainVoice: {fileID: 0}
-  changingVoice: {fileID: 0}
-  buttonVoice: {fileID: 0}
-  goodVoice: {fileID: 0}
+  pierceVoice: {fileID: 8300000, guid: 49db76d12a354264b64b04e5a374dce2, type: 3}
+  mouthVoice: {fileID: 8300000, guid: c22dcbf083224cbca40ef7fe1b9208b9, type: 3}
+  mouthAgainVoice: {fileID: 8300000, guid: 54d2615863bc411d95fc4814c26e48e7, type: 3}
+  changingVoice: {fileID: 8300000, guid: ff1ba8986ff741e596e57d6dc2c3d7bb, type: 3}
+  buttonVoice: {fileID: 8300000, guid: 987241dc6a5e44ca82fa07680591565f, type: 3}
+  goodVoice: {fileID: 8300000, guid: 46b219343526494d9ede05bce68f08a7, type: 3}
 --- !u!1 &573118769
 GameObject:
   m_ObjectHideFlags: 0
@@ -1907,10 +1907,11 @@ MonoBehaviour:
   field: sea
   wantedFood: {fileID: 5556158422024356725, guid: a53700841e218e940bfdf95f54d47041, type: 3}
   wantedTexture: placeholder-e
-  troubledVoice: {fileID: 0}
-  whichFeelVoice: {fileID: 0}
-  wrongVoice: {fileID: 0}
-  fishHereVoice: {fileID: 0}
+  troubledVoice: {fileID: 8300000, guid: aa6b14dba5ef4b9784a4dc494ed439db, type: 3}
+  whichFeelVoice: {fileID: 8300000, guid: 4cf89a4680444f519673e394b5a50ce5, type: 3}
+  wrongVoice: {fileID: 8300000, guid: 525e941a57e34667945e53217912eb14, type: 3}
+  fishHereVoice: {fileID: 8300000, guid: 8e76b63042a04e85b34fc6f49542c10f, type: 3}
+  alreadyDeliveredVoice: {fileID: 8300000, guid: 485b6e504a4a4b1bbc060e0cea969e4e, type: 3}
 --- !u!4 &1273857304 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2762501824001548848, guid: 362db0c936d831f47b70e0dfb8f948a2, type: 3}
@@ -2072,13 +2073,13 @@ MonoBehaviour:
   offering: {fileID: 1077053935460138054}
   wantedFood: {fileID: 5680947829894292994, guid: e8ab356fc01797d46beae35a3378db54, type: 3}
   wantedTexture: placeholder-b
-  rememberVoice: {fileID: 0}
-  rememberShortVoice: {fileID: 0}
-  hintPierceVoice: {fileID: 0}
-  hintMouthVoice: {fileID: 0}
-  waitAppleVoice: {fileID: 0}
-  wrongVoice: {fileID: 0}
-  bornVoice: {fileID: 0}
+  rememberVoice: {fileID: 8300000, guid: 0c3ed731fbbf40b99059348549ccf3ae, type: 3}
+  rememberShortVoice: {fileID: 8300000, guid: 213bf9eb259f41118203bdab23968460, type: 3}
+  hintPierceVoice: {fileID: 8300000, guid: b14e4abfbb2b462085f22397c928580d, type: 3}
+  hintMouthVoice: {fileID: 8300000, guid: 54d2615863bc411d95fc4814c26e48e7, type: 3}
+  waitAppleVoice: {fileID: 8300000, guid: 3a7538c5f94e4c3dbc287f02f8c81152, type: 3}
+  wrongVoice: {fileID: 8300000, guid: 13d7e1b240b94dfdabaa266859957372, type: 3}
+  bornVoice: {fileID: 8300000, guid: 8a00f108262b459fb1c8dee351007b7c, type: 3}
 --- !u!1 &1343123303
 GameObject:
   m_ObjectHideFlags: 0
@@ -2325,11 +2326,11 @@ MonoBehaviour:
   field: sea
   wantedFood: {fileID: 5556158422024356725, guid: a53700841e218e940bfdf95f54d47041, type: 3}
   wantedTexture: placeholder-e
-  walkVoice: {fileID: 0}
-  hereVoice: {fileID: 0}
-  notHereVoice: {fileID: 0}
-  splendidVoice: {fileID: 0}
-  trueGodVoice: {fileID: 0}
+  walkVoice: {fileID: 8300000, guid: 2d8223b23e544634af405c2170a5a257, type: 3}
+  hereVoice: {fileID: 8300000, guid: 010fccb83d4e4ea680049c7566d801b7, type: 3}
+  notHereVoice: {fileID: 8300000, guid: 454cc21a837141abb4095d69c8b2cd25, type: 3}
+  splendidVoice: {fileID: 8300000, guid: ef98789a763e4cf295366ad11937c006, type: 3}
+  trueGodVoice: {fileID: 8300000, guid: 69c4493cfed44946a97feaeb8701b5b1, type: 3}
 --- !u!1001 &1618384324
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3334,6 +3335,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Desktop Rig
       objectReference: {fileID: 0}
+    - target: {fileID: 8802531427434764740, guid: 22a53f7186c99154db5433087e55d955, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3455,7 +3460,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6352577637771783817, guid: 8e2316fb1e0001a47b06e0fed7050d16, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6526646510240410010, guid: 8e2316fb1e0001a47b06e0fed7050d16, type: 3}
       propertyPath: m_LocalPosition.x

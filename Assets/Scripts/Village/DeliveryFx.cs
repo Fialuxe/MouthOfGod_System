@@ -109,7 +109,7 @@ namespace MouthOfGod.Village
             if (delivered.Kind == DeliveryKind.Requested) return; // 喜ぶ反応は OnStepDone で出します
             foreach (var mood in GetComponentsInChildren<VillagerMood>())
                 if (mood.IsWorried) mood.React(missedTrigger);
-            Play(reactions != null ? reactions.WrongFoodSound : null);
+            Play(reactions != null ? reactions.PickWrongFoodSound() : null);
             onMissed.Invoke();
         }
 
