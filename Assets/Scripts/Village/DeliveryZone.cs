@@ -6,7 +6,7 @@ namespace MouthOfGod.Village
 {
     /// <summary>
     /// 食べ物が落ちる場所です。
-    /// 食べ物が入ると、そのフィールドの <see cref="IFieldRequests.Receive"/> を呼びます。
+    /// 食べ物が入り、困っている村人の近くに落ちていると、そのフィールドの <see cref="IFieldRequests.Receive"/> を呼びます。
     /// </summary>
     /// <remarks>
     /// <para>
@@ -22,6 +22,9 @@ namespace MouthOfGod.Village
     /// <para>
     /// 入ってすぐには判定せず、<c>judgeDelaySeconds</c> だけ待ちます。
     /// その間に、体験者は何を届けたかを目で確かめられます。
+    /// 落ちた所が、困っている村人から <c>acceptRadiusMeters</c> より遠いときは、届いたことにしません。
+    /// フィールドの中でも、村人から離れた所では受け入れないためです。
+    /// そのときは、煙を出して消します。
     /// 判定のあと、欲しがっていた物は消します。
     /// それ以外は、煙を出して小さくしながら消します。
     /// どちらも Inspector で変えられます。
@@ -35,6 +38,9 @@ namespace MouthOfGod.Village
 
         [Tooltip("食べ物が入ってから、判定するまでの秒数です。この間、食べ物は落ちたまま見えています。0 ならすぐ判定します。")]
         [SerializeField, Min(0f)] float judgeDelaySeconds = 1f;
+
+        [Tooltip("困っている村人から、この距離（メートル）より近い所に落ちた食べ物だけを、届いたことにします。水平の距離で測ります。0 なら、フィールドのどこでも届いたことにします。")]
+        [SerializeField, Min(0f)] float acceptRadiusMeters = 0.2f;
 
         [Tooltip("頼まれた物が届いたら、その食べ物を消します。")]
         [SerializeField] bool consumeRequested = true;
@@ -99,6 +105,13 @@ namespace MouthOfGod.Village
 
         void Judge(GameObject food, IFoodItem item, IFieldRequests field)
         {
+            if (!IsNearWorriedVillager(food.transform.position, field))
+            {
+                if (Application.isPlaying) Vanish(food);
+                else DestroyImmediate(food);
+                return;
+            }
+
             var kind = field.Receive(item.Kind);
             if (kind == DeliveryKind.Requested ? consumeRequested : consumeOthers)
             {
@@ -109,6 +122,24 @@ namespace MouthOfGod.Village
             {
                 Vanish(food);
             }
+        }
+
+        // 困っている村人のうち、いちばん近い人までの水平の距離が、acceptRadiusMeters 以内かを返します。
+        bool IsNearWorriedVillager(Vector3 position, IFieldRequests field)
+        {
+            if (acceptRadiusMeters <= 0f) return true;
+
+            var fieldRoot = field as Component;
+            if (fieldRoot == null) return true; // 村人を探せないときは、これまでどおり受け入れます
+
+            foreach (var mood in fieldRoot.GetComponentsInChildren<VillagerMood>())
+            {
+                if (!mood.IsWorried) continue;
+                Vector3 offset = mood.transform.position - position;
+                offset.y = 0f;
+                if (offset.sqrMagnitude <= acceptRadiusMeters * acceptRadiusMeters) return true;
+            }
+            return false;
         }
 
         void Vanish(GameObject food)
