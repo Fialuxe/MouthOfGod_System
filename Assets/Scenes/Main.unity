@@ -417,7 +417,7 @@ MonoBehaviour:
   _miniature: {fileID: 1157251903}
   _beyondOffsetMeters: 0.75
   _heightAboveMiniatureMeters: 0.5
-  _angularWidthDegrees: 24
+  _angularWidthDegrees: 26
   _followDeadZoneDegrees: 30
   _followSmoothSeconds: 0.5
   _warningSeconds: 10
