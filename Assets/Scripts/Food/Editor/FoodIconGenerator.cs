@@ -9,15 +9,15 @@ namespace MouthOfGod.Food.Editor
 {
     /// <summary>
     /// 食べ物の Prefab を、遠近のあるカメラで斜め前から写し、背景が透明な PNG にする。村人の吹き出しのアイコンに使う。
-    /// Assets/Resources/Food/ のすべての Prefab から、Assets/Resources/Icons/Food/&lt;食べ物の ID&gt;.png を作る。
+    /// Assets/Prefabs/Food/ のすべての Prefab から、Assets/Art/Icons/Food/&lt;食べ物の ID&gt;.png を作る。
     /// 1 回実行して、できた PNG をコミットする（Play 時には使わない）。
     /// 既にある PNG は上書きしない。手で描いたアイコンを同じ名前で置けば、そちらが使われる。
     /// 作り直すときは、Project で食べ物の Prefab を選び、右クリックの「MouthOfGod/Food/Generate Icon From Selected」を使う（上書きする）。
     /// </summary>
     public static class FoodIconGenerator
     {
-        const string PrefabFolder = "Assets/Resources/Food/";
-        const string OutputFolder = "Assets/Resources/Icons/Food/";
+        const string PrefabFolder = "Assets/Prefabs/Food/";
+        const string OutputFolder = "Assets/Art/Icons/Food/";
         const int Size = 256; // px
         const float FieldOfView = 30f;
         const float Fill = 0.92f; // 物の箱が、画像の幅（高さ）のどれだけを占めるか。1 に近いほど余白が狭い

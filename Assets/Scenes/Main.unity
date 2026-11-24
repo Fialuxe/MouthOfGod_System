@@ -2394,6 +2394,7 @@ MonoBehaviour:
   giveUpSeconds: 90
   field: sea
   food: fish
+  wantedFood: {fileID: 5556158422024356725, guid: a53700841e218e940bfdf95f54d47041, type: 3}
   troubledVoice: {fileID: 0}
   whichFeelVoice: {fileID: 0}
   wrongVoice: {fileID: 0}
@@ -2558,6 +2559,7 @@ MonoBehaviour:
   giveUpSeconds: 90
   offering: {fileID: 1077053935460138054}
   targetFood: apple
+  wantedFood: {fileID: 5680947829894292994, guid: e8ab356fc01797d46beae35a3378db54, type: 3}
   rememberVoice: {fileID: 0}
   rememberShortVoice: {fileID: 0}
   hintPierceVoice: {fileID: 0}
@@ -2972,6 +2974,7 @@ MonoBehaviour:
   giveUpSeconds: 90
   field: sea
   food: fish
+  wantedFood: {fileID: 5556158422024356725, guid: a53700841e218e940bfdf95f54d47041, type: 3}
   walkVoice: {fileID: 0}
   hereVoice: {fileID: 0}
   notHereVoice: {fileID: 0}
@@ -3986,50 +3989,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1157251903}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2131423013
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2131423015}
-  - component: {fileID: 2131423014}
-  m_Layer: 0
-  m_Name: Request Bubbles
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2131423014
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2131423013}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d8a4978367a49a9b8f771eb07767967, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &2131423015
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2131423013}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1077053935460138054
 GameObject:
   m_ObjectHideFlags: 0
@@ -4556,5 +4515,4 @@ SceneRoots:
   - {fileID: 1910860737}
   - {fileID: 243415661}
   - {fileID: 1919217679}
-  - {fileID: 2131423015}
   - {fileID: 1380514470}

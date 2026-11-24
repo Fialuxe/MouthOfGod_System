@@ -1364,6 +1364,7 @@ GameObject:
   - component: {fileID: 483923075420710952}
   - component: {fileID: 8506411739103543221}
   - component: {fileID: 1827881423772347205}
+  - component: {fileID: 1378730809211857081}
   m_Layer: 0
   m_Name: Cowboy_Hair
   m_TagString: Untagged
@@ -1425,6 +1426,20 @@ MonoBehaviour:
   worryMark: {fileID: 5191569792705434900}
   uprightSeconds: {x: 4, y: 9}
   slumpSeconds: {x: 3, y: 6}
+--- !u!114 &1378730809211857081
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1007941918855836306}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dc5e9da78e92f742b8425e9b4857240, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 422a83489e5d426abae67cff5234cafb, type: 2}
+  anchor: {fileID: 0}
 --- !u!1 &1010211004648723241
 GameObject:
   m_ObjectHideFlags: 0
@@ -7897,6 +7912,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: cow
+  wantedFood: {fileID: 7978039674701303498, guid: df1511ee40f79bc468d156c8d5de970f, type: 3}
   helped:
   - {fileID: 3509266754568001685}
   hideWhenDone:
@@ -11332,6 +11348,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: sheep
+  wantedFood: {fileID: 8280665287723641000, guid: d85a49f1699f5784db66c79f05a49039, type: 3}
   helped:
   - {fileID: 5119614221128372352}
   hideWhenDone:
@@ -12399,6 +12416,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: pig
+  wantedFood: {fileID: 2676174945490884697, guid: 6cf52826ab2b7094881e156a9058f7c6, type: 3}
   helped:
   - {fileID: 8399617801955544350}
   hideWhenDone:
@@ -15760,6 +15778,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   food: 
+  wantedFood: {fileID: 0}
   helped:
   - {fileID: 1827881423772347205}
   hideWhenDone:
@@ -16501,6 +16520,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: aa1153d5fea9fb84db98c1c6d0d49638, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8399617801955544350}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: aa1153d5fea9fb84db98c1c6d0d49638, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5349335204053972250}
   m_SourcePrefab: {fileID: 100100000, guid: aa1153d5fea9fb84db98c1c6d0d49638, type: 3}
 --- !u!4 &196075748735259582 stripped
 Transform:
@@ -16549,6 +16571,20 @@ MonoBehaviour:
   worryMark: {fileID: 2457922743835251851}
   uprightSeconds: {x: 4, y: 9}
   slumpSeconds: {x: 3, y: 6}
+--- !u!114 &5349335204053972250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716997538227374340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dc5e9da78e92f742b8425e9b4857240, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 422a83489e5d426abae67cff5234cafb, type: 2}
+  anchor: {fileID: 0}
 --- !u!4 &1543734052907144587 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8043902451978984994, guid: aa1153d5fea9fb84db98c1c6d0d49638, type: 3}
@@ -17216,6 +17252,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c515d752c5f1f9a44af47f3f56616db4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5119614221128372352}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c515d752c5f1f9a44af47f3f56616db4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1519897547340414297}
   m_SourcePrefab: {fileID: 100100000, guid: c515d752c5f1f9a44af47f3f56616db4, type: 3}
 --- !u!4 &5118804951472006116 stripped
 Transform:
@@ -17264,6 +17303,20 @@ MonoBehaviour:
   worryMark: {fileID: 1311576105292000934}
   uprightSeconds: {x: 4, y: 9}
   slumpSeconds: {x: 3, y: 6}
+--- !u!114 &1519897547340414297
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5495083512074582366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dc5e9da78e92f742b8425e9b4857240, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 422a83489e5d426abae67cff5234cafb, type: 2}
+  anchor: {fileID: 0}
 --- !u!4 &5826899050609550801 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8043902451978984994, guid: c515d752c5f1f9a44af47f3f56616db4, type: 3}
@@ -18097,6 +18150,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 15132ac198bdc3241926d3bdb21584f2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3509266754568001685}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 15132ac198bdc3241926d3bdb21584f2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3234416140029800722}
   m_SourcePrefab: {fileID: 100100000, guid: 15132ac198bdc3241926d3bdb21584f2, type: 3}
 --- !u!1 &7110129330423760714 stripped
 GameObject:
@@ -18140,6 +18196,20 @@ MonoBehaviour:
   worryMark: {fileID: 7167514583572231538}
   uprightSeconds: {x: 4, y: 9}
   slumpSeconds: {x: 3, y: 6}
+--- !u!114 &3234416140029800722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7110129330423760714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dc5e9da78e92f742b8425e9b4857240, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings: {fileID: 11400000, guid: 422a83489e5d426abae67cff5234cafb, type: 2}
+  anchor: {fileID: 0}
 --- !u!4 &7631226805198708208 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 15132ac198bdc3241926d3bdb21584f2, type: 3}
