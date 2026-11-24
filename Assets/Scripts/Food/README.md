@@ -12,6 +12,7 @@
 | `FoodSpawner` | シーンに 1 つ | 決定した食感（`IDevice.Confirmed`）で表を引きます。**Spawn Point** の位置に食べ物を生みます。食べ物に Rigidbody があれば、**Launch Speed** で、口の前（Spawn Point の前向き）へ飛ばします。そのあとの動きは、食べ物の Rigidbody（Mass など）しだいです |
 | `FoodTables` | （置き場です。付けません） | いまある `FoodTable` の掲示板です。`Resolve(FieldId, TextureId)` で引きます。そのフィールドの表、共通の表、なし、の順に探します |
 | `FoodItemTag` | （`FoodSpawner` が、生んだ食べ物に付けます） | Core の `IFoodItem` を実装し、どの食べ物かを渡します。届け先の判定などは、Food を参照せずに `IFoodItem` で読みます |
+| `SpawnFx` | `FoodSpawner` と同じオブジェクト | 食べ物が生まれた瞬間に、食べ物の色の粒と、短いベル音を出します。続けて生むほど音が 1 音ずつ高くなり、**Combo Window Seconds** より間が空くと戻ります。粒は **Burst Prefab**（一度だけ出て自分で消える物）で、空なら出しません。音は起動時にコードで作ります |
 
 ## ほかの機能とのつなぎ方
 
