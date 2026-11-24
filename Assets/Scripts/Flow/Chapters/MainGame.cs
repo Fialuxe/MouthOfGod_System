@@ -32,13 +32,17 @@ namespace MouthOfGod.Flow
             Answered = 0;
             Score = 0;
             int streak = 0;
-            if (scoreBoard != null) scoreBoard.ShowScore(Score, streak, celebrate: false);
+            if (scoreBoard != null)
+            {
+                scoreBoard.ShowScore(Score, streak, gainedPoints: 0);
+                scoreBoard.ShowStartBanner();
+            }
             foreach (Field field in Field.All) field.WantAll();
 
             float end = Time.time + seconds;
             while (Time.time < end)
             {
-                if (scoreBoard != null) scoreBoard.ShowRemainingSeconds(Mathf.CeilToInt(end - Time.time));
+                if (scoreBoard != null) scoreBoard.ShowRemainingSeconds(Mathf.CeilToInt(end - Time.time), Mathf.RoundToInt(seconds));
 
                 // 残り時間の表示を更新するため、待つのは長くても 1 秒にします。
                 // 0 を渡すと無制限に待つので、短くても 0.01 秒にします。
@@ -48,14 +52,15 @@ namespace MouthOfGod.Flow
                 {
                     // 頼まれていない物を届けると、続けた数が途切れます。
                     streak = 0;
-                    if (scoreBoard != null) scoreBoard.ShowScore(Score, streak, celebrate: false);
+                    if (scoreBoard != null) scoreBoard.ShowScore(Score, streak, gainedPoints: 0);
                     continue;
                 }
 
                 Answered++;
                 streak++;
-                Score += PointsPerWish * Mathf.Min(streak, MaxStreakMultiplier);
-                if (scoreBoard != null) scoreBoard.ShowScore(Score, streak, celebrate: true);
+                int gained = PointsPerWish * Mathf.Min(streak, MaxStreakMultiplier);
+                Score += gained;
+                if (scoreBoard != null) scoreBoard.ShowScore(Score, streak, gained);
                 Field.Get(got.Value.Field).WantAll(); // 届けたフィールドに、次の欲しい物を出します。
             }
         }
