@@ -40,7 +40,7 @@ namespace MouthOfGod.Village
         [SerializeField, Min(0f)] float judgeDelaySeconds = 1f;
 
         [Tooltip("困っている村人から、この距離（メートル）より近い所に落ちた食べ物だけを、届いたことにします。水平の距離で測ります。0 なら、フィールドのどこでも届いたことにします。")]
-        [SerializeField, Min(0f)] float acceptRadiusMeters = 3.5f;
+        [SerializeField, Min(0f)] float acceptRadiusMeters = 0.2f;
 
         [Tooltip("頼まれた物が届いたら、その食べ物を消します。")]
         [SerializeField] bool consumeRequested = true;
