@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4725696314429653660}
   - component: {fileID: 5207435893859760740}
+  - component: {fileID: 5207435893859760799}
   m_Layer: 0
   m_Name: FoodSpawner
   m_TagString: Untagged
@@ -62,3 +63,19 @@ MonoBehaviour:
   - {fileID: 3317272506424988853, guid: b70453fb0c88dc04783e49e8e59818d3, type: 3}
   - {fileID: 5346834470670105322, guid: 19d847f83f13adb4bba31c86bd4d30fa, type: 3}
   - {fileID: 2223769266273396066, guid: f9b986c57110e1e4b912f3cdbb909ddf, type: 3}
+--- !u!114 &5207435893859760799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5971897110750279003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a6d4528282f48ff91512be3ec6e7339, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _burstPrefab: {fileID: 772552648908948963, guid: 1c69f29e0c297bf4ebdaebcff211bc15, type: 3}
+  _burstScale: 1.2
+  _volume: 0.7
+  _comboWindowSeconds: 6
